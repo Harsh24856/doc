@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Frontend
+front/node_modules/
+front/dist/
+
+# Backend
+back/server/node_modules/
+back/server/.env
+
+# Python (if any)
+backend/venv/
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
