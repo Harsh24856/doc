@@ -1,22 +1,47 @@
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useState } from "react";
+import { useEffect } from "react";
+import Navbar from "./components/Navbar"
+import HospitalProfile from "./pages/HospitalProfile";
 
 export default function App() {
-  return (
-    <Routes>
-     <Route
-  path="/"
-  element={
-    <ProtectedRoute>
-      <Home />
-    </ProtectedRoute>
+  const[signedIn, setSignedIn] = useState(false);
+  const[role, setRole] = useState("");
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || !user) {
+    setSignedIn(false);
+    setRole(null);
+  } else {
+    setSignedIn(true);
+    setRole(user.role);
   }
-/>
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-    </Routes>
+}, []);
+
+
+  return (
+  <>
+  <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role}/>
+  <Routes>
+  <Route
+    path="/"
+    element={
+        <Home />
+    }
+  />
+
+  <Route path="/login" element={<Login setSignedIn={setSignedIn} setRole={setRole}/>} />
+  <Route path="/signup" element={<Signup setSignedIn={setSignedIn} setRole={setRole}/>} />
+  <Route path="/hospital-profile" element={<HospitalProfile/>} />
+</Routes>
+</>
+
+    
   );
 }

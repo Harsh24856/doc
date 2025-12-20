@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/signup", async (req, res) => {
     const { name, email, password, role } = req.body;
   
-    if (!name || !email || !password) {
+    if (!name || !email || !password ||!role) {
       return res.status(400).json({ message: "Missing fields" });
     }
   
