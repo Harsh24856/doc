@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_BASE_URL from "../config/api.js";
 
 export default function HospitalProfile() {
   const [form, setForm] = useState({
@@ -20,7 +21,7 @@ export default function HospitalProfile() {
   useEffect(() => {
     const fetchHospitalProfile = async () => {
       try {
-        const res = await fetch("http://localhost:4000/hospital/fetch", {
+        const res = await fetch(`${API_BASE_URL}/hospital/fetch`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -44,7 +45,7 @@ export default function HospitalProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:4000/hospital/profile", {
+    const res = await fetch(`${API_BASE_URL}/hospital/profile`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
