@@ -92,7 +92,7 @@ docker compose up --build
 4️⃣ Access the app
 
 Service	URL
-Backend	http://localhost:4000
+Backend	http://localhost:3000
 Frontend	http://localhost:5173
 
 
@@ -125,7 +125,7 @@ Backend only
 
 cd back/server
 docker build -t backend-server .
-docker run -p 4000:4000 backend-server
+docker run -p 3000:3000 backend-server
 
 Frontend only
 

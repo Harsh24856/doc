@@ -10,6 +10,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
     stdin_open: true
     tty: true
 
@@ -18,7 +19,7 @@ services:
       context: ./back/server
       dockerfile: Dockerfile
     ports:
-      - "4000:4000"
+      - "3000:3000"
     volumes:
       - ./back/server:/app
       - /app/node_modules

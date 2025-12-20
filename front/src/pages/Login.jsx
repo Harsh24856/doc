@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api.js";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -7,26 +8,43 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔐 [Login] Form submitted:', { email: form.email, password: '***' });
 
-    const res = await fetch("http://0.0.0.0:4000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const url = `${API_BASE_URL}/auth/login`;
+      console.log('📤 [Login] Making request to:', url);
+      console.log('📤 [Login] Request body:', { email: form.email, password: '***' });
 
-    const data = await res.json();
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    if (!res.ok) {
-      alert(data.message || "Login failed");
-      return;
+      console.log('📥 [Login] Response status:', res.status, res.statusText);
+      console.log('📥 [Login] Response headers:', Object.fromEntries(res.headers.entries()));
+
+      const data = await res.json();
+      console.log('📥 [Login] Response data:', data);
+
+      if (!res.ok) {
+        console.error('❌ [Login] Login failed:', data);
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      // ✅ STORE AUTH DATA
+      console.log('💾 [Login] Storing token and user data');
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log('✅ [Login] Login successful, redirecting to home');
+
+      // ✅ REDIRECT TO HOME
+      navigate("/");
+    } catch (error) {
+      console.error('❌ [Login] Error during login:', error);
+      alert('An error occurred during login. Please try again.');
     }
-
-    // ✅ STORE AUTH DATA
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    // ✅ REDIRECT TO HOME
-    navigate("/");
   };
 
   return (

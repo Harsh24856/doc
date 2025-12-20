@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../config/api.js";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -12,25 +13,42 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('📝 [Signup] Form submitted:', { name: form.name, email: form.email, password: '***' });
 
-    const res = await fetch("http://0.0.0.0:4000/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const url = `${API_BASE_URL}/auth/signup`;
+      console.log('📤 [Signup] Making request to:', url);
+      console.log('📤 [Signup] Request body:', { name: form.name, email: form.email, password: '***' });
 
-    const data = await res.json();
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    if (!res.ok) {
-      alert(data.message || "Signup failed");
-      return;
+      console.log('📥 [Signup] Response status:', res.status, res.statusText);
+      console.log('📥 [Signup] Response headers:', Object.fromEntries(res.headers.entries()));
+
+      const data = await res.json();
+      console.log('📥 [Signup] Response data:', data);
+
+      if (!res.ok) {
+        console.error('❌ [Signup] Signup failed:', data);
+        alert(data.message || "Signup failed");
+        return;
+      }
+
+      // ✅ AUTO-LOGIN
+      console.log('💾 [Signup] Storing token and user data');
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log('✅ [Signup] Signup successful, redirecting to home');
+
+      navigate("/");
+    } catch (error) {
+      console.error('❌ [Signup] Error during signup:', error);
+      alert('An error occurred during signup. Please try again.');
     }
-
-    // ✅ AUTO-LOGIN
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    navigate("/");
   };
 
   return (
