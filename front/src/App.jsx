@@ -8,6 +8,10 @@ import { useEffect } from "react";
 import Navbar from "./components/Navbar"
 import HospitalProfile from "./pages/HospitalProfile";
 
+import MedicalResume from "./pages/MedicalResume";
+import GetVerified from "./pages/GetVerified";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 export default function App() {
   const[signedIn, setSignedIn] = useState(false);
   const[role, setRole] = useState("");
@@ -39,6 +43,30 @@ export default function App() {
   <Route path="/login" element={<Login setSignedIn={setSignedIn} setRole={setRole}/>} />
   <Route path="/signup" element={<Signup setSignedIn={setSignedIn} setRole={setRole}/>} />
   <Route path="/hospital-profile" element={<HospitalProfile/>} />
+  <Route
+        path="/resume"
+        element={
+          <ProtectedRoute>
+            <MedicalResume />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/get-verified"
+        element={
+          <ProtectedRoute>
+            <GetVerified />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
 </Routes>
 </>
 

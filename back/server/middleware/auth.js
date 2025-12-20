@@ -1,16 +1,20 @@
 import jwt from "jsonwebtoken";
 
 export default function auth(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  const token = authHeader.split(" ")[1];
+
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    console.error("JWT ERROR:", err.message);
+    return res.status(401).json({ message: "Invalid token" });
   }
 }

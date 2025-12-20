@@ -24,7 +24,7 @@ export default function Navbar({ signedIn, setSignedIn, role}) {
 
         {/* Center links */}
         <div className="absolute left-1/2 -translate-x-1/2 flex space-x-8 text-gray-700 font-medium">
-          <Link to={role === "doctor"?"/":"/hospital-profile"} className="hover:text-blue-600 transition">
+          <Link to={role === "doctor"?"/resume":"/hospital-profile"} className="hover:text-blue-600 transition">
              Profile(Set-up)
           </Link>
           <Link className="hover:text-blue-600 transition" to="/">
