@@ -112,6 +112,10 @@ router.post(
       }
 
       /* 2️⃣ Download license PDF */
+      if (!user.license_doc_url) {
+        return res.status(400).json({ error: "User has no license document uploaded" });
+      }
+
       let filePath = user.license_doc_url;
       if (filePath.startsWith("http")) {
         filePath = filePath.split("/storage/v1/object/")[1]?.split("?")[0];
@@ -122,8 +126,10 @@ router.post(
           .from("verification-docs")
           .download(filePath);
 
-      if (fileError) {
-        return res.status(500).json({ error: fileError.message });
+      if (fileError || !fileData) {
+        return res.status(500).json({ 
+          error: fileError?.message || "Failed to download license document" 
+        });
       }
 
       const buffer = Buffer.from(await fileData.arrayBuffer());
@@ -141,18 +147,34 @@ router.post(
       const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8001";
       const PLAYWRIGHT_SERVICE_URL = process.env.PLAYWRIGHT_SERVICE_URL || "http://localhost:9000";
 
+      // Add timeout wrapper for fetch calls
+      const fetchWithTimeout = (url, options, timeout = 30000) => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
+          )
+        ]);
+      };
+
       const [ocrRes, imrRes] = await Promise.allSettled([
-        fetch(`${ML_SERVICE_URL}/extract-license`, {
+        fetchWithTimeout(`${ML_SERVICE_URL}/extract-license`, {
           method: "POST",
           body: form,
+        }).catch(err => {
+          console.error("[OCR Service] Connection error:", err.message);
+          throw new Error(`ML Service unavailable: ${err.message}. Ensure ML service is running on ${ML_SERVICE_URL}`);
         }),
-        fetch(`${PLAYWRIGHT_SERVICE_URL}/mci-check`, {
+        fetchWithTimeout(`${PLAYWRIGHT_SERVICE_URL}/mci-check`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: user.name,
             registration_number: user.registration_number
           }),
+        }).catch(err => {
+          console.error("[Playwright Service] Connection error:", err.message);
+          throw new Error(`Playwright Service unavailable: ${err.message}. Ensure Playwright service is running on ${PLAYWRIGHT_SERVICE_URL}`);
         })
       ]);
 
@@ -321,7 +343,11 @@ router.post(
       });
 
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error("[AI Check] Unhandled error:", err);
+      res.status(500).json({ 
+        error: err.message || "Internal server error during AI verification",
+        details: process.env.NODE_ENV === "development" ? err.stack : undefined
+      });
     }
   }
 );

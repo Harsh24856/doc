@@ -30,12 +30,13 @@ cd DocSpace
 
 2. **Set up environment variables**
 ```bash
-# Backend server
+# Backend server - Copy example and fill in your credentials
 cp back/server/.env.example back/server/.env
-# Edit back/server/.env with your Supabase credentials
+# Edit back/server/.env with your Supabase credentials and JWT secret
 
 # ML service - Place your Google Vision credentials
-# Copy google-vision-key.json to back/ML/google-vision-key.json
+# You need to obtain google-vision-key.json from Google Cloud Console
+# Then place it in: back/ML/google-vision-key.json
 ```
 
 3. **Start all services**

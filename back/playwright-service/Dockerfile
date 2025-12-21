@@ -1,20 +1,40 @@
-FROM mcr.microsoft.com/playwright:v1.44.0-focal
+FROM node:20-slim
+
+# Install system dependencies for Playwright
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies only
-RUN npm install --production
+# Install dependencies (including playwright)
+RUN npm install
+
+# Install Playwright browsers (this ensures compatibility with installed Playwright version)
+RUN npx playwright install chromium
 
 # Copy application files
 COPY . .
 
 EXPOSE 9000
-
-# Note: Chromium and dependencies are already included in the base image
-# No need to install them again
 
 CMD ["npm", "start"]
 
