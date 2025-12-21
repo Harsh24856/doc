@@ -9,7 +9,7 @@ router.get("/fetch", auth, async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("hospitals")
       .select(`
       hospital_name,
       hospital_type,
@@ -21,8 +21,7 @@ router.get("/fetch", auth, async (req, res) => {
       hospital_website
     `)
 
-      .eq("id", hospitalId)
-      .eq("role", "hospital")
+      .eq("user_id", hospitalId)
       .single();
 
     if (error) throw error;
