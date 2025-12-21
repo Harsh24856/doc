@@ -41,6 +41,23 @@ router.post("/signup", async (req, res) => {
 
     if (error) throw error;
 
+     if (role === "hospital") {
+      const { error: hospitalError } = await supabase
+        .from("hospitals")
+        .insert([
+          {
+            user_id: data.id,
+            hospital_profile_completed: false,
+            verified: false,
+          },
+        ]);
+
+      if (hospitalError) {
+  console.error("Hospital insert error:", hospitalError);
+  throw hospitalError;
+}
+    }
+
     const token = jwt.sign(
       { id: data.id, email: data.email, role: data.role },
       process.env.JWT_SECRET,

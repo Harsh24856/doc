@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API_BASE_URL from "../config/api.js";
+import HospitalDocUpload from "../components/HospitalDocUpload.jsx";
 
 export default function HospitalProfile() {
   const [form, setForm] = useState({
@@ -165,7 +166,19 @@ export default function HospitalProfile() {
             </div>
           )}
         </form>
+        <div className="mt-12 border-t pt-8">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">
+             Verification Documents
+          </h3>
+          <p className="text-gray-500 mb-6">
+             Upload required documents to verify your hospital.
+          </p>
+
+          <HospitalDocUpload />
+        </div>
+
       </div>
+      
     </div>
   );
 }
