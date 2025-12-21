@@ -4,6 +4,9 @@ import dotenv from "dotenv"
 import test from "./route/test.js";
 import fetchtest from "./route/fetch.js";
 import authRoutes from "./route/auth.js";
+import hospitalProfile from "./route/hospitalProfile.js"
+import hospitalFetch from "./route/hospitalFetch.js"
+
 import profileRoutes from "./route/profile.js";
 import auth from "./middleware/auth.js";
 import verificationRoutes from "./route/verification.js";
@@ -35,6 +38,9 @@ app.get("/test-auth", auth, (req, res) => {
   res.json({ user: req.user });
 });
 app.use("/admin", fetchtest);
+app.use("/hospital", hospitalProfile);
+app.use("/hospital", hospitalFetch);
+
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
 app.use("/verification", verificationRoutes);
