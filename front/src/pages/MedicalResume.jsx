@@ -44,7 +44,7 @@ export default function MedicalResume() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10 flex justify-center">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 px-4 py-10 flex justify-center">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-8">
         {editMode ? (
           <EditResume
