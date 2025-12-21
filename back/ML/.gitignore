@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment
+.env
+.env.local
+*.env
+
+# Sensitive files - Google Vision credentials
+google-vision-key.json
+*-key.json
+*-keys.json
+*.key
+*.pem
+
+# Test files
+test_*.py
+*_test.py
+medcert*.pdf
+*test*.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore.bak
+
