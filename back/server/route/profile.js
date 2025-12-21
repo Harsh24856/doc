@@ -7,56 +7,68 @@ const router = express.Router();
 /* =========================
    UPDATE MEDICAL RESUME
    ========================= */
-router.put("/medical-resume", auth, async (req, res) => {
-  const userId = req.user.id;
-
-  // 🔐 Allowed fields (role allowed ONCE)
-  const allowedFields = [
-    "role",
-    "name",
-    "email",
-    "phone",
-    "designation",
-    "specialization",
-    "registration_number",
-    "years_of_experience",
-    "hospital_affiliation",
-    "qualifications",
-    "skills",
-    "bio",
-  ];
-
-  // 🛑 Filter request body
-  const updates = {};
-  for (const key of allowedFields) {
-    if (req.body[key] !== undefined) {
-      updates[key] = req.body[key];
+   router.put("/medical-resume", auth, async (req, res) => {
+    const userId = req.user.id;
+  
+    const allowedFields = [
+      "role",
+      "name",
+      
+      "phone",
+      "designation",
+      "specialization",
+      "registration_number",
+      "years_of_experience",
+      "hospital_affiliation",
+      "qualifications",
+      "skills",
+      "bio",
+    ];
+  
+    const updates = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updates[key] = req.body[key];
+      }
     }
-  }
-
-  try {
-    // ❌ Never allow admin role from resume (security measure)
-    if (updates.role === "admin") {
-      console.log("[Profile] Attempt to set admin role blocked for user:", userId);
-      delete updates.role;
+  
+    try {
+      // 🔍 Fetch current role + profile status
+      const { data: currentUser, error } = await supabase
+        .from("users")
+        .select("role, profile_completed")
+        .eq("id", userId)
+        .single();
+  
+      if (error) throw error;
+  
+      // 🚫 Block admin role
+      if (updates.role === "admin") {
+        delete updates.role;
+      }
+  
+      // 🔒 Lock role after first completion
+      if (updates.role && currentUser.profile_completed) {
+        console.log("[Profile] Role change blocked after completion:", userId);
+        delete updates.role;
+      }
+  
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          ...updates,
+          profile_completed: true,
+        })
+        .eq("id", userId);
+  
+      if (updateError) throw updateError;
+  
+      res.json({ message: "Profile updated successfully" });
+    } catch (err) {
+      console.error("Profile update error:", err.message);
+      res.status(500).json({ error: err.message });
     }
-
-    const { error } = await supabase
-      .from("users")
-      .update({
-        ...updates,
-        profile_completed: true,
-      })
-      .eq("id", userId);
-
-    if (error) throw error;
-
-    res.json({ message: "Profile updated successfully" });
-  } catch (err) {
-    console.error("Profile update error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
+  });
 
 /* =========================
    GET MEDICAL RESUME

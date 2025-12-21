@@ -1,94 +1,61 @@
 import { useEffect, useState } from "react";
 import API_BASE_URL from "../config/api.js";
 
+/* ================= MAIN ================= */
+
 export default function MedicalResume() {
   const [data, setData] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  console.log('🏥 [MedicalResume] Component rendered', { loading, editMode, hasData: !!data });
-
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log('🏥 [MedicalResume] useEffect triggered - fetching resume');
-    console.log('🔑 [MedicalResume] Token exists:', !!token);
-
     if (!token) {
-      console.error('❌ [MedicalResume] No token found in localStorage');
       setLoading(false);
       return;
     }
 
-    const url = `${API_BASE_URL}/profile/medical-resume`;
-    console.log('📤 [MedicalResume] Making GET request to:', url);
-
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    fetch(`${API_BASE_URL}/profile/medical-resume`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
+      .then((res) => res.json())
       .then((res) => {
-        console.log('📥 [MedicalResume] Response status:', res.status, res.statusText);
-        console.log('📥 [MedicalResume] Response ok:', res.ok);
-        
-        if (!res.ok) {
-          console.error('❌ [MedicalResume] Response not ok, status:', res.status);
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        
-        return res.json();
-      })
-      .then((res) => {
-        console.log('📥 [MedicalResume] Response data received:', res);
-        console.log('📥 [MedicalResume] Profile completed:', res.profile_completed);
-        
         setData(res);
-        if (!res.profile_completed) {
-          console.log('📝 [MedicalResume] Profile not completed, opening edit mode');
-          setEditMode(true);
-        } else {
-          console.log('✅ [MedicalResume] Profile completed, showing view mode');
-        }
+        if (!res.profile_completed) setEditMode(true);
         setLoading(false);
       })
-      .catch((error) => {
-        console.error('❌ [MedicalResume] Error fetching resume:', error);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {
-    console.log('⏳ [MedicalResume] Still loading...');
-    return <div className="page">Loading...</div>;
-  }
-  
-  if (!data) {
-    console.warn('⚠️ [MedicalResume] No profile data available');
-    return <div className="page">No profile data</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
   }
 
-  console.log('🎨 [MedicalResume] Rendering', { editMode, dataKeys: Object.keys(data) });
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500">No profile data found</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="page">
-      <div className="card wide">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10 flex justify-center">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl p-8">
         {editMode ? (
           <EditResume
             data={data}
             onSaved={(updated) => {
-              console.log('💾 [MedicalResume] Resume saved, updating data:', updated);
               setData(updated);
               setEditMode(false);
             }}
           />
         ) : (
-          <ViewResume 
-            data={data} 
-            onEdit={() => {
-              console.log('✏️ [MedicalResume] Edit button clicked, switching to edit mode');
-              setEditMode(true);
-            }} 
-          />
+          <ViewResume data={data} onEdit={() => setEditMode(true)} />
         )}
       </div>
     </div>
@@ -98,38 +65,54 @@ export default function MedicalResume() {
 /* ================= VIEW MODE ================= */
 
 function ViewResume({ data, onEdit }) {
-  console.log('👁️ [ViewResume] Rendering view mode with data:', data);
-  
   return (
     <>
-      <h2 className="title">Medical Resume</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        🩺 Medical Resume
+      </h2>
 
-      <ResumeRow label="Role" value={data.role} />
-      <ResumeRow label="Name" value={data.name} />
-      <ResumeRow label="Email" value={data.email} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ResumeRow label="Role" value={data.role} />
+        <ResumeRow label="Name" value={data.name} />
+        <ResumeRow label="Email" value={data.email} />
+        <ResumeRow label="Phone" value={data.phone} />
+        <ResumeRow label="Designation" value={data.designation} />
+        <ResumeRow label="Specialization" value={data.specialization} />
+        <ResumeRow label="Registration Number" value={data.registration_number} />
+        <ResumeRow
+          label="Experience"
+          value={
+            data.years_of_experience
+              ? `${data.years_of_experience} years`
+              : "-"
+          }
+        />
+        <ResumeRow label="Hospital / Clinic" value={data.hospital_affiliation} />
+        <ResumeRow
+          label="Qualifications"
+          value={
+            Array.isArray(data.qualifications)
+              ? data.qualifications.join(", ")
+              : "-"
+          }
+        />
+        <ResumeRow
+          label="Skills"
+          value={Array.isArray(data.skills) ? data.skills.join(", ") : "-"}
+        />
+      </div>
 
-      <hr className="my-4" />
+      <div className="mt-6">
+        <p className="text-sm text-gray-500 mb-1">Bio</p>
+        <p className="bg-gray-50 p-4 rounded-lg text-gray-800">
+          {data.bio || "-"}
+        </p>
+      </div>
 
-      <ResumeRow label="Phone" value={data.phone} />
-      <ResumeRow label="Designation" value={data.designation} />
-      <ResumeRow label="Specialization" value={data.specialization} />
-      <ResumeRow label="Registration Number" value={data.registration_number} />
-      <ResumeRow
-        label="Experience"
-        value={data.years_of_experience ? `${data.years_of_experience} years` : "-"}
-      />
-      <ResumeRow label="Hospital / Clinic" value={data.hospital_affiliation} />
-      <ResumeRow
-        label="Qualifications"
-        value={Array.isArray(data.qualifications) ? data.qualifications.join(", ") : "-"}
-      />
-      <ResumeRow
-        label="Skills"
-        value={Array.isArray(data.skills) ? data.skills.join(", ") : "-"}
-      />
-      <ResumeRow label="Bio" value={data.bio} />
-
-      <button className="btn mt-6" onClick={onEdit}>
+      <button
+        onClick={onEdit}
+        className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+      >
         Edit Resume
       </button>
     </>
@@ -138,9 +121,11 @@ function ViewResume({ data, onEdit }) {
 
 function ResumeRow({ label, value }) {
   return (
-    <div className="mb-3">
+    <div>
       <p className="text-sm text-gray-500">{label}</p>
-      <p className="font-medium capitalize">{value || "-"}</p>
+      <p className="font-medium text-gray-800 capitalize">
+        {value || "-"}
+      </p>
     </div>
   );
 }
@@ -148,8 +133,6 @@ function ResumeRow({ label, value }) {
 /* ================= EDIT MODE ================= */
 
 function EditResume({ data, onSaved }) {
-  console.log('✏️ [EditResume] Component initialized with data:', data);
-  
   const [form, setForm] = useState({
     role: data.role || "",
     name: data.name || "",
@@ -169,141 +152,205 @@ function EditResume({ data, onSaved }) {
     bio: data.bio || "",
   });
 
-  console.log('📝 [EditResume] Form state initialized:', form);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('💾 [EditResume] Form submitted with data:', form);
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error('❌ [EditResume] No token found in localStorage');
-      alert('Authentication required. Please login again.');
-      return;
-    }
 
     const payload = {
       ...form,
-      // Convert years_of_experience to number if it's a valid number
-      years_of_experience: form.years_of_experience ? (isNaN(form.years_of_experience) ? form.years_of_experience : Number(form.years_of_experience)) : null,
-      // Convert comma-separated strings to arrays
-      qualifications: form.qualifications ? form.qualifications.split(",").map((q) => q.trim()).filter(q => q) : [],
-      skills: form.skills ? form.skills.split(",").map((s) => s.trim()).filter(s => s) : [],
+      years_of_experience: form.years_of_experience
+        ? Number(form.years_of_experience)
+        : null,
+      qualifications: form.qualifications
+        .split(",")
+        .map((q) => q.trim())
+        .filter(Boolean),
+      skills: form.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
     };
 
-    console.log('📤 [EditResume] Prepared payload:', payload);
-    console.log('📤 [EditResume] Role in payload:', payload.role);
+    delete payload.email; // 🔒 extra safety
 
-    try {
-      const url = `${API_BASE_URL}/profile/medical-resume`;
-      console.log('📤 [EditResume] Making PUT request to:', url);
+    const res = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('📥 [EditResume] Response status:', res.status, res.statusText);
-      
-      const responseData = await res.json();
-      console.log('📥 [EditResume] Response data:', responseData);
-
-      if (!res.ok) {
-        console.error('❌ [EditResume] Update failed:', responseData);
-        alert(responseData.message || responseData.error || 'Failed to update resume');
-        return;
-      }
-
-      console.log('✅ [EditResume] Resume updated successfully');
-      
-      // Refetch the updated data from backend to ensure consistency
-      const fetchUrl = `${API_BASE_URL}/profile/medical-resume`;
-      console.log('🔄 [EditResume] Refetching updated data from:', fetchUrl);
-      
-      const fetchRes = await fetch(fetchUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (fetchRes.ok) {
-        const updatedData = await fetchRes.json();
-        console.log('✅ [EditResume] Refetched updated data:', updatedData);
-        onSaved(updatedData);
-      } else {
-        // If refetch fails, use local data as fallback
-        console.warn('⚠️ [EditResume] Failed to refetch, using local data');
-        const updatedData = { ...data, ...form, profile_completed: true };
-        onSaved(updatedData);
-      }
-    } catch (error) {
-      console.error('❌ [EditResume] Error updating resume:', error);
-      alert('An error occurred while updating the resume. Please try again.');
+    if (!res.ok) {
+      alert("Failed to update profile");
+      return;
     }
+
+    const refreshed = await fetch(
+      `${API_BASE_URL}/profile/medical-resume`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const updatedData = await refreshed.json();
+    onSaved(updatedData);
   };
 
   return (
     <>
-      <h2 className="title">Edit Medical Resume</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        ✏️ Edit Medical Resume
+      </h2>
 
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         {/* ROLE */}
-        <label className="block mb-1 font-medium">Select Role</label>
-        <select
-          className="input"
-          value={form.role}
-          onChange={(e) => {
-            console.log('🔄 [EditResume] Role changed to:', e.target.value);
-            setForm({ ...form, role: e.target.value });
-          }}
-          required
-        >
-          <option value="">-- Select Role --</option>
-          <option value="doctor">Doctor</option>
-          <option value="nurse">Nurse</option>
-          <option value="hospital">Hospital</option>
-          <option value="medical_worker">Medical Worker</option>
-        </select>
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">Role</label>
+          <select
+            value={form.role}
+            disabled={data.profile_completed}
+            onChange={(e) =>
+              setForm({ ...form, role: e.target.value })
+            }
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+              data.profile_completed
+                ? "bg-gray-100 cursor-not-allowed"
+                : ""
+            }`}
+            required
+          >
+            <option value="">Select role</option>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+            <option value="hospital">Hospital</option>
+            <option value="medical_worker">Medical Worker</option>
+          </select>
 
-        <input className="input" placeholder="Name" value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          {data.profile_completed && (
+            <p className="text-xs text-gray-400 mt-1">
+              Role cannot be changed after profile completion
+            </p>
+          )}
+        </div>
 
-        <input className="input" placeholder="Email" value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <Input
+          label="Name"
+          value={form.name}
+          onChange={(v) => setForm({ ...form, name: v })}
+        />
 
-        <input className="input" placeholder="Phone" value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <Input
+          label="Email"
+          value={form.email}
+          disabled
+        />
 
-        <input className="input" placeholder="Designation" value={form.designation}
-          onChange={(e) => setForm({ ...form, designation: e.target.value })} />
+        <Input
+          label="Phone"
+          value={form.phone}
+          onChange={(v) => setForm({ ...form, phone: v })}
+        />
 
-        <input className="input" placeholder="Specialization" value={form.specialization}
-          onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
+        <Input
+          label="Designation"
+          value={form.designation}
+          onChange={(v) => setForm({ ...form, designation: v })}
+        />
 
-        <input className="input" placeholder="Registration Number" value={form.registration_number}
-          onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
+        <Input
+          label="Specialization"
+          value={form.specialization}
+          onChange={(v) => setForm({ ...form, specialization: v })}
+        />
 
-        <input className="input" type="number" placeholder="Years of Experience" value={form.years_of_experience}
-          onChange={(e) => setForm({ ...form, years_of_experience: e.target.value })} />
+        <Input
+          label="Registration Number"
+          value={form.registration_number}
+          onChange={(v) =>
+            setForm({ ...form, registration_number: v })
+          }
+        />
 
-        <input className="input" placeholder="Hospital / Clinic Affiliation" value={form.hospital_affiliation}
-          onChange={(e) => setForm({ ...form, hospital_affiliation: e.target.value })} />
+        <Input
+          label="Years of Experience"
+          type="number"
+          value={form.years_of_experience}
+          onChange={(v) =>
+            setForm({ ...form, years_of_experience: v })
+          }
+        />
 
-        <input className="input" placeholder="Qualifications (comma separated)" value={form.qualifications}
-          onChange={(e) => setForm({ ...form, qualifications: e.target.value })} />
+        <Input
+          label="Hospital / Clinic"
+          value={form.hospital_affiliation}
+          onChange={(v) =>
+            setForm({ ...form, hospital_affiliation: v })
+          }
+        />
 
-        <input className="input" placeholder="Skills (comma separated)" value={form.skills}
-          onChange={(e) => setForm({ ...form, skills: e.target.value })} />
+        <Input
+          label="Qualifications"
+          value={form.qualifications}
+          onChange={(v) =>
+            setForm({ ...form, qualifications: v })
+          }
+        />
 
-        <textarea className="input" placeholder="Bio" value={form.bio}
-          onChange={(e) => setForm({ ...form, bio: e.target.value })} />
+        <Input
+          label="Skills"
+          value={form.skills}
+          onChange={(v) => setForm({ ...form, skills: v })}
+        />
 
-        <button className="btn">Save Resume</button>
+        <div className="md:col-span-2">
+          <label className="block text-sm text-gray-500 mb-1">Bio</label>
+          <textarea
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            rows={4}
+            value={form.bio}
+            onChange={(e) => setForm({ ...form, bio: e.target.value })}
+          />
+        </div>
+
+        <button className="md:col-span-2 mt-4 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition">
+          Save Resume
+        </button>
       </form>
     </>
+  );
+}
+
+/* ================= INPUT ================= */
+
+function Input({
+  label,
+  value,
+  onChange,
+  type = "text",
+  disabled = false,
+}) {
+  return (
+    <div>
+      <label className="block text-sm text-gray-500 mb-1">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange?.(e.target.value)}
+        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          disabled
+            ? "bg-gray-100 cursor-not-allowed text-gray-500"
+            : ""
+        }`}
+      />
+    </div>
   );
 }

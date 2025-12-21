@@ -7,63 +7,59 @@ import auth from "../middleware/auth.js";
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
-    const { name, email, password, role } = req.body;
-  
-    if (!name || !email || !password ||!role) {
-      return res.status(400).json({ message: "Missing fields" });
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+
+  const allowedRoles = ["doctor", "hospital"];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+
+  try {
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
     }
-  
-    try {
-      // Check existing user
-      const { data: existingUser } = await supabase
-        .from("users")
-        .select("id")
-        .eq("email", email)
-        .single();
-  
-      if (existingUser) {
-        return res.status(409).json({ message: "User already exists" });
-      }
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      // Insert user
-      const { data, error } = await supabase
-        .from("users")
-        .insert([
-          { name, email, password: hashedPassword, role: role || "user" }
-        ])
-        .select()
-        .single();
-  
-      if (error) throw error;
-  
-      // 🔑 CREATE JWT
-      const token = jwt.sign(
-        {
-          id: data.id,
-          email: data.email,
-          role: data.role,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-  
-      // ✅ RETURN TOKEN + USER
-      res.status(201).json({
-        token,
-        user: {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role: data.role,
-        },
-      });
-  
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const { data, error } = await supabase
+      .from("users")
+      .insert([
+        { name, email, password: hashedPassword, role }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const token = jwt.sign(
+      { id: data.id, email: data.email, role: data.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      token,
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
   
