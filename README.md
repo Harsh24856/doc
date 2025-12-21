@@ -1,208 +1,215 @@
-DocSpace 🚀
+# DocSpace 🚀
 
-A full-stack web application built with a Node.js + Express backend and a modern frontend (Vite/React), fully Dockerized for easy development and collaboration.
+A comprehensive medical license verification platform with OCR extraction, registry verification, and admin dashboard.
 
-💡 One command setup — no need to install Node.js or manage dependencies locally.
+## 🏗️ Architecture
 
-⸻
-
-🧱 Tech Stack
-
-Backend
-	•	Node.js
-	•	Express
-	•	JWT Authentication
-	•	bcrypt
-	•	MongoDB / API-ready (if applicable)
-
-Frontend
-	•	React (Vite)
-	•	Modern ES Modules
-
-DevOps
-	•	Docker
-	•	Docker Compose
-
-⸻
-
-📁 Project Structure
-
+```
 DocSpace/
-├── docker-compose.yml        # Orchestrates frontend + backend
-│
+├── front/              # React + Vite Frontend
 ├── back/
-│   └── server/
-│       ├── Dockerfile        # Backend Docker setup
-│       ├── .dockerignore
-│       ├── package.json
-│       ├── package-lock.json
-│       ├── server.js
-│       ├── .env.example
-│       └── .env              # (NOT committed)
-│
-└── front/
-    ├── Dockerfile            # Frontend Docker setup
-    ├── .dockerignore
-    ├── package.json
-    ├── package-lock.json
-    └── src/
+│   ├── server/         # Node.js + Express Backend API
+│   ├── ML/             # Python FastAPI OCR Service (Google Vision)
+│   └── playwright-service/  # Node.js Playwright Service (NMC Registry)
+└── docker-compose.yml  # Multi-service orchestration
+```
 
+## 🚀 Quick Start (Docker)
 
-⸻
+### Prerequisites
+- Docker Desktop installed and running
+- Git
 
-⚙️ Prerequisites
+### Setup
 
-You only need:
-	•	Docker Desktop (Mac / Windows / Linux)
-
-👉 No Node.js, npm, or other tools required.
-
-⸻
-
-🚀 Getting Started (For Collaborators)
-
-1️⃣ Clone the repository
-
+1. **Clone the repository**
+```bash
 git clone <REPO_URL>
 cd DocSpace
+```
 
-
-⸻
-
-2️⃣ Setup environment variables
-
-Create a .env file for the backend:
-
+2. **Set up environment variables**
+```bash
+# Backend server
 cp back/server/.env.example back/server/.env
+# Edit back/server/.env with your Supabase credentials
 
-Edit the .env file and add required secrets (JWT secret, DB URL, etc.).
+# ML service - Place your Google Vision credentials
+# Copy google-vision-key.json to back/ML/google-vision-key.json
+```
 
-⚠️ Never commit .env files.
+3. **Start all services**
+```bash
+docker-compose up --build
+```
 
-⸻
+4. **Access services**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
+- ML Service: http://localhost:8001
+- Playwright Service: http://localhost:9000
 
-3️⃣ Run the full project (ONE command)
+## 📖 Local Development Setup
 
-docker compose up --build
+For local development without Docker, see individual service READMEs:
+- [Frontend README](front/README.md)
+- [Backend Server README](back/server/README.md)
+- [ML Service README](back/ML/README.md)
+- [Playwright Service README](back/playwright-service/README.md)
 
-⏳ First run may take a few minutes (Docker builds images).
+## 🛠️ Tech Stack
 
-⸻
+### Frontend
+- React 18
+- Vite
+- Tailwind CSS
 
-4️⃣ Access the app
+### Backend
+- Node.js + Express
+- Supabase (Database & Storage)
+- JWT Authentication
+- bcrypt
 
-Service	URL
-Backend	http://localhost:3000
-Frontend	http://localhost:5173
+### ML Service
+- Python 3.11
+- FastAPI
+- Google Cloud Vision API
+- pdf2image (Poppler)
 
+### Playwright Service
+- Node.js
+- Playwright
+- Express
 
-⸻
+## 📁 Project Structure
 
-🔁 Daily Development Commands
+```
+DocSpace/
+├── front/                      # React frontend
+│   ├── src/
+│   │   ├── pages/             # Page components
+│   │   ├── components/        # Reusable components
+│   │   └── config/            # API configuration
+│   └── Dockerfile
+│
+├── back/
+│   ├── server/                # Main backend API
+│   │   ├── route/            # API routes
+│   │   ├── middleware/       # Auth & upload middleware
+│   │   └── Dockerfile
+│   │
+│   ├── ML/                   # OCR service
+│   │   ├── app.py           # FastAPI app
+│   │   ├── extract.py       # Google Vision extraction
+│   │   ├── parser.py        # Text parsing
+│   │   └── Dockerfile
+│   │
+│   └── playwright-service/   # Registry verification
+│       ├── index.js         # Express server
+│       ├── imrCheck.js      # NMC registry scraper
+│       └── Dockerfile
+│
+└── docker-compose.yml        # Service orchestration
+```
 
-Start containers
+## 🔧 Environment Variables
 
-docker compose up
+### Backend Server
+```env
+PORT=3000
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+SUPABASE_ADMIN_KEY=your_supabase_admin_key
+JWT_SECRET=your_jwt_secret
+ML_SERVICE_URL=http://localhost:8001
+PLAYWRIGHT_SERVICE_URL=http://localhost:9000
+```
 
-Stop containers
+### ML Service
+- `GOOGLE_APPLICATION_CREDENTIALS` (optional - auto-detects `google-vision-key.json`)
 
-docker compose down
+## 🧪 Development Commands
 
-Rebuild after dependency changes
+### Docker
+```bash
+# Start all services
+docker-compose up
 
-docker compose up --build
+# Start in background
+docker-compose up -d
 
-View running containers
+# Rebuild after dependency changes
+docker-compose up --build
 
-docker ps
+# Stop all services
+docker-compose down
 
+# View logs
+docker-compose logs -f [service-name]
+```
 
-⸻
+### Individual Services
+See each service's README for local development commands.
 
-🧪 Running Services Individually (Optional)
+## 🔐 Security Notes
 
-Backend only
+- Never commit `.env` files
+- Never commit `google-vision-key.json` or other credentials
+- Use environment variables for sensitive data
+- All credentials are in `.gitignore`
 
-cd back/server
-docker build -t backend-server .
-docker run -p 3000:3000 backend-server
+## 🐛 Troubleshooting
 
-Frontend only
+### Port already in use
+```bash
+# Stop existing containers
+docker-compose down
 
-cd front
-docker build -t frontend-app .
-docker run -p 5173:5173 frontend-app
+# Or change ports in docker-compose.yml
+```
 
+### Services can't connect
+- Ensure all services are running
+- Check service URLs in environment variables
+- In Docker, services use service names (e.g., `ml-service:8001`)
+- Locally, use `localhost:8001`
 
-⸻
+### ML Service errors
+- Ensure `google-vision-key.json` exists in `back/ML/`
+- Check Poppler is installed (for local dev)
+- Verify Google Vision API is enabled
 
-🛑 Common Issues & Fixes
+### Playwright Service errors
+- Ensure Chromium is installed
+- Check network connectivity for NMC website
+- Increase timeout if needed
 
-❌ no configuration file provided: not found
+## 📝 API Endpoints
 
-✔ Make sure:
-	•	You are inside the DocSpace/ directory
-	•	docker-compose.yml exists
-	•	Docker Desktop is running
+### Backend API (Port 3000)
+- `POST /auth/login` - User login
+- `POST /auth/signup` - User registration
+- `POST /verification/submit` - Submit verification documents
+- `GET /admin/verifications/pending` - Get pending verifications
+- `POST /admin/verifications/:userId/ai-check` - Run AI verification
 
-⸻
+### ML Service (Port 8001)
+- `POST /extract-license` - Extract text from license PDF
 
-❌ Port already in use
+### Playwright Service (Port 9000)
+- `POST /mci-check` - Check NMC registry
 
-Stop existing containers:
+## 🤝 Contributing
 
-docker compose down
+1. Create a feature branch
+2. Make your changes
+3. Test locally and with Docker
+4. Submit a pull request
 
-Or change ports in docker-compose.yml.
-
-⸻
-
-❌ Containers not updating after code change
-
-Rebuild:
-
-docker compose up --build
-
-
-⸻
-
-🔐 Security Notes
-	•	.env files are ignored by Git
-	•	Do not expose secrets in Dockerfiles
-	•	Use .env.example for sharing variable names
-
-⸻
-
-👥 Collaboration Rules
-	•	Do NOT commit node_modules
-	•	Do NOT commit .env
-	•	Always use Docker to run the project
-	•	Update .env.example if new env variables are added
-
-⸻
-
-🧠 Why Docker?
-	•	Same environment for everyone
-	•	No “works on my machine” issues
-	•	Easy onboarding for new collaborators
-	•	Production-ready workflow
-
-⸻
-
-📌 Future Improvements
-	•	Production frontend build (Nginx)
-	•	Database container (MongoDB / PostgreSQL)
-	•	Hot reload with Docker volumes
-	•	CI/CD pipeline
-
-⸻
-
-📄 License
+## 📄 License
 
 ISC License
 
-⸻
-
-🙌 Maintainers
+## 👥 Maintainers
 
 Built with ❤️ by the DocSpace team.

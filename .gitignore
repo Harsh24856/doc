@@ -1,26 +1,106 @@
-# Node
-node_modules/
-npm-debug.log*
+# =========================
+# ROOT LEVEL
+# =========================
 
-# Frontend
-front/node_modules/
-front/dist/
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
 
-# Backend
-back/server/node_modules/
-back/server/.env
-
-# Python (if any)
-backend/venv/
-__pycache__/
-
-# OS
+# OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
 
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-#env
-.env
+# =========================
+# FRONTEND
+# =========================
+front/node_modules/
+front/dist/
+front/build/
+front/.vite/
+front/coverage/
+
+# =========================
+# BACKEND SERVER
+# =========================
+back/server/node_modules/
+back/server/.env
+back/server/.env.local
+back/server/logs/
+back/server/coverage/
+
+# =========================
+# ML SERVICE
+# =========================
+back/ML/__pycache__/
+back/ML/*.py[cod]
+back/ML/*$py.class
+back/ML/*.so
+back/ML/.Python
+back/ML/*.egg-info/
+back/ML/dist/
+back/ML/build/
+back/ML/*.egg
+back/ML/venv/
+back/ML/env/
+back/ML/ENV/
+back/ML/.venv/
+back/ML/.pytest_cache/
+back/ML/.coverage
+back/ML/htmlcov/
+back/ML/*.log
+
+# Sensitive files - Google Vision credentials
+back/ML/google-vision-key.json
+back/ML/*-key.json
+back/ML/*-keys.json
+back/ML/*.key
+back/ML/*.pem
+
+# Test PDFs
+back/ML/medcert*.pdf
+back/ML/*test*.pdf
+
+# =========================
+# PLAYWRIGHT SERVICE
+# =========================
+back/playwright-service/node_modules/
+back/playwright-service/screenshots/
+back/playwright-service/.env
+back/playwright-service/logs/
+back/playwright-service/coverage/
+
+# =========================
+# DOCKER
+# =========================
+*.dockerignore.bak
+docker-compose.override.yml
+
+# =========================
+# MISC
+# =========================
+*.bak
+*.tmp
+.cache/
