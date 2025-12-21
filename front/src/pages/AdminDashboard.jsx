@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white px-6 py-10">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-white px-6 py-10">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
           Pending Verifications

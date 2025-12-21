@@ -35,10 +35,9 @@ router.post("/profile", auth, async (req, res) => {
     };
 
     const { error } = await supabase
-      .from("users")
+      .from("hospitals")
       .update(updateData)
-      .eq("id", userId)
-      .eq("role", "hospital");
+      .eq("user_id", userId);
 
     if (error) throw error;
 
