@@ -1,10 +1,10 @@
 import express from "express";
-import supabaseAdmin from "../Admin.js";
+import supabase from "../db.js";
 
 const router = express.Router();
 
 router.get("/fetch", async (req, res) => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from("feedback")
     .select("*")
     .order("created_at", { ascending: false });

@@ -1,45 +1,30 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import doctorBg from "../assets/doctor-bg.png"
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (!token || !storedUser) {
-      navigate("/login");
-      return;
-    }
-
-    setUser(JSON.parse(storedUser));
-  }, []);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
-  if (!user) return null;
+  
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-bold mb-4">
-        Welcome, {user.name}
-      </h1>
+    <div
+      className="relative min-h-screen bg-cover bg-center"
+      style={{ backgroundImage: `url(${doctorBg})` }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/50" />
 
-      <p className="mb-2">Email: {user.email}</p>
-      <p className="mb-6">Role: {user.role}</p>
+      {/* Content */}
+      <div className="relative z-10 flex items-center min-h-screen text-white">
+        <div className="text-center max-w-2xl px-6">
+          <h1 className="text-4xl font-bold mb-4">
+            Welcome to Doc Space
+          </h1>
+          <p className="text-lg text-gray-200">
+            Doc Space is a trusted professional network designed exclusively for doctors.
+           Connect with peers, explore opportunities, and share knowledge in a secure,
+           verified environment.
 
-      <button
-        onClick={logout}
-        className="bg-red-600 text-white px-4 py-2 rounded-lg"
-      >
-        Logout
-      </button>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
