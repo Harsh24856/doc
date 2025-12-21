@@ -12,6 +12,7 @@ import auth from "./middleware/auth.js";
 import verificationRoutes from "./route/verification.js";
 import adminRoutes from "./route/admin.js";
 import verificationUpload from "./route/verificationUpload.js";
+import hospitalDocuments from "./route/hospitalDocuments.js"
 dotenv.config();
 
 const app = express();
@@ -40,6 +41,7 @@ app.get("/test-auth", auth, (req, res) => {
 app.use("/admin", fetchtest);
 app.use("/hospital", hospitalProfile);
 app.use("/hospital", hospitalFetch);
+app.use("/hospital", hospitalDocuments)
 
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
