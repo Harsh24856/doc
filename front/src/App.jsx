@@ -7,10 +7,11 @@ import { useState } from "react";
 import { useEffect } from "react";
 import Navbar from "./components/Navbar"
 import HospitalProfile from "./pages/HospitalProfile";
-
+import AdminHospitalData from "./pages/AdminHospitalData";
 import MedicalResume from "./pages/MedicalResume";
 import GetVerified from "./pages/GetVerified";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminHospitals from "./pages/AdminHospitals";
 import AdminRoute from "./components/AdminRoute";
 export default function App() {
   const[signedIn, setSignedIn] = useState(false);
@@ -67,6 +68,22 @@ export default function App() {
           </AdminRoute>
         }
       />
+      <Route
+        path="/admin-hospital"
+        element={
+          <AdminRoute>
+            <AdminHospitals />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/hospital/:hospitalId"
+        element={
+          <AdminRoute>
+            <AdminHospitalData />
+          </AdminRoute>
+        }  
+      />  
 </Routes>
 </>
 
