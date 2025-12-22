@@ -6,6 +6,7 @@ import fetchtest from "./route/fetch.js";
 import authRoutes from "./route/auth.js";
 import hospitalProfile from "./route/hospitalProfile.js"
 import hospitalFetch from "./route/hospitalFetch.js"
+import adminHospital from "./route/adminHospital.js"
 
 import profileRoutes from "./route/profile.js";
 import auth from "./middleware/auth.js";
@@ -41,7 +42,8 @@ app.get("/test-auth", auth, (req, res) => {
 app.use("/admin", fetchtest);
 app.use("/hospital", hospitalProfile);
 app.use("/hospital", hospitalFetch);
-app.use("/hospital", hospitalDocuments)
+app.use("/hospital", hospitalDocuments);
+app.use("/admin", adminHospital);
 
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
