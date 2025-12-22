@@ -1,57 +1,135 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+
 import test from "./route/test.js";
 import fetchtest from "./route/fetch.js";
 import authRoutes from "./route/auth.js";
-import hospitalProfile from "./route/hospitalProfile.js"
-import hospitalFetch from "./route/hospitalFetch.js"
-
+import hospitalProfile from "./route/hospitalProfile.js";
+import hospitalFetch from "./route/hospitalFetch.js";
 import profileRoutes from "./route/profile.js";
 import auth from "./middleware/auth.js";
 import verificationRoutes from "./route/verification.js";
 import adminRoutes from "./route/admin.js";
 import verificationUpload from "./route/verificationUpload.js";
-import hospitalDocuments from "./route/hospitalDocuments.js"
+import hospitalDocuments from "./route/hospitalDocuments.js";
+
+import usersRoutes from "./route/users.js";
+import messagesRoutes from "./route/messages.routes.js";
+import uploadRoutes from "./route/message_upload.js";
+
+import supabase from "./db.js";
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
+/* ---------------- MIDDLEWARE ---------------- */
+app.use(
+  cors({
     origin: [
+      "http://localhost:5173",
       "http://localhost:5174",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://0.0.0.0:5173"
+      "http://127.0.0.1:5173",
     ],
-    credentials: true
-}));
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
+/* ---------------- ROUTES ---------------- */
 app.use("/test", test);
 app.use("/auth", authRoutes);
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ message: "Server is running" });
+  res.json({ message: "Server is running" });
 });
+
 app.get("/test-auth", auth, (req, res) => {
   res.json({ user: req.user });
 });
+
 app.use("/admin", fetchtest);
 app.use("/hospital", hospitalProfile);
 app.use("/hospital", hospitalFetch);
-app.use("/hospital", hospitalDocuments)
-
+app.use("/hospital", hospitalDocuments);
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
 app.use("/verification", verificationRoutes);
 app.use("/admin", adminRoutes);
-/* 🔥 GLOBAL ERROR HANDLER (MANDATORY) */
+
+/* 🔥 CHAT ROUTES */
+app.use("/users", usersRoutes);
+app.use("/messages", messagesRoutes);
+app.use("/chat", uploadRoutes);
+
+/* ---------------- ERROR HANDLER ---------------- */
 app.use((err, req, res, next) => {
   console.error("GLOBAL ERROR:", err.message);
   res.status(400).json({ error: err.message });
 });
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+
+/* ---------------- SOCKET.IO ---------------- */
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true,
+  },
+});
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("Unauthorized"));
+
+  try {
+    socket.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    next(new Error("Invalid token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  const myId = socket.user.id;
+  socket.join(myId);
+
+  console.log("🟢 Socket connected:", myId);
+
+  socket.on("send_message", async (msg) => {
+    const { to, type, text, file_url, file_name } = msg;
+
+    await supabase.from("messages").insert({
+      sender_id: myId,
+      receiver_id: to,
+      type,
+      content: text || "",
+      file_url: file_url || null,
+      file_name: file_name || null,
+    });
+
+    io.to(to).emit("receive_message", {
+      from: myId,
+      type,
+      text,
+      file_url,
+      file_name,
+      created_at: new Date(),
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Socket disconnected:", myId);
+  });
+});
+
+/* ---------------- START ---------------- */
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });

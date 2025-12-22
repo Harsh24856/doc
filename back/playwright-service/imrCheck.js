@@ -7,7 +7,13 @@ import { chromium } from "playwright";
  */
 export async function checkIMR(name, registration_number) {
   const browser = await chromium.launch({
-    headless: true     // set true in production
+    headless: true,  // Must be true in Docker
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
+    ]
   });
 
   const page = await browser.newPage();

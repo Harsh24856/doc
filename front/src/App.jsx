@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -12,6 +12,8 @@ import MedicalResume from "./pages/MedicalResume";
 import GetVerified from "./pages/GetVerified";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
+import UsersPage from "./pages/UsersPage";
+import ChatPage from "./pages/ChatPage";
 export default function App() {
   const[signedIn, setSignedIn] = useState(false);
   const[role, setRole] = useState("");
@@ -67,6 +69,25 @@ export default function App() {
           </AdminRoute>
         }
       />
+      <Route
+  path="/messages"
+  element={
+    <ProtectedRoute>
+      <UsersPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/chat/:userId"
+  element={
+    <ProtectedRoute>
+      <ChatPage />
+    </ProtectedRoute>
+  }
+/>
+      {/* Catch-all route for unmatched paths */}
+      <Route path="*" element={<Home />} />
 </Routes>
 </>
 
