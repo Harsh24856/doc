@@ -7,10 +7,11 @@ import { useState } from "react";
 import { useEffect } from "react";
 import Navbar from "./components/Navbar"
 import HospitalProfile from "./pages/HospitalProfile";
-
+import AdminHospitalData from "./pages/AdminHospitalData";
 import MedicalResume from "./pages/MedicalResume";
 import GetVerified from "./pages/GetVerified";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminHospitals from "./pages/AdminHospitals";
 import AdminRoute from "./components/AdminRoute";
 import UsersPage from "./pages/UsersPage";
 import ChatPage from "./pages/ChatPage";
@@ -88,6 +89,21 @@ export default function App() {
 />
       {/* Catch-all route for unmatched paths */}
       <Route path="*" element={<Home />} />
+        path="/admin-hospital"
+        element={
+          <AdminRoute>
+            <AdminHospitals />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/hospital/:hospitalId"
+        element={
+          <AdminRoute>
+            <AdminHospitalData />
+          </AdminRoute>
+        }  
+      />  
 </Routes>
 </>
 

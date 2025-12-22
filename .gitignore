@@ -50,6 +50,7 @@ back/server/.env
 back/server/.env.local
 back/server/logs/
 back/server/coverage/
+back/node_modules
 
 # =========================
 # ML SERVICE
