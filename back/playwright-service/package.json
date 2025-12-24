@@ -2,8 +2,8 @@
     "name": "mci-playwright-service",
     "type": "module",
     "scripts": {
-
-        "start": "nodemon index.js"
+        "start": "nodemon index.js",
+        "dev": "nodemon index.js"
     },
     "dependencies": {
         "express": "^4.19.0",

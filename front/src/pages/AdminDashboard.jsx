@@ -184,13 +184,12 @@ export default function AdminDashboard() {
                           // Helper function to normalize strings for comparison
                           const normalize = (str) => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
                           
-                          // Helper function to check if year matches experience
-                          const checkYearMatch = (registryYear, userYearsOfExp) => {
-                            if (!registryYear || !userYearsOfExp) return false;
-                            const currentYear = new Date().getFullYear();
-                            const expectedYearsOfExp = currentYear - parseInt(registryYear, 10);
-                            const userExp = parseInt(userYearsOfExp, 10);
-                            return Math.abs(expectedYearsOfExp - userExp) <= 1;
+                          // Helper function to check if year matches graduation
+                          const checkYearMatch = (registryYear, userGraduationYear) => {
+                            if (!registryYear || !userGraduationYear) return false;
+                            const registry = parseInt(registryYear, 10);
+                            const graduation = parseInt(userGraduationYear, 10);
+                            return registry === graduation || Math.abs(registry - graduation) <= 1;
                           };
 
                           // Compare values
@@ -205,7 +204,7 @@ export default function AdminDashboard() {
                             (normalize(registryData.council).includes(normalize(u.registration_council)) ||
                              normalize(u.registration_council).includes(normalize(registryData.council)));
                           
-                          const yearMatch = checkYearMatch(registryData.year, u.years_of_experience);
+                          const yearMatch = checkYearMatch(registryData.year, u.year_of_graduation);
 
                           return (
                             <div className="space-y-2">
@@ -245,12 +244,12 @@ export default function AdminDashboard() {
                                 </span>
                               </div>
 
-                              {/* Year/Experience Comparison */}
+                              {/* Year/Graduation Comparison */}
                               <div className="flex items-center justify-between p-2 bg-white rounded">
                                 <div>
-                                  <p className="font-medium">Year / Experience</p>
+                                  <p className="font-medium">Year / Graduation</p>
                                   <p className="text-gray-600">IMR Year: {registryData.year || "N/A"}</p>
-                                  <p className="text-gray-600">User Experience: {u.years_of_experience || "N/A"} years</p>
+                                  <p className="text-gray-600">User Graduation: {u.year_of_graduation || "N/A"}</p>
                                 </div>
                                 <span className={`text-2xl ${yearMatch ? "text-green-600" : "text-red-600"}`}>
                                   {yearMatch ? "✓" : "✗"}

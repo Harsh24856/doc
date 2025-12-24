@@ -25,8 +25,11 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies (including playwright)
+# Install dependencies (including playwright and nodemon)
 RUN npm install
+
+# Ensure nodemon is available globally as fallback
+RUN npm install -g nodemon@^3.1.11 || true
 
 # Install Playwright browsers (this ensures compatibility with installed Playwright version)
 RUN npx playwright install chromium
