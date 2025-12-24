@@ -4,12 +4,9 @@ import API_BASE_URL from "../config/api.js";
 export default function AdminDashboard() {
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [verifyingId, setVerifyingId] = useState(null); // 👈 loading per user
-  const [results, setResults] = useState({}); // 👈 store AI results
+  const [verifyingId, setVerifyingId] = useState(null);
+  const [results, setResults] = useState({});
 
-  /* =========================
-     FETCH PENDING USERS
-     ========================= */
   const fetchPending = async () => {
     try {
       const res = await fetch(
@@ -20,12 +17,10 @@ export default function AdminDashboard() {
           },
         }
       );
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
       setPending(data);
-    } catch (err) {
+    } catch {
       alert("Failed to load admin data");
     } finally {
       setLoading(false);
@@ -36,9 +31,6 @@ export default function AdminDashboard() {
     fetchPending();
   }, []);
 
-  /* =========================
-     OPEN DOCUMENT
-     ========================= */
   const openDocument = async (userId, type) => {
     const res = await fetch(
       `${API_BASE_URL}/admin/verifications/${userId}/document/${type}`,
@@ -48,20 +40,13 @@ export default function AdminDashboard() {
         },
       }
     );
-
     const data = await res.json();
-    if (data.url) {
-      window.open(data.url, "_blank", "noopener,noreferrer");
-    }
+    if (data.url) window.open(data.url, "_blank");
   };
 
-  /* =========================
-     RUN AI CHECK
-     ========================= */
   const runAICheck = async (id) => {
     try {
       setVerifyingId(id);
-
       const res = await fetch(
         `${API_BASE_URL}/admin/verifications/${id}/ai-check`,
         {
@@ -71,15 +56,9 @@ export default function AdminDashboard() {
           },
         }
       );
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-
-      // Store result locally
-      setResults((prev) => ({
-        ...prev,
-        [id]: data,
-      }));
+      setResults((prev) => ({ ...prev, [id]: data }));
     } catch (err) {
       alert(err.message);
     } finally {
@@ -87,9 +66,6 @@ export default function AdminDashboard() {
     }
   };
 
-  /* =========================
-     APPROVE / REJECT
-     ========================= */
   const approve = async (id) => {
     await fetch(
       `${API_BASE_URL}/admin/verifications/${id}/approve`,
@@ -116,9 +92,6 @@ export default function AdminDashboard() {
     fetchPending();
   };
 
-  /* =========================
-     UI STATES
-     ========================= */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -140,16 +113,13 @@ export default function AdminDashboard() {
           const result = results[u.id];
 
           return (
-            <div
-              key={u.id}
-              className="border rounded-lg p-6 mb-6"
-            >
+            <div key={u.id} className="border rounded-lg p-6 mb-6">
               {/* USER INFO */}
               <div className="grid grid-cols-2 gap-4 text-gray-700">
                 <p><b>Name:</b> {u.name}</p>
                 <p><b>Email:</b> {u.email}</p>
+                <p><b>Role:</b> <span className="capitalize">{u.role}</span></p>
                 <p><b>Registration No:</b> {u.registration_number}</p>
-                <p><b>Council:</b> {u.registration_council}</p>
               </div>
 
               {/* DOCUMENTS */}
@@ -171,7 +141,6 @@ export default function AdminDashboard() {
               {/* AI RESULT */}
               {result && (
                 <div className="mt-5 space-y-4">
-                  {/* Verification Summary */}
                   <div className="p-4 rounded bg-gray-100">
                     <p className="font-semibold mb-1">
                       Verification Status:{" "}
@@ -194,103 +163,178 @@ export default function AdminDashboard() {
                     </p>
 
                     <p className="text-sm text-gray-600">
-                      OCR: {result.breakdown.ocr_score}% · Registry:{" "}
-                      {result.breakdown.registry_score}%
+                      Registry: {result.breakdown?.registry_score ?? 0}% ·
+                      License OCR: {result.breakdown?.license_ocr_score ?? 0}% ·
+                      ID OCR: {result.breakdown?.id_ocr_score ?? 0}%
                     </p>
                   </div>
 
-                  {/* OCR Extracted License Data */}
-                  {result.extracted_license && (
-                    <div className="p-4 rounded bg-blue-50 border border-blue-200">
-                      <h4 className="font-semibold text-blue-900 mb-2">
-                        📄 OCR Extracted from License
-                      </h4>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <p>
-                          <b>Name:</b> {result.extracted_license.name || "N/A"}
-                        </p>
-                        <p>
-                          <b>Registration:</b>{" "}
-                          {result.extracted_license.registration_number || "N/A"}
-                        </p>
-                        <p>
-                          <b>Council:</b>{" "}
-                          {result.extracted_license.registration_council || "N/A"}
-                        </p>
-                        <p>
-                          <b>Qualification:</b>{" "}
-                          {result.extracted_license.primary_qualification || "N/A"}
-                        </p>
+                  {/* REGISTRY RESULT */}
+                  {result.registry_result && (result.registry_result.status === "SUCCESS" || result.registry_result.status === "FOUND") && (
+                    <div className="p-4 rounded-lg border border-purple-200 bg-purple-50">
+                      <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                        🏥 Registry Check Results (IMR)
+                      </h3>
+                      <div className="space-y-3 text-sm">
+                        <p className="font-medium text-green-600">Status: {result.registry_result.status}</p>
+                        {(() => {
+                          const registryData = result.registry_result.record || result.registry_result.result;
+                          if (!registryData) return null;
+
+                          // Helper function to normalize strings for comparison
+                          const normalize = (str) => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                          
+                          // Helper function to check if year matches experience
+                          const checkYearMatch = (registryYear, userYearsOfExp) => {
+                            if (!registryYear || !userYearsOfExp) return false;
+                            const currentYear = new Date().getFullYear();
+                            const expectedYearsOfExp = currentYear - parseInt(registryYear, 10);
+                            const userExp = parseInt(userYearsOfExp, 10);
+                            return Math.abs(expectedYearsOfExp - userExp) <= 1;
+                          };
+
+                          // Compare values
+                          const nameMatch = registryData.name && u.name && 
+                            (normalize(registryData.name).includes(normalize(u.name)) || 
+                             normalize(u.name).includes(normalize(registryData.name)));
+                          
+                          const regNoMatch = registryData.registration_number && u.registration_number &&
+                            normalize(registryData.registration_number) === normalize(u.registration_number);
+                          
+                          const councilMatch = registryData.council && u.registration_council &&
+                            (normalize(registryData.council).includes(normalize(u.registration_council)) ||
+                             normalize(u.registration_council).includes(normalize(registryData.council)));
+                          
+                          const yearMatch = checkYearMatch(registryData.year, u.years_of_experience);
+
+                          return (
+                            <div className="space-y-2">
+                              {/* Name Comparison */}
+                              <div className="flex items-center justify-between p-2 bg-white rounded">
+                                <div>
+                                  <p className="font-medium">Name</p>
+                                  <p className="text-gray-600">IMR: {registryData.name || "N/A"}</p>
+                                  <p className="text-gray-600">User: {u.name || "N/A"}</p>
+                                </div>
+                                <span className={`text-2xl ${nameMatch ? "text-green-600" : "text-red-600"}`}>
+                                  {nameMatch ? "✓" : "✗"}
+                                </span>
+                              </div>
+
+                              {/* Registration Number Comparison */}
+                              <div className="flex items-center justify-between p-2 bg-white rounded">
+                                <div>
+                                  <p className="font-medium">Registration Number</p>
+                                  <p className="text-gray-600">IMR: {registryData.registration_number || "N/A"}</p>
+                                  <p className="text-gray-600">User: {u.registration_number || "N/A"}</p>
+                                </div>
+                                <span className={`text-2xl ${regNoMatch ? "text-green-600" : "text-red-600"}`}>
+                                  {regNoMatch ? "✓" : "✗"}
+                                </span>
+                              </div>
+
+                              {/* Council Comparison */}
+                              <div className="flex items-center justify-between p-2 bg-white rounded">
+                                <div>
+                                  <p className="font-medium">Council</p>
+                                  <p className="text-gray-600">IMR: {registryData.council || "N/A"}</p>
+                                  <p className="text-gray-600">User: {u.registration_council || "N/A"}</p>
+                                </div>
+                                <span className={`text-2xl ${councilMatch ? "text-green-600" : "text-red-600"}`}>
+                                  {councilMatch ? "✓" : "✗"}
+                                </span>
+                              </div>
+
+                              {/* Year/Experience Comparison */}
+                              <div className="flex items-center justify-between p-2 bg-white rounded">
+                                <div>
+                                  <p className="font-medium">Year / Experience</p>
+                                  <p className="text-gray-600">IMR Year: {registryData.year || "N/A"}</p>
+                                  <p className="text-gray-600">User Experience: {u.years_of_experience || "N/A"} years</p>
+                                </div>
+                                <span className={`text-2xl ${yearMatch ? "text-green-600" : "text-red-600"}`}>
+                                  {yearMatch ? "✓" : "✗"}
+                                </span>
+                              </div>
+
+                              {/* Additional Info */}
+                              {registryData.father_name && (
+                                <div className="p-2 bg-white rounded">
+                                  <p className="font-medium">Father's Name</p>
+                                  <p className="text-gray-600">{registryData.father_name}</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
 
-                  {/* IMR Registry Result */}
-                  {result.registry_result && (
-                    <div className="p-4 rounded border-2">
-                      <h4 className="font-semibold mb-2">
-                        🏥 NMC Registry Check Result
-                      </h4>
-                      {result.registry_result.status === "FOUND" &&
-                      result.registry_result.record ? (
-                        <div>
-                          <p className="mb-2">
-                            <span
-                              className={`px-2 py-1 rounded text-sm font-semibold ${
-                                result.breakdown.registry_score > 0
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {result.registry_result.status}
-                            </span>
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-sm bg-white p-3 rounded">
-                            <p>
-                              <b>Name:</b>{" "}
-                              {result.registry_result.record.name || "N/A"}
-                            </p>
-                            <p>
-                              <b>Registration:</b>{" "}
-                              {result.registry_result.record.registration_number ||
-                                "N/A"}
-                            </p>
-                            <p>
-                              <b>Council:</b>{" "}
-                              {result.registry_result.record.state_medical_council ||
-                                "N/A"}
-                            </p>
-                            <p>
-                              <b>Year:</b>{" "}
-                              {result.registry_result.record.year_of_info || "N/A"}
-                            </p>
-                            {result.registry_result.record.father_name && (
-                              <p>
-                                <b>Father's Name:</b>{" "}
-                                {result.registry_result.record.father_name}
-                              </p>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">
-                            Source: {result.registry_result.source || "NMC_IMR"}
-                          </p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="mb-2">
-                            <span className="px-2 py-1 rounded text-sm font-semibold bg-red-100 text-red-800">
-                              {result.registry_result.status || "NOT_FOUND"}
-                            </span>
-                          </p>
-                          {result.registry_result.error && (
-                            <p className="text-sm text-red-600">
-                              Error: {result.registry_result.error}
-                            </p>
+                  {/* OCR RESULTS */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* License OCR Results */}
+                    {result.extracted_license && (
+                      <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                        <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                          📜 License OCR Results
+                        </h3>
+                        <div className="space-y-2 text-sm">
+                          {result.extracted_license.name && (
+                            <p><b>Name:</b> {result.extracted_license.name}</p>
+                          )}
+                          {result.extracted_license.registration_number && (
+                            <p><b>Registration Number:</b> {result.extracted_license.registration_number}</p>
+                          )}
+                          {result.extracted_license.registration_council && (
+                            <p><b>Council:</b> {result.extracted_license.registration_council}</p>
+                          )}
+                          {result.extracted_license.primary_qualification && (
+                            <p><b>Primary Qualification:</b> {result.extracted_license.primary_qualification}</p>
+                          )}
+                          {result.extracted_license.additional_qualification && (
+                            <p><b>Additional Qualification:</b> {result.extracted_license.additional_qualification}</p>
+                          )}
+                          {!result.extracted_license.name && 
+                           !result.extracted_license.registration_number && 
+                           !result.extracted_license.registration_council && (
+                            <p className="text-gray-500 italic">No data extracted from license</p>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+
+                    {/* ID OCR Results */}
+                    {result.extracted_id && (
+                      <div className="p-4 rounded-lg border border-green-200 bg-green-50">
+                        <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          🆔 ID OCR Results
+                        </h3>
+                        <div className="space-y-2 text-sm">
+                          {result.extracted_id.name && (
+                            <p><b>Name:</b> {result.extracted_id.name}</p>
+                          )}
+                          {result.extracted_id.dob && (
+                            <p><b>Date of Birth:</b> {result.extracted_id.dob}</p>
+                          )}
+                          {result.extracted_id.gender && (
+                            <p><b>Gender:</b> {result.extracted_id.gender}</p>
+                          )}
+                          {result.extracted_id.id_number && (
+                            <p><b>ID Number:</b> {result.extracted_id.id_number}</p>
+                          )}
+                          {result.extracted_id.id_type && (
+                            <p><b>ID Type:</b> {result.extracted_id.id_type}</p>
+                          )}
+                          {!result.extracted_id.name && 
+                           !result.extracted_id.dob && 
+                           !result.extracted_id.id_number && (
+                            <p className="text-gray-500 italic">No data extracted from ID</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -310,7 +354,6 @@ export default function AdminDashboard() {
 
                 <button
                   onClick={() => approve(u.id)}
-                  disabled={verifyingId === u.id}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
                 >
                   Approve
@@ -318,7 +361,6 @@ export default function AdminDashboard() {
 
                 <button
                   onClick={() => reject(u.id)}
-                  disabled={verifyingId === u.id}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
                 >
                   Reject

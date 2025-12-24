@@ -22,14 +22,14 @@ export default function ChatInput({ onSend }) {
     if (!file) return;
 
     try {
-      const data = await uploadFile(file);
+    const data = await uploadFile(file);
 
-      onSend({
-        type: data.type,
-        file_url: data.url,
-        file_name: data.name,
-        text: "",
-      });
+    onSend({
+      type: data.type,
+      file_url: data.url,
+      file_name: data.name,
+      text: "",
+    });
     } catch (error) {
       console.error("File upload error:", error);
       alert("Failed to upload file. Please try again.");

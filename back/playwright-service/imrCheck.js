@@ -1,81 +1,154 @@
 import { chromium } from "playwright";
 
-/**
- * Verify doctor from NMC Indian Medical Register
- * @param {string} name
- * @param {string} registration_number
- */
 export async function checkIMR(name, registration_number) {
+  console.log("\n" + "=".repeat(60));
+  console.log("[Playwright IMR Check] 🚀 Starting IMR verification (NON-BLOCKING LOAD)");
+  console.log("=".repeat(60));
+
   const browser = await chromium.launch({
-    headless: true,  // Must be true in Docker
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu'
-    ]
+    headless: true,
+    devtools: true,
+    
   });
 
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+  });
+
+  const page = await context.newPage();
+
+  // ⛔ Disable Playwright timeouts (important)
+  page.setDefaultTimeout(180000);
+  page.setDefaultNavigationTimeout(180000);
+
+  const url =
+    "https://www.nmc.org.in/information-desk/indian-medical-register/";
 
   try {
-    // 1️⃣ Open IMR page
-    await page.goto(
-      "https://nmc.org.in/information-desk/indian-medical-register/",
-      { waitUntil: "domcontentloaded", timeout: 60000 }
-    );
+    /* =========================
+       STEP 1: START NAVIGATION (NON-BLOCKING)
+       ========================= */
+    console.log("[Playwright IMR Check] 🌐 Starting navigation (do NOT wait)...");
+    page.goto(url).catch(() => {
+      console.log("[Playwright IMR Check] ⚠️ Initial navigation still loading...");
+    });
 
-    // 2️⃣ Doctor Name
-    await page.waitForSelector("#doctorName", { timeout: 60000 });
-    await page.click("#doctorName");
-    await page.fill("#doctorName", "");
-    await page.type("#doctorName", name, { delay: 100 });
+    /* =========================
+       STEP 2: FIXED WAIT (NO INTERRUPTION)
+       ========================= */
+    console.log("[Playwright IMR Check] ⏳ Waiting 5 seconds...");
+    await page.waitForTimeout(5000);
 
-    // 3️⃣ Registration Number
-    await page.waitForSelector("#doctorRegdNo", { timeout: 60000 });
-    await page.click("#doctorRegdNo");
-    await page.fill("#doctorRegdNo", "");
-    await page.type("#doctorRegdNo", registration_number, { delay: 100 });
+    /* =========================
+       STEP 3: FORCE RELOAD
+       ========================= */
+    console.log("[Playwright IMR Check] 🔄 Forcing reload...");
+    page.reload().catch(() => {
+      console.log("[Playwright IMR Check] ⚠️ Reload still loading...");
+    });
 
-    // 4️⃣ Submit
-    await page.waitForSelector("#doctor_advance_Details", { timeout: 30000 });
+    /* =========================
+       STEP 4: WAIT AFTER RELOAD
+       ========================= */
+  
+    await page.waitForTimeout(2000);
+
+    /* =========================
+       STEP 5: FILL FORM
+       ========================= */
+    console.log("[Playwright IMR Check] ✍️ Filling form...");
+    await page.waitForSelector("#doctorName");
+    await page.waitForSelector("#doctorRegdNo");
+
+    await page.fill("#doctorName", name);
+    await page.fill("#doctorRegdNo", registration_number);
+
+    /* =========================
+       STEP 6: SUBMIT
+       ========================= */
+    console.log("[Playwright IMR Check] 🔍 Submitting search...");
     await page.click("#doctor_advance_Details");
 
-    // 5️⃣ Wait for table (AJAX)
-    await page.waitForSelector("#doct_info5 tbody tr", {
-      timeout: 60000
-    });
+    /* =========================
+       STEP 7: WAIT FOR RESULT
+       ========================= */
+    console.log("[Playwright IMR Check] ⏳ Waiting for result...");
 
-    // 6️⃣ Extract FIRST ROW ONLY
-    const record = await page.evaluate(() => {
-      const row = document.querySelector("#doct_info5 tbody tr");
-      if (!row) return null;
+    let result = null;
 
-      const td = row.querySelectorAll("td");
+    while (!result) {
+      result = await page.evaluate(() => {
+        const noData = document.querySelector("td.dataTables_empty");
+        if (
+          noData &&
+          noData.innerText.trim() === "No data available in table"
+        ) {
+          return { noData: true };
+        }
 
-      return {
-        serial_no: td[0]?.innerText.trim(),
-        year_of_info: td[1]?.innerText.trim(),
-        registration_number: td[2]?.innerText.trim(),
-        state_medical_council: td[3]?.innerText.trim(),
-        name: td[4]?.innerText.trim(),
-        father_name: td[5]?.innerText.trim()
+        const row = document.querySelector("#doct_info5 tbody tr");
+        if (!row) return null;
+
+        const td = row.querySelectorAll("td");
+        if (td.length < 6) return null;
+
+        const isEmpty = Array.from(td)
+          .slice(1, 6)
+          .every((cell) => !cell.innerText.trim());
+
+        if (isEmpty) return null;
+
+        return {
+          year: td[1]?.innerText.trim() || "N/A",
+          registration_number: td[2]?.innerText.trim() || "N/A",
+          council: td[3]?.innerText.trim() || "N/A",
+          name: td[4]?.innerText.trim() || "N/A",
+          father_name: td[5]?.innerText.trim() || "N/A",
+        };
+      });
+
+      if (!result) {
+        await page.waitForTimeout(5000);
+        console.log("[Playwright IMR Check] ⏳ Still waiting...");
+      }
+    }
+
+    /* =========================
+       STEP 8: FORMAT RESPONSE
+       ========================= */
+    if (result.noData) {
+      result = {
+        year: "N/A",
+        registration_number: "N/A",
+        council: "N/A",
+        name: "N/A",
+        father_name: "N/A",
       };
-    });
+    }
+
+    console.log("\n[Playwright IMR Check] 📋 FINAL RESULT:");
+    console.log("-".repeat(60));
+    console.log("Status: SUCCESS");
+    console.log(JSON.stringify(result, null, 2));
+    console.log("-".repeat(60));
 
     await browser.close();
+    console.log("[Playwright IMR Check] 🔒 Browser closed");
 
     return {
-      status: record ? "FOUND" : "NOT_FOUND",
-      source: "NMC_IMR",
-      record
+      status: "SUCCESS",
+      result,
     };
 
   } catch (err) {
+    console.error("[Playwright IMR Check] ❌ ERROR:", err.message);
+
     await browser.close();
+
     return {
       status: "ERROR",
-      error: err.message
+      error: err.message,
     };
   }
 }
