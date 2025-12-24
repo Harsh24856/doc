@@ -8,7 +8,7 @@ import FormData from "form-data";
 const router = express.Router();
 
 /* =========================
-   ADMIN MIDDLEWARE
+   ADMIN ONLY
    ========================= */
 const adminOnly = (req, res, next) => {
   if (req.user.role !== "admin") {
@@ -18,30 +18,33 @@ const adminOnly = (req, res, next) => {
 };
 
 /* =========================
-   GET PENDING VERIFICATIONS
+   GET PENDING USERS
    ========================= */
-router.get(
-  "/verifications/pending",
-  auth,
-  adminOnly,
-  async (req, res) => {
+router.get("/verifications/pending", auth, adminOnly, async (req, res) => {
+  console.log("[Admin] 📋 Fetching pending verifications");
     const { data, error } = await supabase
       .from("users")
       .select(`
         id,
         name,
         email,
+      role,
         registration_number,
         registration_council,
+        years_of_experience,
         verification_status,
-        license_doc_url
+      license_doc_url,
+      id_doc_url
       `)
       .eq("verification_status", "pending");
 
-    if (error) return res.status(500).json({ error: error.message });
-    res.json(data);
+  if (error) {
+    console.error("[Admin] ❌ Error fetching pending:", error.message);
+    return res.status(500).json({ error: error.message });
   }
-);
+  console.log(`[Admin] ✅ Found ${data?.length || 0} pending verifications`);
+  res.json(data);
+});
 
 /* =========================
    GET DOCUMENT (SIGNED URL)
@@ -51,46 +54,46 @@ router.get(
   auth,
   adminOnly,
   async (req, res) => {
-    try {
       const { userId, type } = req.params;
+    console.log(`[Admin] 📄 Getting ${type} document for user: ${userId}`);
 
       if (!["license", "id"].includes(type)) {
+      console.error(`[Admin] ❌ Invalid document type: ${type}`);
         return res.status(400).json({ error: "Invalid document type" });
       }
 
-      const { data: user, error } = await supabase
+    const { data: user } = await supabase
         .from("users")
         .select(`${type}_doc_url`)
         .eq("id", userId)
         .single();
 
-      if (error || !user) {
-        return res.status(404).json({ error: "User not found" });
+    if (!user || !user[`${type}_doc_url`]) {
+      console.error(`[Admin] ❌ Document not found for user ${userId}, type: ${type}`);
+      return res.status(404).json({ error: "Document not found" });
       }
 
-      let filePath = user[`${type}_doc_url`];
-      if (filePath.startsWith("http")) {
-        filePath = filePath.split("/storage/v1/object/")[1]?.split("?")[0];
+    let path = user[`${type}_doc_url`];
+    if (path.startsWith("http")) {
+      path = path.split("/storage/v1/object/")[1]?.split("?")[0];
       }
 
-      const { data: signed, error: signError } =
+    const { data, error } =
         await supabaseAdmin.storage
           .from("verification-docs")
-          .createSignedUrl(filePath, 3600);
+        .createSignedUrl(path, 3600);
 
-      if (signError) {
-        return res.status(500).json({ error: signError.message });
+    if (error) {
+      console.error(`[Admin] ❌ Error creating signed URL:`, error.message);
+      return res.status(500).json({ error: error.message });
       }
-
-      res.json({ url: signed.signedUrl });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
+    console.log(`[Admin] ✅ Signed URL created for ${type} document`);
+    res.json({ url: data.signedUrl });
   }
 );
 
 /* =========================
-   AI + REGISTRY VERIFICATION
+   AI VERIFICATION
    ========================= */
 router.post(
   "/verifications/:userId/ai-check",
@@ -99,261 +102,426 @@ router.post(
   async (req, res) => {
     try {
       const { userId } = req.params;
+      console.log(`[Admin] 🤖 Starting AI check for user: ${userId}`);
 
-      /* 1️⃣ Fetch user */
-      const { data: user, error } = await supabase
+      const { data: user } = await supabase
         .from("users")
-        .select("name, registration_number, license_doc_url")
+        .select("name, role, registration_number, registration_council, years_of_experience, license_doc_url, id_doc_url")
         .eq("id", userId)
         .single();
 
-      if (error || !user) {
+      if (!user) {
+        console.error(`[Admin] ❌ User not found: ${userId}`);
         return res.status(404).json({ error: "User not found" });
       }
 
-      /* 2️⃣ Download license PDF */
-      if (!user.license_doc_url) {
-        return res.status(400).json({ error: "User has no license document uploaded" });
-      }
+      console.log(`[Admin] 👤 User found: ${user.name} (${user.role})`);
+      const isDoctor = user.role === "doctor";
 
-      let filePath = user.license_doc_url;
-      if (filePath.startsWith("http")) {
-        filePath = filePath.split("/storage/v1/object/")[1]?.split("?")[0];
-      }
+      const normalize = (v) =>
+        String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-      const { data: fileData, error: fileError } =
-        await supabaseAdmin.storage
+      const userName = normalize(user.name);
+
+      /* =========================
+         DOWNLOAD FILES
+         ========================= */
+      const download = async (path, type) => {
+        if (!path) {
+          console.log(`[Admin] ⚠️  No ${type} document path provided`);
+          return null;
+        }
+        try {
+          if (path.startsWith("http")) {
+            path = path.split("/storage/v1/object/")[1]?.split("?")[0];
+      }
+          console.log(`[Admin] 📥 Downloading ${type} document: ${path}`);
+          const { data, error } = await supabaseAdmin.storage
           .from("verification-docs")
-          .download(filePath);
+            .download(path);
+          
+          if (error) {
+            console.error(`[Admin] ❌ Error downloading ${type}:`, error.message);
+            return null;
+          }
+          
+          if (!data) {
+            console.error(`[Admin] ❌ No data returned for ${type} download`);
+            return null;
+          }
+          
+          console.log(`[Admin] ✅ ${type} document downloaded successfully`);
+          return Buffer.from(await data.arrayBuffer());
+        } catch (err) {
+          console.error(`[Admin] ❌ Exception downloading ${type}:`, err.message);
+          return null;
+        }
+      };
 
-      if (fileError || !fileData) {
-        return res.status(500).json({ 
-          error: fileError?.message || "Failed to download license document" 
-        });
+      const licenseBuffer = await download(user.license_doc_url, "license");
+      const idBuffer = await download(user.id_doc_url, "ID");
+
+      if (!licenseBuffer) {
+        console.error(`[Admin] ❌ License document missing for user ${userId}`);
+        return res.status(400).json({ error: "License document missing" });
       }
 
-      const buffer = Buffer.from(await fileData.arrayBuffer());
+      /* =========================
+         PARALLEL REQUESTS (PLAYWRIGHT FIRST PRIORITY)
+         ========================= */
+      const ML = process.env.ML_SERVICE_URL || "http://localhost:8001";
+      const PW = process.env.PLAYWRIGHT_SERVICE_URL || "http://localhost:9000";
+      console.log(`[Admin] 🔗 ML Service: ${ML}, Playwright Service: ${PW}`);
 
-      /* 3️⃣ Prepare OCR request */
-      const form = new FormData();
-      form.append("file", buffer, {
+      const tasks = [];
+      let registryIndex = -1;
+      let licenseIndex = -1;
+      let idIndex = -1;
+
+      // 🥇 FIRST PRIORITY: Registry Check (Playwright)
+      if (isDoctor) {
+        console.log(`[Admin] 🥇 [PRIORITY] Sending registry check to ${PW}/mci-check`);
+        registryIndex = tasks.length;
+        tasks.push(
+          fetch(`${PW}/mci-check`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: user.name,
+              registration_number: user.registration_number,
+            }),
+          })
+        );
+      } else {
+        console.log(`[Admin] ⚠️  Skipping registry check - not a doctor`);
+      }
+
+      // License OCR
+      console.log(`[Admin] 📤 Sending license OCR request to ${ML}/extract-license`);
+      licenseIndex = tasks.length;
+      const licenseForm = new FormData();
+      licenseForm.append("file", licenseBuffer, {
         filename: "license.pdf",
         contentType: "application/pdf",
       });
 
-      /* ===============================
-         RUN BOTH MODELS IN PARALLEL
-         =============================== */
-      const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8001";
-      const PLAYWRIGHT_SERVICE_URL = process.env.PLAYWRIGHT_SERVICE_URL || "http://localhost:9000";
+      tasks.push(
+        fetch(`${ML}/extract-license`, { method: "POST", body: licenseForm })
+      );
 
-      // Add timeout wrapper for fetch calls
-      const fetchWithTimeout = (url, options, timeout = 30000) => {
-        return Promise.race([
-          fetch(url, options),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
-          )
-        ]);
-      };
-
-      const [ocrRes, imrRes] = await Promise.allSettled([
-        fetchWithTimeout(`${ML_SERVICE_URL}/extract-license`, {
-          method: "POST",
-          body: form,
-        }).catch(err => {
-          console.error("[OCR Service] Connection error:", err.message);
-          throw new Error(`ML Service unavailable: ${err.message}. Ensure ML service is running on ${ML_SERVICE_URL}`);
-        }),
-        fetchWithTimeout(`${PLAYWRIGHT_SERVICE_URL}/mci-check`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: user.name,
-            registration_number: user.registration_number
-          }),
-        }).catch(err => {
-          console.error("[Playwright Service] Connection error:", err.message);
-          throw new Error(`Playwright Service unavailable: ${err.message}. Ensure Playwright service is running on ${PLAYWRIGHT_SERVICE_URL}`);
-        })
-      ]);
-
-      /* ===============================
-         OCR RESULT (10%)
-         =============================== */
-      let ocrScore = 0;
-      let extractedTable = null;
-
-      console.log("\n[AI Check] ========================================");
-      console.log("[AI Check] User:", user.name, "| Reg:", user.registration_number);
-      console.log("[AI Check] ========================================\n");
-
-      if (ocrRes.status === "fulfilled" && ocrRes.value.ok) {
-        const ocrJson = await ocrRes.value.json();
-        extractedTable = ocrJson.structured_certificate;
-
-        console.log("[OCR Result] Full response:", JSON.stringify(ocrJson, null, 2));
-        console.log("[OCR Result] Extracted name:", extractedTable?.name);
-        console.log("[OCR Result] Extracted registration:", extractedTable?.registration_number);
-
-        const normalize = v =>
-          String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-
-        const userNameNorm = normalize(user.name);
-        const extractedNameNorm = normalize(extractedTable?.name);
-        const userRegNorm = normalize(user.registration_number);
-        const extractedRegNorm = normalize(extractedTable?.registration_number);
-
-        console.log("[OCR Result] Normalized comparison:");
-        console.log("  - User name:", userNameNorm);
-        console.log("  - Extracted name:", extractedNameNorm);
-        console.log("  - User reg:", userRegNorm);
-        console.log("  - Extracted reg:", extractedRegNorm);
-
-        const nameMatch =
-          userNameNorm.includes(extractedNameNorm) ||
-          extractedNameNorm.includes(userNameNorm);
-
-        const regMatch = userRegNorm === extractedRegNorm;
-
-        console.log("[OCR Result] Matches - Name:", nameMatch, "| Reg:", regMatch);
-
-        if (nameMatch && regMatch) {
-          ocrScore = 10;
-          console.log("[OCR Result] ✅ Score: 10/10");
-        } else {
-          console.log("[OCR Result] ❌ Score: 0/10");
-        }
+      // ID OCR
+      if (idBuffer) {
+        console.log(`[Admin] 📤 Sending ID OCR request to ${ML}/extract-id-license`);
+        idIndex = tasks.length;
+        const idForm = new FormData();
+        idForm.append("file", idBuffer, {
+          filename: "id.pdf",
+          contentType: "application/pdf",
+        });
+        tasks.push(
+          fetch(`${ML}/extract-id-license`, { method: "POST", body: idForm })
+        );
       } else {
-        console.log("[OCR Result] ❌ Failed or rejected");
-        if (ocrRes.status === "rejected") {
-          console.log("[OCR Result] Error:", ocrRes.reason);
-        } else if (ocrRes.status === "fulfilled" && !ocrRes.value.ok) {
-          const errorText = await ocrRes.value.text();
-          console.log("[OCR Result] HTTP Error:", ocrRes.value.status, errorText);
-        }
+        console.log(`[Admin] ⚠️  Skipping ID OCR - no ID document`);
       }
 
-      /* ===============================
-         PLAYWRIGHT RESULT (90%)
-         =============================== */
-      let imrScore = 0;
-      let imrResult = null;
+      console.log(`[Admin] ⏳ Waiting for ${tasks.length} parallel requests...`);
+      const responses = await Promise.allSettled(tasks);
+      console.log(`[Admin] ✅ All requests completed`);
 
-      if (imrRes.status === "fulfilled" && imrRes.value.ok) {
-        imrResult = await imrRes.value.json();
+      /* =========================
+         SCORE CALCULATION
+         ========================= */
+      let licenseScore = 0;
+      let idScore = 0;
+      let registryScore = 0;
 
-        console.log("\n[IMR Result] Full response:", JSON.stringify(imrResult, null, 2));
+      let extracted_license = null;
+      let extracted_id = null;
+      let registry_result = null;
 
-        if (imrResult.status === "FOUND" && imrResult.record) {
-          const record = imrResult.record;
+      console.log(`[Admin] 🧮 Processing ${responses.length} responses...`);
+      console.log(`[Admin] 📍 Response indices - Registry: ${registryIndex >= 0 ? registryIndex : 'N/A'}, License: ${licenseIndex}, ID: ${idIndex >= 0 ? idIndex : 'N/A'}`);
+      
+      for (let i = 0; i < responses.length; i++) {
+        const r = responses[i];
+        const serviceName = i === registryIndex ? "🏥 Registry (PRIORITY)" : 
+                           i === licenseIndex ? "📜 License OCR" : 
+                           i === idIndex ? "🆔 ID OCR" : `Request ${i + 1}`;
+        
+        if (r.status !== "fulfilled") {
+          console.error(`[Admin] ❌ ${serviceName} failed:`, r.reason?.message || "Unknown error");
+          continue;
+        }
 
-          console.log("[IMR Result] Record found:");
-          console.log("  - Name:", record.name);
-          console.log("  - Registration:", record.registration_number);
-          console.log("  - Council:", record.state_medical_council);
-          console.log("  - Year:", record.year_of_info);
+        if (!r.value?.ok) {
+          console.error(`[Admin] ❌ ${serviceName} returned status: ${r.value?.status}`);
+          continue;
+        }
 
-          // Validate that record has required fields
-          if (!record.name || !record.registration_number) {
-            console.log("[IMR Result] ❌ Invalid record: missing name or registration");
-            console.log("[IMR Result] ❌ Score: 0/90 (invalid data)");
-          } else {
-            const normalize = (v) =>
-              String(v || "")
-                .toLowerCase()
-                .replace(/^(dr\.?|doctor)\s+/i, "")
-                .replace(/[^a-z0-9]/g, "");
+        try {
+          const data = await r.value.json();
+          console.log(`[Admin] 📦 ${serviceName} response data:`, JSON.stringify(data, null, 2));
 
-            const userNameNorm = normalize(user.name);
-            const imrNameNorm = normalize(record.name);
-            const userRegNorm = normalize(user.registration_number);
-            const imrRegNorm = normalize(record.registration_number);
+          // Registry (FIRST PRIORITY)
+          if (i === registryIndex) {
+            console.log(`[Admin] 🥇 [PRIORITY] Registry check result: ${data.status || "UNKNOWN"}`);
+            
+            // Process registry result for both SUCCESS and ERROR cases (if data exists)
+            if (data.status === "SUCCESS" || data.status === "ERROR") {
+              // Playwright returns 'result', map it to 'record' for consistency
+              const registryData = data.result || data.record;
+              console.log(`[Admin] 🔍 Registry data check - result: ${!!data.result}, record: ${!!data.record}, registryData: ${!!registryData}`);
+              
+              // Store full result with both 'result' and 'record' for compatibility
+              registry_result = {
+                ...data,
+                record: registryData,
+                result: registryData
+              };
 
-            console.log("[IMR Result] Normalized comparison:");
-            console.log("  - User name:", userNameNorm);
-            console.log("  - IMR name:", imrNameNorm);
-            console.log("  - User reg:", userRegNorm);
-            console.log("  - IMR reg:", imrRegNorm);
+              if (registryData && data.status === "SUCCESS") {
+                // Check if data is valid (not all N/A)
+                const hasValidData = registryData.registration_number && 
+                                     registryData.registration_number !== "N/A" &&
+                                     registryData.name && 
+                                     registryData.name !== "N/A";
 
-            // Only match if both normalized values are non-empty
-            const nameMatch =
-              userNameNorm.length > 0 &&
-              imrNameNorm.length > 0 &&
-              (userNameNorm.includes(imrNameNorm) ||
-                imrNameNorm.includes(userNameNorm));
-
-            const regMatch =
-              userRegNorm.length > 0 &&
-              imrRegNorm.length > 0 &&
-              userRegNorm === imrRegNorm;
-
-            console.log("[IMR Result] Matches - Name:", nameMatch, "| Reg:", regMatch);
-
-            if (nameMatch) {
-              imrScore = 90;
-              console.log("[IMR Result] ✅ Score: 90/90");
+                if (hasValidData) {
+                  // New scoring rules: +20 for each match
+                  let score = 0;
+                  
+                  // Normalize data for comparison
+                  const rn = normalize(registryData.name);
+                  const rr = normalize(registryData.registration_number);
+                  const ur = normalize(user.registration_number);
+                  const rc = normalize(registryData.council || "");
+                  const uc = normalize(user.registration_council || "");
+                  
+                  // Rule 1: Name match (+20)
+                  if (rn && (userName.includes(rn) || rn.includes(userName))) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 1: Name match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 1: Name mismatch`);
+                  }
+                  
+                  // Rule 2: Council match (+20)
+                  if (rc && uc && (rc === uc || rc.includes(uc) || uc.includes(rc))) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 2: Council match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 2: Council mismatch (IMR: ${registryData.council || "N/A"}, DB: ${user.registration_council || "N/A"})`);
+                  }
+                  
+                  // Rule 3: Registration number match (+20)
+                  if (rr && ur && rr === ur) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 3: Registration number match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 3: Registration number mismatch`);
+                  }
+                  
+                  // Rule 4: Year matches years_of_experience (+20)
+                  if (registryData.year && user.years_of_experience) {
+                    const registryYear = parseInt(registryData.year, 10);
+                    const currentYear = new Date().getFullYear();
+                    const expectedYearsOfExp = currentYear - registryYear;
+                    const userYearsOfExp = parseInt(user.years_of_experience, 10);
+                    
+                    // Check if years of experience match (within 1 year tolerance)
+                    if (Math.abs(expectedYearsOfExp - userYearsOfExp) <= 1) {
+                      score += 20;
+                      console.log(`[Admin] ✅ Registry Rule 4: Year matches experience (+20) (Registry Year: ${registryYear}, Expected Exp: ${expectedYearsOfExp}, User Exp: ${userYearsOfExp})`);
+                    } else {
+                      console.log(`[Admin] ❌ Registry Rule 4: Year doesn't match experience (Registry Year: ${registryYear}, Expected Exp: ${expectedYearsOfExp}, User Exp: ${userYearsOfExp})`);
+                    }
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 4: Missing year or experience data (Year: ${registryData.year || "N/A"}, Exp: ${user.years_of_experience || "N/A"})`);
+                  }
+                  
+                  registryScore = score;
+                  console.log(`[Admin] 📊 Registry Total Score: ${registryScore}/80`);
+                  console.log(`[Admin] 📋 Registry Data:`, JSON.stringify(registryData, null, 2));
+                } else {
+                  console.log(`[Admin] ⚠️  No valid registry data found (all N/A)`);
+                  console.log(`[Admin] 📋 Registry Data:`, JSON.stringify(registryData, null, 2));
+                }
+              } else if (data.status === "ERROR") {
+                console.log(`[Admin] ⚠️  Registry check failed with error: ${data.error || "Unknown error"}`);
+                console.log(`[Admin] 📋 Registry result stored but no score assigned due to error`);
+              } else {
+                console.log(`[Admin] ⚠️  No registry data received`);
+              }
             } else {
-              console.log("[IMR Result] ❌ Score: 0/90 (name mismatch)");
+              console.log(`[Admin] ⚠️  Unexpected registry status: ${data.status}`);
             }
           }
-        } else {
-          console.log("[IMR Result] ❌ Status:", imrResult.status);
-          if (imrResult.error) {
-            console.log("[IMR Result] Error:", imrResult.error);
+          // License OCR
+          else if (i === licenseIndex && data.structured_certificate) {
+            console.log(`[Admin] 📜 License OCR result received`);
+            extracted_license = data.structured_certificate;
+            const n = normalize(extracted_license.name);
+            licenseScore = n
+              ? (userName.includes(n) || n.includes(userName) ? 10 : 5)
+              : 0;
+            console.log(`[Admin] 📊 License OCR Score: ${licenseScore} (extracted name: ${extracted_license.name || "N/A"})`);
           }
-        }
-      } else {
-        console.log("[IMR Result] ❌ Failed or rejected");
-        if (imrRes.status === "rejected") {
-          console.log("[IMR Result] Error:", imrRes.reason);
-        } else if (imrRes.status === "fulfilled" && !imrRes.value.ok) {
-          const errorText = await imrRes.value.text();
-          console.log("[IMR Result] HTTP Error:", imrRes.value.status, errorText);
+          // ID OCR
+          else if (i === idIndex && data.structured_id) {
+            console.log(`[Admin] 🆔 ID OCR result received`);
+            extracted_id = data.structured_id;
+            const n = normalize(extracted_id.name);
+            idScore = n
+              ? (userName.includes(n) || n.includes(userName) ? 10 : 5)
+              : 0;
+            console.log(`[Admin] 📊 ID OCR Score: ${idScore} (extracted name: ${extracted_id.name || "N/A"})`);
+          }
+          // Fallback: detect by data structure
+          else {
+            if (data.structured_certificate) {
+              console.log(`[Admin] 📜 License OCR result received (detected)`);
+              extracted_license = data.structured_certificate;
+              const n = normalize(extracted_license.name);
+              licenseScore = n
+                ? (userName.includes(n) || n.includes(userName) ? 10 : 5)
+                : 0;
+            }
+            if (data.structured_id) {
+              console.log(`[Admin] 🆔 ID OCR result received (detected)`);
+              extracted_id = data.structured_id;
+              const n = normalize(extracted_id.name);
+              idScore = n
+                ? (userName.includes(n) || n.includes(userName) ? 10 : 5)
+                : 0;
+            }
+            // Playwright returns 'result', check both 'result' and 'record' for compatibility (fallback detection)
+            const registryData = data.result || data.record;
+            if ((data.status === "SUCCESS" || data.status === "ERROR") && registryData) {
+              console.log(`[Admin] 🏥 Registry check result: ${data.status} (detected in fallback)`);
+              // Store full result with both 'result' and 'record' for compatibility
+              registry_result = {
+                ...data,
+                record: registryData,
+                result: registryData
+              };
+              
+              // Only score if status is SUCCESS and data is valid
+              if (data.status === "SUCCESS") {
+                // Check if data is valid (not all N/A)
+                const hasValidData = registryData.registration_number && 
+                                     registryData.registration_number !== "N/A" &&
+                                     registryData.name && 
+                                     registryData.name !== "N/A";
+
+                if (hasValidData) {
+                  // New scoring rules: +20 for each match
+                  let score = 0;
+                  
+                  // Normalize data for comparison
+                  const rn = normalize(registryData.name);
+                  const rr = normalize(registryData.registration_number);
+                  const ur = normalize(user.registration_number);
+                  const rc = normalize(registryData.council || "");
+                  const uc = normalize(user.registration_council || "");
+                  
+                  // Rule 1: Name match (+20)
+                  if (rn && (userName.includes(rn) || rn.includes(userName))) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 1: Name match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 1: Name mismatch`);
+                  }
+                  
+                  // Rule 2: Council match (+20)
+                  if (rc && uc && (rc === uc || rc.includes(uc) || uc.includes(rc))) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 2: Council match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 2: Council mismatch (IMR: ${registryData.council || "N/A"}, DB: ${user.registration_council || "N/A"})`);
+                  }
+                  
+                  // Rule 3: Registration number match (+20)
+                  if (rr && ur && rr === ur) {
+                    score += 20;
+                    console.log(`[Admin] ✅ Registry Rule 3: Registration number match (+20)`);
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 3: Registration number mismatch`);
+                  }
+                  
+                  // Rule 4: Year matches years_of_experience (+20)
+                  if (registryData.year && user.years_of_experience) {
+                    const registryYear = parseInt(registryData.year, 10);
+                    const currentYear = new Date().getFullYear();
+                    const expectedYearsOfExp = currentYear - registryYear;
+                    const userYearsOfExp = parseInt(user.years_of_experience, 10);
+                    
+                    // Check if years of experience match (within 1 year tolerance)
+                    if (Math.abs(expectedYearsOfExp - userYearsOfExp) <= 1) {
+                      score += 20;
+                      console.log(`[Admin] ✅ Registry Rule 4: Year matches experience (+20) (Registry Year: ${registryYear}, Expected Exp: ${expectedYearsOfExp}, User Exp: ${userYearsOfExp})`);
+                    } else {
+                      console.log(`[Admin] ❌ Registry Rule 4: Year doesn't match experience (Registry Year: ${registryYear}, Expected Exp: ${expectedYearsOfExp}, User Exp: ${userYearsOfExp})`);
+                    }
+                  } else {
+                    console.log(`[Admin] ❌ Registry Rule 4: Missing year or experience data (Year: ${registryData.year || "N/A"}, Exp: ${user.years_of_experience || "N/A"})`);
+                  }
+                  
+                  registryScore = score;
+                  console.log(`[Admin] 📊 Registry Total Score: ${registryScore}/80`);
+                  console.log(`[Admin] 📋 Registry Data:`, JSON.stringify(registryData, null, 2));
+                } else {
+                  console.log(`[Admin] ⚠️  No valid registry data found (all N/A)`);
+                  console.log(`[Admin] 📋 Registry Data:`, JSON.stringify(registryData, null, 2));
+                }
+              } else if (data.status === "ERROR") {
+                console.log(`[Admin] ⚠️  Registry check failed with error: ${data.error || "Unknown error"}`);
+                console.log(`[Admin] 📋 Registry result stored but no score assigned due to error`);
+              }
+            }
+          }
+        } catch (err) {
+          console.error(`[Admin] ❌ Error parsing ${serviceName} response:`, err.message);
         }
       }
 
-      /* ===============================
-         FINAL SCORE
-         =============================== */
-      const verification_score = ocrScore + imrScore;
+      const verification_score = registryScore + licenseScore + idScore;
 
       let verification_status = "FAILED";
-      if (verification_score === 100) {
-        verification_status = "VERIFIED";
-      } else if (verification_score >= 10) {
-        verification_status = "PARTIALLY_VERIFIED";
-      }
+      if (verification_score === 100) verification_status = "VERIFIED";
+      else if (verification_score >= 50) verification_status = "PARTIALLY_VERIFIED";
 
-      /* ===============================
-         RESPONSE TO FRONTEND
-         =============================== */
+      console.log(`[Admin] 🎯 Final Score: ${verification_score}/100`);
+      console.log(`[Admin] 📊 Breakdown: Registry(${registryScore}) + License(${licenseScore}) + ID(${idScore})`);
+      console.log(`[Admin] ✅ Verification Status: ${verification_status}`);
+
       res.json({
-        resume_name: user.name,
-        resume_registration_number: user.registration_number,
+        name: user.name,
+        role: user.role,
         verification_score,
         verification_status,
         breakdown: {
-          ocr_score: ocrScore,
-          registry_score: imrScore
+          registry_score: registryScore,
+          license_ocr_score: licenseScore,
+          id_ocr_score: idScore,
         },
-        extracted_license: extractedTable,
-        registry_result: imrResult,
-        method: "OCR (10%) + NMC Registry (90%)"
+        extracted_license,
+        extracted_id,
+        registry_result,
+        method: isDoctor
+          ? "Registry(80) + License OCR(10) + ID OCR(10)"
+          : "License OCR(10) + ID OCR(10)",
       });
-
     } catch (err) {
-      console.error("[AI Check] Unhandled error:", err);
-      res.status(500).json({ 
-        error: err.message || "Internal server error during AI verification",
-        details: process.env.NODE_ENV === "development" ? err.stack : undefined
-      });
+      console.error("[Admin] ❌ AI CHECK ERROR:", err.message);
+      console.error("[Admin] ❌ Stack trace:", err.stack);
+      res.status(500).json({ error: err.message });
     }
   }
 );
 
 /* =========================
-   APPROVE / REJECT USER
+   APPROVE / REJECT
    ========================= */
 router.post(
   "/verifications/:userId/:action",
@@ -361,8 +529,10 @@ router.post(
   adminOnly,
   async (req, res) => {
     const { userId, action } = req.params;
+    console.log(`[Admin] ${action === "approve" ? "✅" : "❌"} ${action.toUpperCase()} request for user: ${userId}`);
 
     if (!["approve", "reject"].includes(action)) {
+      console.error(`[Admin] ❌ Invalid action: ${action}`);
       return res.status(400).json({ error: "Invalid action" });
     }
 
@@ -371,15 +541,14 @@ router.post(
         ? { verified: true, verification_status: "approved" }
         : { verified: false, verification_status: "rejected" };
 
-    const { error } = await supabase
-      .from("users")
-      .update(updates)
-      .eq("id", userId);
+    const { error } = await supabase.from("users").update(updates).eq("id", userId);
 
     if (error) {
+      console.error(`[Admin] ❌ Error ${action}ing user:`, error.message);
       return res.status(500).json({ error: error.message });
     }
 
+    console.log(`[Admin] ✅ User ${action}d successfully`);
     res.json({ message: `User ${action}d successfully` });
   }
 );

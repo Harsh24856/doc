@@ -1,183 +1,259 @@
 import express from "express";
 import auth from "../middleware/auth.js";
 import supabase from "../db.js";
+import supabaseAdmin from "../Admin.js";
+import fetch from "node-fetch";
+import FormData from "form-data";
 
 const router = express.Router();
 
 /* =========================
-   UPDATE MEDICAL RESUME
+   ADMIN ONLY
    ========================= */
-router.put("/medical-resume", auth, async (req, res) => {
-  console.log("\n[PUT /profile/medical-resume] =====================");
-  console.log("[PUT Medical Resume] Step 1: Request received");
-  
-  const userId = req.user.id;
-  console.log("[PUT Medical Resume] User ID:", userId);
-  console.log("[PUT Medical Resume] Authenticated user:", req.user?.email);
-  console.log("[PUT Medical Resume] Request body:", JSON.stringify(req.body, null, 2));
-
-  const allowedFields = [
-    "role",
-    "name",
-    "phone",
-    "designation",
-    "specialization",
-    "registration_number",
-    "years_of_experience",
-    "hospital_affiliation",
-    "qualifications",
-    "skills",
-    "bio",
-  ];
-
-  console.log("[PUT Medical Resume] Step 2: Filtering allowed fields and converting data types");
-  const updates = {};
-  for (const key of allowedFields) {
-    if (req.body[key] !== undefined) {
-      let value = req.body[key];
-      
-      // Convert qualifications and skills to arrays if they're strings
-      if (key === "qualifications" || key === "skills") {
-        if (typeof value === "string") {
-          // Handle comma-separated string
-          value = value.split(",").map((item) => item.trim()).filter(Boolean);
-          console.log(`[PUT Medical Resume] Converted ${key} from string to array:`, value);
-        } else if (!Array.isArray(value)) {
-          // If it's not a string and not an array, wrap it in an array
-          value = [value].filter(Boolean);
-          console.log(`[PUT Medical Resume] Converted ${key} to array:`, value);
-        }
-        // If it's already an array, use it as-is
-      }
-      
-      // Convert years_of_experience to number
-      if (key === "years_of_experience" && value !== null && value !== undefined) {
-        value = Number(value);
-        if (isNaN(value)) {
-          console.log(`[PUT Medical Resume] ⚠️ Invalid number for ${key}, setting to null`);
-          value = null;
-        }
-      }
-      
-      updates[key] = value;
-    }
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin access only" });
   }
-  console.log("[PUT Medical Resume] Filtered and converted updates:", JSON.stringify(updates, null, 2));
+  next();
+};
 
-  try {
-    console.log("[PUT Medical Resume] Step 3: Fetching current user data");
-    // 🔍 Fetch current role + profile status
-    const { data: currentUser, error } = await supabase
-      .from("users")
-      .select("role, profile_completed")
-      .eq("id", userId)
-      .single();
+/* =========================
+   HELPERS
+   ========================= */
+const normalizeText = (v) =>
+  String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    console.log("[PUT Medical Resume] Current user data:", currentUser);
-    console.log("[PUT Medical Resume] Has error:", !!error);
+const normalizeNumber = (v) =>
+  String(v || "").replace(/\D/g, "");
 
-    if (error) {
-      console.error("[PUT Medical Resume] ❌ Error fetching current user:", error.message);
-      throw error;
-    }
+/* =========================
+   GET PENDING USERS
+   ========================= */
+router.get("/verifications/pending", auth, adminOnly, async (req, res) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select(`
+      id,
+      name,
+      email,
+      role,
+      phone,
+      designation,
+      specialization,
+      registration_number,
+      registration_council,
+      years_of_experience,
+      hospital_affiliation,
+      qualifications,
+      skills,
+      bio,
+      verification_status,
+      license_doc_url,
+      id_doc_url
+    `)
+    .eq("verification_status", "pending");
 
-    console.log("[PUT Medical Resume] Step 4: Validating role updates");
-    // 🚫 Block admin role
-    if (updates.role === "admin") {
-      console.log("[PUT Medical Resume] ⚠️ Admin role blocked, removing from updates");
-      delete updates.role;
-    }
-
-    // 🔒 Lock role after first completion
-    if (updates.role && currentUser.profile_completed) {
-      console.log("[PUT Medical Resume] ⚠️ Role change blocked - profile already completed");
-      console.log("[PUT Medical Resume] Current role:", currentUser.role);
-      console.log("[PUT Medical Resume] Attempted role:", updates.role);
-      delete updates.role;
-    }
-
-    console.log("[PUT Medical Resume] Step 5: Updating user in database");
-    console.log("[PUT Medical Resume] Final updates to apply:", JSON.stringify(updates, null, 2));
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({
-        ...updates,
-        profile_completed: true,
-      })
-      .eq("id", userId);
-
-    if (updateError) {
-      console.error("[PUT Medical Resume] ❌ Database update error:", updateError.message);
-      console.error("[PUT Medical Resume] Error details:", updateError);
-      throw updateError;
-    }
-
-    console.log("[PUT Medical Resume] ✅ Profile updated successfully");
-    console.log("[PUT Medical Resume] ✅ Sending response");
-    res.json({ message: "Profile updated successfully" });
-  } catch (err) {
-    console.error("[PUT Medical Resume] ❌ Error:", err.message);
-    console.error("[PUT Medical Resume] Error stack:", err.stack);
-    res.status(500).json({ error: err.message });
-  }
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
 /* =========================
-   GET MEDICAL RESUME
+   AI VERIFICATION
    ========================= */
-router.get("/medical-resume", auth, async (req, res) => {
-  console.log("\n[GET /profile/medical-resume] =====================");
-  console.log("[GET Medical Resume] Step 1: Request received");
-  
-  const userId = req.user.id;
-  console.log("[GET Medical Resume] User ID:", userId);
-  console.log("[GET Medical Resume] Authenticated user:", req.user?.email);
+router.post(
+  "/verifications/:userId/ai-check",
+  auth,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
 
-  try {
-    console.log("[GET Medical Resume] Step 2: Fetching user data from database");
-    const { data, error } = await supabase
-      .from("users")
-      .select(`
-        id,
-        role,
-        name,
-        email,
-        phone,
-        designation,
-        specialization,
-        registration_number,
-        years_of_experience,
-        hospital_affiliation,
-        qualifications,
-        skills,
-        bio,
-        profile_completed
-      `)
-      .eq("id", userId)
-      .single();
+      const { data: user } = await supabase
+        .from("users")
+        .select(`
+          role,
+          name,
+          phone,
+          designation,
+          specialization,
+          registration_number,
+          registration_council,
+          years_of_experience,
+          hospital_affiliation,
+          qualifications,
+          skills,
+          bio,
+          license_doc_url,
+          id_doc_url
+        `)
+        .eq("id", userId)
+        .single();
 
-    console.log("[GET Medical Resume] Step 3: Database query executed");
-    console.log("[GET Medical Resume] Has data:", !!data);
-    console.log("[GET Medical Resume] Has error:", !!error);
+      if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (error) {
-      console.error("[GET Medical Resume] ❌ Database error:", error.message);
-      console.error("[GET Medical Resume] Error details:", error);
-      throw error;
+      const isDoctor = user.role === "doctor";
+      const userNameNorm = normalizeText(user.name);
+
+      /* =========================
+         DOWNLOAD FILES
+         ========================= */
+      const download = async (path) => {
+        if (!path) return null;
+        if (path.startsWith("http")) {
+          path = path.split("/storage/v1/object/")[1]?.split("?")[0];
+        }
+        const { data } = await supabaseAdmin
+          .storage
+          .from("verification-docs")
+          .download(path);
+        return data ? Buffer.from(await data.arrayBuffer()) : null;
+      };
+
+      const licenseBuffer = await download(user.license_doc_url);
+      const idBuffer = await download(user.id_doc_url);
+
+      if (!licenseBuffer)
+        return res.status(400).json({ error: "License document missing" });
+
+      /* =========================
+         PARALLEL TASKS
+         ========================= */
+      const ML = process.env.ML_SERVICE_URL;
+      const PW = process.env.PLAYWRIGHT_SERVICE_URL;
+
+      const tasks = [];
+      let registryIndex = -1;
+      let licenseIndex = -1;
+      let idIndex = -1;
+
+      if (isDoctor) {
+        registryIndex = tasks.length;
+        tasks.push(
+          fetch(`${PW}/mci-check`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: user.name,
+              registration_number: user.registration_number,
+            }),
+          })
+        );
+      }
+
+      licenseIndex = tasks.length;
+      const licenseForm = new FormData();
+      licenseForm.append("file", licenseBuffer, {
+        filename: "license.pdf",
+        contentType: "application/pdf",
+      });
+      tasks.push(fetch(`${ML}/extract-license`, { method: "POST", body: licenseForm }));
+
+      if (idBuffer) {
+        idIndex = tasks.length;
+        const idForm = new FormData();
+        idForm.append("file", idBuffer, {
+          filename: "id.pdf",
+          contentType: "application/pdf",
+        });
+        tasks.push(fetch(`${ML}/extract-id-license`, { method: "POST", body: idForm }));
+      }
+
+      const responses = await Promise.allSettled(tasks);
+
+      /* =========================
+         SCORE CALCULATION
+         ========================= */
+      let registryScore = 0;
+      let licenseScore = 0;
+      let idScore = 0;
+
+      let extracted_license = null;
+      let extracted_id = null;
+      let registry_result = null;
+
+      for (let i = 0; i < responses.length; i++) {
+        if (responses[i].status !== "fulfilled") continue;
+        const r = responses[i].value;
+        if (!r.ok) continue;
+
+        const data = await r.json();
+
+        /* ========= REGISTRY (80 MAX) ========= */
+        if (i === registryIndex && data.result) {
+          const registryData = data.result;
+          registry_result = registryData;
+
+          let score = 0;
+
+          const imrName = normalizeText(registryData.name);
+          const imrRegNo = normalizeNumber(registryData.registration_number);
+          const imrCouncil = normalizeText(registryData.council);
+          const imrYear = parseInt(registryData.year, 10);
+
+          const dbRegNo = normalizeNumber(user.registration_number);
+          const dbCouncil = normalizeText(user.registration_council);
+          const dbExp = parseInt(user.years_of_experience, 10);
+          const currentYear = new Date().getFullYear();
+
+          if (imrName && (userNameNorm.includes(imrName) || imrName.includes(userNameNorm)))
+            score += 20;
+
+          if (imrCouncil && dbCouncil && imrCouncil.includes(dbCouncil))
+            score += 20;
+
+          if (imrRegNo && dbRegNo && imrRegNo === dbRegNo)
+            score += 20;
+
+          if (!isNaN(imrYear) && !isNaN(dbExp)) {
+            const calcExp = currentYear - imrYear;
+            if (Math.abs(calcExp - dbExp) <= 1) score += 20;
+          }
+
+          registryScore = score;
+        }
+
+        /* ========= LICENSE OCR (10) ========= */
+        if (i === licenseIndex && data.structured_certificate) {
+          extracted_license = data.structured_certificate;
+          const n = normalizeText(extracted_license.name);
+          if (n && (userNameNorm.includes(n) || n.includes(userNameNorm)))
+            licenseScore = 10;
+        }
+
+        /* ========= ID OCR (10) ========= */
+        if (i === idIndex && data.structured_id) {
+          extracted_id = data.structured_id;
+          const n = normalizeText(extracted_id.name);
+          if (n && (userNameNorm.includes(n) || n.includes(userNameNorm)))
+            idScore = 10;
+        }
+      }
+
+      const verification_score = registryScore + licenseScore + idScore;
+
+      let verification_status = "FAILED";
+      if (verification_score === 100) verification_status = "VERIFIED";
+      else if (verification_score >= 50) verification_status = "PARTIALLY_VERIFIED";
+
+      res.json({
+        name: user.name,
+        role: user.role,
+        verification_score,
+        verification_status,
+        breakdown: {
+          registry_score: registryScore,
+          license_ocr_score: licenseScore,
+          id_ocr_score: idScore,
+        },
+        extracted_license,
+        extracted_id,
+        registry_result,
+        method: "Registry(80) + License OCR(10) + ID OCR(10)",
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    console.log("[GET Medical Resume] ✅ Data retrieved successfully");
-    console.log("[GET Medical Resume] User name:", data?.name);
-    console.log("[GET Medical Resume] Profile completed:", data?.profile_completed);
-    console.log("[GET Medical Resume] ✅ Sending response");
-    
-    res.json(data);
-  } catch (err) {
-    console.error("[GET Medical Resume] ❌ Error:", err.message);
-    console.error("[GET Medical Resume] Error stack:", err.stack);
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 export default router;

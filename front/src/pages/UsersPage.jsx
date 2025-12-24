@@ -46,11 +46,11 @@ export default function UsersPage() {
           <p className="text-gray-500 text-center mt-4">No conversations yet</p>
         ) : (
           users.map((user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-              onClick={() => navigate(`/chat/${user.id}`)}
-            />
+          <UserCard
+            key={user.id}
+            user={user}
+            onClick={() => navigate(`/chat/${user.id}`)}
+          />
           ))
         )}
       </div>
