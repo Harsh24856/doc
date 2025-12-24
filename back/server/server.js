@@ -24,6 +24,7 @@ import messagesRoutes from "./route/messages.routes.js";
 import uploadRoutes from "./route/message_upload.js";
 import newsRoutes from "./route/news.js";
 import whoRoutes from "./route/who.js";
+import searchRoutes from "./route/search.js";
 
 import supabase from "./db.js";
 
@@ -80,6 +81,7 @@ app.use("/chat", uploadRoutes);
 /* 🔥 NEWS ROUTES */
 app.use("/news", newsRoutes);
 app.use("/who", whoRoutes);
+app.use("/search", searchRoutes);
 
 /* ---------------- ERROR HANDLER ---------------- */
 app.use((err, req, res, next) => {

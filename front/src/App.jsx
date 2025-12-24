@@ -18,6 +18,7 @@ import UsersPage from "./pages/UsersPage";
 import ChatPage from "./pages/ChatPage";
 import News from "./pages/News";
 import WhoUpdates from "./pages/WhoUpdates";
+import Profile from "./pages/Profile";
 
 export default function App() {
   const [signedIn, setSignedIn] = useState(false);
@@ -123,6 +124,7 @@ export default function App() {
 
         <Route path="/news" element={<News />} />
         <Route path="/who" element={<WhoUpdates />} />
+        <Route path="/profile/:id" element={<Profile />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Home />} />

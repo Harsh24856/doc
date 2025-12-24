@@ -1,11 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
 
 export default function GetVerified() {
+  const navigate = useNavigate();
   const [licensePdf, setLicensePdf] = useState(null);
   const [idPdf, setIdPdf] = useState(null);
   const [registrationCouncil, setRegistrationCouncil] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+
+  /* =========================
+     CHECK PROFILE COMPLETION
+     ========================= */
+  useEffect(() => {
+    const checkProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await res.json();
+
+        // If profile is not completed, redirect to resume page
+        if (!data.profile_completed) {
+          navigate("/resume", { replace: true });
+          return;
+        }
+
+        // Profile is completed, allow access
+        setCheckingProfile(false);
+      } catch (err) {
+        console.error("[GetVerified] Error checking profile:", err);
+        // On error, redirect to resume to be safe
+        navigate("/resume", { replace: true });
+      }
+    };
+
+    checkProfile();
+  }, [navigate]);
 
   /* =========================
      UPLOAD FILES
@@ -67,6 +110,17 @@ export default function GetVerified() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking profile completion
+  if (checkingProfile) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-gray-600">Checking profile completion...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
