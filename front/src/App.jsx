@@ -26,6 +26,7 @@ import WhoUpdates from "./pages/WhoUpdates";
 import Profile from "./pages/Profile";
 import ViewResume from "./pages/ViewResume";
 import Dashboard from "./pages/Dashboard";
+import Footer from "./components/Footer";
 
 
 export default function App() {
@@ -193,6 +194,8 @@ export default function App() {
         {/* FALLBACK */}
         <Route path="*" element={<Home />} />
       </Routes>
+
+      <Footer />
     </>
   );
 }
