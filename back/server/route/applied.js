@@ -1,11 +1,12 @@
 import express from "express";
 import supabase from "../db.js";
 import auth from "../middleware/auth.js";
+import admin from "../middleware/admin.js";
 
 const router = express.Router();
 
 /* =========================
-   👥 GET JOB APPLICANTS (HOSPITAL ONLY)
+   👥 GET JOB APPLICANTS (HOSPITAL THAT POSTED OR ADMIN)
    ========================= */
 router.get("/:jobId/applicants", auth, async (req, res) => {
   const { jobId } = req.params;
@@ -13,24 +14,15 @@ router.get("/:jobId/applicants", auth, async (req, res) => {
   const userRole = req.user.role;
 
   try {
-    // Only hospitals can view applicants
-    if (userRole !== "hospital") {
-      return res.status(403).json({ message: "Only hospitals can view applicants" });
+    // Check if user is admin
+    const isAdmin = userRole === "admin";
+    
+    // Only hospitals and admins can view applicants
+    if (userRole !== "hospital" && !isAdmin) {
+      return res.status(403).json({ message: "Only hospitals and admins can view applicants" });
     }
 
-    // 1️⃣ Get the hospital record for this user
-    const { data: hospital, error: hospitalError } = await supabase
-      .from("hospitals")
-      .select("id")
-      .eq("user_id", userId)
-      .single();
-
-    if (hospitalError || !hospital) {
-      console.error("[Applicants] Hospital not found for user:", userId);
-      return res.status(404).json({ message: "Hospital not found" });
-    }
-
-    // 2️⃣ Verify job belongs to this hospital
+    // 2️⃣ Verify job exists and get hospital_id
     const { data: job, error: jobError } = await supabase
       .from("jobs")
       .select("id, hospital_id")
@@ -41,9 +33,24 @@ router.get("/:jobId/applicants", auth, async (req, res) => {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    if (job.hospital_id !== hospital.id) {
-      console.error("[Applicants] Job doesn't belong to hospital. Job hospital_id:", job.hospital_id, "Hospital id:", hospital.id);
-      return res.status(403).json({ message: "Unauthorized" });
+    // If not admin, verify job belongs to this hospital
+    if (!isAdmin) {
+      // 1️⃣ Get the hospital record for this user
+      const { data: hospital, error: hospitalError } = await supabase
+        .from("hospitals")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (hospitalError || !hospital) {
+        console.error("[Applicants] Hospital not found for user:", userId);
+        return res.status(404).json({ message: "Hospital not found" });
+      }
+
+      if (job.hospital_id !== hospital.id) {
+        console.error("[Applicants] Job doesn't belong to hospital. Job hospital_id:", job.hospital_id, "Hospital id:", hospital.id);
+        return res.status(403).json({ message: "Unauthorized" });
+      }
     }
 
     // 2️⃣ Fetch applicants
@@ -52,6 +59,8 @@ router.get("/:jobId/applicants", auth, async (req, res) => {
       .select(`
         id,
         applied_at,
+        verification_status,
+        interview_date,
         users (
           id,
           name,
@@ -69,10 +78,10 @@ router.get("/:jobId/applicants", auth, async (req, res) => {
       throw error;
     }
 
-    // Map data to include verification_status from users table
+    // Map data - use verification_status from job_applications, fallback to users table
     const applicantsWithStatus = (data || []).map(applicant => ({
       ...applicant,
-      verification_status: applicant.users?.verification_status || "pending"
+      verification_status: applicant.verification_status || applicant.users?.verification_status || "pending"
     }));
 
     res.json({

@@ -111,9 +111,10 @@ router.get(
         });
       }
 
-      // Fetch only job id + title
+      // Fetch job id, title, and department
       const { data: jobs, error: jobsError } = await supabase
         .from("jobs")
+        .select("id, title, department")
         .select("id, title")
         .eq("hospital_id", hospital.id)
         .order("created_at", { ascending: false });
@@ -161,6 +162,23 @@ router.get(
         return res.status(404).json({
           message: "Job not found",
         });
+      }
+
+      // Fetch hospital information including city
+      if (job.hospital_id) {
+        const { data: hospital, error: hospitalError } = await supabase
+          .from("hospitals")
+          .select("hospital_name, hospital_city, hospital_state")
+          .eq("id", job.hospital_id)
+          .single();
+
+        if (!hospitalError && hospital) {
+          job.hospital = {
+            name: hospital.hospital_name,
+            city: hospital.hospital_city,
+            state: hospital.hospital_state,
+          };
+        }
       }
 
       res.json({ job });
@@ -295,12 +313,13 @@ router.get("/search", async (req, res) => {
       experience,
       min_salary,
       max_salary,
+      city,
     } = req.query;
 
-    // Base query — SAME SHAPE AS /jobs
+    // Base query
     let query = supabase
       .from("jobs")
-      .select("id, title, created_at");
+      .select("id, title, created_at, hospital_id");
 
     // Department search (PRIMARY)
     if (department) {
@@ -319,23 +338,97 @@ router.get("/search", async (req, res) => {
 
     // Salary overlap filtering
     if (min_salary) {
-  query = query.gte("min_salary", Number(min_salary));
-}
+      query = query.gte("min_salary", Number(min_salary));
+    }
 
-if (max_salary) {
-  query = query.lte("max_salary", Number(max_salary));
-}
+    if (max_salary) {
+      query = query.lte("max_salary", Number(max_salary));
+    }
 
-    // Order newest first
+    // Order newest first (will be re-sorted by city if city is provided)
     query = query.order("created_at", { ascending: false });
 
-    const { data, error } = await query;
+    const { data: jobsData, error } = await query;
 
     if (error) {
       throw error;
     }
 
-    res.json({ jobs: data });
+    if (!jobsData || jobsData.length === 0) {
+      return res.json({ jobs: [] });
+    }
+
+    // Get unique hospital IDs
+    const hospitalIds = [...new Set(jobsData.map(job => job.hospital_id).filter(Boolean))];
+
+    // Fetch hospital information
+    let hospitalsMap = {};
+    if (hospitalIds.length > 0) {
+      let hospitalQuery = supabase
+        .from("hospitals")
+        .select("id, hospital_name, hospital_city, hospital_state");
+
+      // Filter by city if provided
+      if (city) {
+        hospitalQuery = hospitalQuery.ilike("hospital_city", `%${city}%`);
+      }
+
+      const { data: hospitals, error: hospitalError } = await hospitalQuery.in("id", hospitalIds);
+
+      if (!hospitalError && hospitals) {
+        hospitals.forEach(h => {
+          hospitalsMap[h.id] = {
+            name: h.hospital_name,
+            city: h.hospital_city,
+            state: h.hospital_state,
+          };
+        });
+      }
+    }
+
+    // Transform data to include hospital info
+    let jobs = jobsData
+      .map((job) => ({
+        id: job.id,
+        title: job.title,
+        created_at: job.created_at,
+        hospital: hospitalsMap[job.hospital_id] || null,
+      }))
+      .filter(job => {
+        // If city filter is provided, only include jobs with matching cities
+        if (city && city.trim()) {
+          return job.hospital && job.hospital.city && 
+                 job.hospital.city.toLowerCase().includes(city.toLowerCase().trim());
+        }
+        return true;
+      });
+
+    // Sort by city proximity if city is provided
+    if (city && city.trim()) {
+      const searchCity = city.toLowerCase().trim();
+      jobs.sort((a, b) => {
+        const cityA = (a.hospital?.city || "").toLowerCase();
+        const cityB = (b.hospital?.city || "").toLowerCase();
+
+        // Exact match first
+        if (cityA === searchCity && cityB !== searchCity) return -1;
+        if (cityA !== searchCity && cityB === searchCity) return 1;
+        if (cityA === searchCity && cityB === searchCity) return 0;
+
+        // Starts with search city
+        if (cityA.startsWith(searchCity) && !cityB.startsWith(searchCity)) return -1;
+        if (!cityA.startsWith(searchCity) && cityB.startsWith(searchCity)) return 1;
+
+        // Contains search city
+        if (cityA.includes(searchCity) && !cityB.includes(searchCity)) return -1;
+        if (!cityA.includes(searchCity) && cityB.includes(searchCity)) return 1;
+
+        // Alphabetical by city name
+        return cityA.localeCompare(cityB);
+      });
+    }
+
+    res.json({ jobs });
   } catch (err) {
     console.error("JOB SEARCH ERROR:", err.message);
     res.status(500).json({
@@ -344,7 +437,72 @@ if (max_salary) {
   }
 });
 
+/* =========================
+   DELETE JOB
+   ========================= */
+router.delete(
+  "/jobs/:jobId",
+  auth,
+  async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const user = req.user;
 
+      /*  Only hospitals can delete jobs */
+      if (user.role !== "hospital") {
+        return res.status(403).json({
+          message: "Only hospitals can delete jobs",
+        });
+      }
 
+      /*  Find hospital linked to this user */
+      const { data: hospital, error: hospitalError } = await supabase
+        .from("hospitals")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (hospitalError || !hospital) {
+        return res.status(404).json({
+          message: "Hospital not found",
+        });
+      }
+
+      /*  Ensure job exists AND belongs to this hospital */
+      const { data: existingJob, error: jobError } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("id", jobId)
+        .eq("hospital_id", hospital.id)
+        .single();
+
+      if (jobError || !existingJob) {
+        return res.status(404).json({
+          message: "Job not found or access denied",
+        });
+      }
+
+      /*  Delete job */
+      const { error: deleteError } = await supabase
+        .from("jobs")
+        .delete()
+        .eq("id", jobId);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      /*  Respond */
+      res.json({
+        message: "Job deleted successfully",
+      });
+    } catch (err) {
+      console.error("DELETE JOB ERROR:", err.message);
+      res.status(500).json({
+        message: "Failed to delete job",
+      });
+    }
+  }
+);
 
 export default router;

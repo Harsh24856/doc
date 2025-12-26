@@ -42,7 +42,18 @@ router.get("/dashboard", auth, async (req, res) => {
       // First, get the hospital record for this user
       const { data: hospital, error: hospitalError } = await supabase
         .from("hospitals")
-        .select("id")
+        .select(`
+          id,
+          hospital_name,
+          hospital_type,
+          registration_number_hospital,
+          hospital_city,
+          hospital_state,
+          hospital_person_name,
+          hospital_person_email,
+          hospital_website,
+          verification_status
+        `)
         .eq("user_id", userId)
         .single();
 
@@ -52,6 +63,7 @@ router.get("/dashboard", auth, async (req, res) => {
         return res.json({
           role,
           profile,
+          hospital: null,
           postedJobs: [],
         });
       }
@@ -60,6 +72,7 @@ router.get("/dashboard", auth, async (req, res) => {
         return res.json({
           role,
           profile,
+          hospital: null,
           postedJobs: [],
         });
       }
@@ -82,10 +95,41 @@ router.get("/dashboard", auth, async (req, res) => {
         throw error;
       }
 
+      // Count total applications and get application statuses for all jobs posted by this hospital
+      let totalApplications = 0;
+      let applicationStatuses = [];
+      let applicationDates = []; // For monthly histogram
+      if (postedJobs && postedJobs.length > 0) {
+        const jobIds = postedJobs.map(job => job.id);
+        const { count, error: appCountError } = await supabase
+          .from("job_applications")
+          .select("*", { count: "exact", head: true })
+          .in("job_id", jobIds);
+
+        if (!appCountError && count !== null) {
+          totalApplications = count;
+        }
+
+        // Fetch application statuses and dates for charts
+        const { data: applications, error: appStatusError } = await supabase
+          .from("job_applications")
+          .select("verification_status, created_at")
+          .in("job_id", jobIds);
+
+        if (!appStatusError && applications) {
+          applicationStatuses = applications.map(app => app.verification_status || "pending");
+          applicationDates = applications.map(app => app.created_at).filter(date => date);
+        }
+      }
+
       return res.json({
         role,
         profile,
+        hospital,
         postedJobs: postedJobs || [],
+        totalApplications,
+        applicationStatuses, // For pie chart
+        applicationDates,    // For monthly histogram
       });
     }
 
@@ -97,6 +141,8 @@ router.get("/dashboard", auth, async (req, res) => {
       .select(`
         id,
         created_at,
+        verification_status,
+        interview_date,
         jobs (
           id,
           title,

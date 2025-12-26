@@ -51,7 +51,7 @@ export default function Profile() {
 
         {/* HEADER */}
         <div className="flex items-center gap-6 mb-8">
-          <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+          <div className="w-20 h-20 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-3xl font-bold">
             {data.name?.charAt(0).toUpperCase()}
           </div>
 
@@ -86,7 +86,7 @@ export default function Profile() {
            
             <button
               onClick={() => navigate(`/chat/${id}`)}
-              className="flex items-center justify-center w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all hover:scale-110"
+              className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-full shadow-lg transition-all hover:scale-110"
               title="Send Message"
             >
               <svg

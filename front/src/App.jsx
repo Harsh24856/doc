@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import Home from "./pages/Home";
@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import PageTransition from "./components/PageTransition";
 import HospitalProfile from "./pages/HospitalProfile";
 import AdminHospitalData from "./pages/AdminHospitalData";
 import MedicalResume from "./pages/MedicalResume";
@@ -26,9 +27,11 @@ import WhoUpdates from "./pages/WhoUpdates";
 import Profile from "./pages/Profile";
 import ViewResume from "./pages/ViewResume";
 import Dashboard from "./pages/Dashboard";
+import Notifications from "./pages/Notifications";
 
 
 export default function App() {
+  const location = useLocation();
   const [signedIn, setSignedIn] = useState(false);
   const [role, setRole] = useState("");
 
@@ -49,12 +52,13 @@ export default function App() {
     <>
       <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role} />
 
-      <Routes>
-        {/* ROLE BASED HOME */}
-        <Route
-          path="/"
-          element={role === "hospital" ? <HospitalHome /> : <Home />}
-        />
+      <PageTransition>
+        <Routes>
+          {/* ROLE BASED HOME */}
+          <Route
+            path="/"
+            element={role === "hospital" ? <HospitalHome /> : <Home />}
+          />
 
         {/* AUTH */}
         <Route
@@ -127,8 +131,24 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/get-verified"
+          element={
+            <ProtectedRoute>
+              <GetVerified />
+            </ProtectedRoute>
+          }
+        />
 
         {/* CHAT */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/messages"
           element={
@@ -177,6 +197,16 @@ export default function App() {
           </ProtectedRoute>
         } />
 
+        {/* NOTIFICATIONS */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+
         {/* MISC */}
         <Route path="/news" element={<News />} />
         <Route path="/who" element={<WhoUpdates />} />
@@ -192,7 +222,8 @@ export default function App() {
 
         {/* FALLBACK */}
         <Route path="*" element={<Home />} />
-      </Routes>
+        </Routes>
+      </PageTransition>
     </>
   );
 }

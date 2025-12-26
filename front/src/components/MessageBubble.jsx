@@ -8,7 +8,7 @@ export default function MessageBubble({ msg }) {
       <div className={`mb-2 ${isMe ? "text-right" : "text-left"}`}>
         <div
           className={`inline-block px-3 py-2 rounded max-w-xs break-words ${
-            isMe ? "bg-blue-500 text-white" : "bg-gray-200"
+            isMe ? "bg-[var(--color-primary)] text-white" : "bg-gray-200"
           }`}
         >
           {messageType === "text" && (msg.text || "")}
@@ -18,7 +18,7 @@ export default function MessageBubble({ msg }) {
               href={msg.text}
               target="_blank"
               rel="noreferrer"
-              className="underline text-blue-700"
+              className="underline text-[var(--color-primary)]"
             >
               {msg.text}
             </a>
@@ -40,7 +40,7 @@ export default function MessageBubble({ msg }) {
               href={msg.file_url}
               target="_blank"
               rel="noreferrer"
-              className="underline text-blue-700"
+              className="underline text-[var(--color-primary)]"
             >
               📄 {msg.file_name || "Document"}
             </a>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api";
 
@@ -6,11 +6,14 @@ export default function PeopleSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
+  const searchRef = useRef(null);
 
   useEffect(() => {
     if (query.length < 2) {
       setResults([]);
+      setShowResults(false);
       return;
     }
 
@@ -22,8 +25,10 @@ export default function PeopleSearch() {
         );
         const data = await res.json();
         setResults(data);
+        setShowResults(data.length > 0);
       } catch {
         setResults([]);
+        setShowResults(false);
       } finally {
         setLoading(false);
       }
@@ -32,22 +37,48 @@ export default function PeopleSearch() {
     return () => clearTimeout(delay);
   }, [query]);
 
+  /* =========================
+     CLICK OUTSIDE TO CLOSE
+     ========================= */
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
+    };
+
+    if (showResults) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showResults]);
+
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={searchRef}>
       <input
         type="text"
-        placeholder="Search doctors & hospitals..."
+        placeholder="Search doctors, hospitals, or cities..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => {
+          if (results.length > 0) {
+            setShowResults(true);
+          }
+        }}
         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all shadow-sm"
       />
 
-      {results.length > 0 && (
+      {showResults && results.length > 0 && (
         <div className="absolute z-20 mt-1 w-full bg-white rounded-lg shadow-lg border max-h-96 overflow-y-auto">
           {results.map((item) => (
             <div
               key={`${item.type}-${item.id}`}
               onClick={() => {
+                setShowResults(false);
+                setQuery("");
                 if (item.type === "hospital") {
                   navigate(`/profile/${item.id}`);
                 } else {
@@ -75,7 +106,16 @@ export default function PeopleSearch() {
                   {item.type === "hospital" && (
                     <p className="text-sm text-gray-500">
                       {item.hospital_type || "Hospital"}
-                      {item.location && ` • ${item.location}`}
+                      {item.location && (
+                        <span className="ml-2 text-[var(--color-primary)] font-medium">
+                          📍 {item.location}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                  {item.type === "user" && item.hospital_affiliation && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Affiliated with: {item.hospital_affiliation}
                     </p>
                   )}
                 </div>

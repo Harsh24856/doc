@@ -111,7 +111,7 @@ function ViewResume({ data, onEdit }) {
 
       <button
         onClick={onEdit}
-        className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+        className="mt-8 w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white py-3 rounded-lg font-semibold transition"
       >
         Edit Resume
       </button>
@@ -210,7 +210,7 @@ function EditResume({ data, onSaved }) {
           <select
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             required
           >
             <option value="">Select role</option>
@@ -237,7 +237,7 @@ function EditResume({ data, onSaved }) {
             Bio <span className="text-red-500">*</span>
           </label>
           <textarea
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             rows={4}
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
@@ -248,7 +248,7 @@ function EditResume({ data, onSaved }) {
         <div className="md:col-span-2 mt-4">
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+            className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white py-3 rounded-lg font-semibold transition"
           >
             Submit Profile
           </button>

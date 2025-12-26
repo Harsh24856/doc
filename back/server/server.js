@@ -29,6 +29,8 @@ import searchRoutes from "./route/search.js";
 import jobApplications from "./route/jobApplications.js";
 import dashboardRoutes from "./route/dashboard.js";
 import appliedRoutes from "./route/applied.js";
+import notificationsRoutes from "./route/notifications.js";
+import resumeApprovalRoutes from "./route/resumeApproval.js";
 
 import supabase from "./db.js";
 
@@ -80,6 +82,9 @@ app.use("/admin", adminRoutes);
 app.use("/applications", jobApplications);
 app.use("/api", dashboardRoutes);
 app.use("/jobs", appliedRoutes);
+app.use("/notifications", notificationsRoutes);
+app.use("/resume", resumeApprovalRoutes);
+app.use("/applications", resumeApprovalRoutes);
 
 /* 🔥 CHAT ROUTES */
 app.use("/users", usersRoutes);
@@ -161,6 +166,9 @@ io.on("connection", (socket) => {
     console.log("🔴 Socket disconnected:", myId);
   });
 });
+
+// Export io for use in other modules (after initialization)
+export { io };
 
 /* ---------------- START ---------------- */
 server.listen(PORT, "0.0.0.0", () => {

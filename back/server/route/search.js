@@ -37,7 +37,7 @@ router.get("/users", async (req, res) => {
       console.error("[Search Error] Users:", usersError.message);
     }
 
-    // Search hospitals
+    // Search hospitals (by name, city, or state)
     const { data: hospitals, error: hospitalsError } = await supabase
       .from("hospitals")
       .select(`
@@ -49,7 +49,7 @@ router.get("/users", async (req, res) => {
         hospital_type
       `)
       .or(
-        `hospital_name.ilike.${search},hospital_city.ilike.${search}`
+        `hospital_name.ilike.${search},hospital_city.ilike.${search},hospital_state.ilike.${search}`
       )
       .limit(10);
 

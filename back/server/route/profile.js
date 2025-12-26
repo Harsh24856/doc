@@ -40,7 +40,10 @@ router.get("/medical-resume", auth, async (req, res) => {
         qualifications,
         skills,
         bio,
-        profile_completed
+        profile_completed,
+        verification_status,
+        license_doc_url,
+        id_doc_url
       `)
       .eq("id", userId)
       .single();

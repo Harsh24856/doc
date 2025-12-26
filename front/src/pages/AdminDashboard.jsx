@@ -126,13 +126,13 @@ export default function AdminDashboard() {
               <div className="mt-4 flex gap-4">
                 <button
                   onClick={() => openDocument(u.id, "license")}
-                  className="text-blue-600 underline"
+                  className="text-[var(--color-primary)] underline"
                 >
                   View License
                 </button>
                 <button
                   onClick={() => openDocument(u.id, "id")}
-                  className="text-blue-600 underline"
+                  className="text-[var(--color-primary)] underline"
                 >
                   View ID
                 </button>
@@ -274,8 +274,8 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* License OCR Results */}
                     {result.extracted_license && (
-                      <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
-                        <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                      <div className="p-4 rounded-lg border border-red-200 bg-[var(--color-accent)]">
+                        <h3 className="font-semibold text-[var(--color-primary-dark)] mb-3 flex items-center gap-2">
                           📜 License OCR Results
                         </h3>
                         <div className="space-y-2 text-sm">
@@ -344,8 +344,8 @@ export default function AdminDashboard() {
                   disabled={verifyingId === u.id}
                   className={`px-4 py-2 rounded text-white ${
                     verifyingId === u.id
-                      ? "bg-blue-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
+                      ? "bg-[var(--color-primary-dark)] opacity-60 cursor-not-allowed"
+                      : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)]"
                   }`}
                 >
                   {verifyingId === u.id ? "Verifying…" : "Run AI Check"}

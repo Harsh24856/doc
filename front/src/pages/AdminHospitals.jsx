@@ -91,7 +91,7 @@ export default function AdminHospitals() {
                 {/* Next step: navigate to review page */}
                 <button 
                 onClick={() => navigate(`/admin/hospital/${hospital.id}`)}
-                className="text-blue-600 font-medium hover:underline">
+                className="text-[var(--color-primary)] font-medium hover:underline">
                   Review
                 </button>
               </li>
