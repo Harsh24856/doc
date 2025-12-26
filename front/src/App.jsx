@@ -15,6 +15,11 @@ import AdminHospitals from "./pages/AdminHospitals";
 import AdminRoute from "./components/AdminRoute";
 import UsersPage from "./pages/UsersPage";
 import ChatPage from "./pages/ChatPage";
+import PostJob from "./pages/PostJob";
+import JobsPosted from "./pages/JobsPosted";
+import HospJobData from "./pages/HospJobData";
+import SearchJob from "./pages/SearchJob";
+import ViewJob from "./pages/ViewJob";
 export default function App() {
   const[signedIn, setSignedIn] = useState(false);
   const[role, setRole] = useState("");
@@ -45,7 +50,13 @@ export default function App() {
 
   <Route path="/login" element={<Login setSignedIn={setSignedIn} setRole={setRole}/>} />
   <Route path="/signup" element={<Signup setSignedIn={setSignedIn} setRole={setRole}/>} />
-  <Route path="/hospital-profile" element={<HospitalProfile/>} />
+  <Route 
+        path="/hospital-profile" 
+        element={
+        <ProtectedRoute>
+        <HospitalProfile/>
+        </ProtectedRoute>
+        } />
   <Route
         path="/resume"
         element={
@@ -89,6 +100,7 @@ export default function App() {
 />
       {/* Catch-all route for unmatched paths */}
       <Route path="*" element={<Home />} />
+       <Route
         path="/admin-hospital"
         element={
           <AdminRoute>
@@ -103,6 +115,46 @@ export default function App() {
             <AdminHospitalData />
           </AdminRoute>
         }  
+      />
+      <Route 
+        path="/post-job"
+        element={
+          <ProtectedRoute>
+            <PostJob />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posted-jobs"
+        element={
+          <ProtectedRoute>
+            <JobsPosted />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="/jobs/:jobId"
+        element={
+          <ProtectedRoute>
+            <HospJobData />
+          </ProtectedRoute>
+        }
+      />   
+      <Route 
+        path="/search/jobs"
+        element={
+          <ProtectedRoute>
+            <SearchJob />
+          </ProtectedRoute>
+        }
+      /> 
+      <Route 
+        path="/jobs/view/:jobId"
+        element={
+          <ProtectedRoute>
+            <ViewJob />
+          </ProtectedRoute>
+        }
       />  
 </Routes>
 </>

@@ -11,6 +11,7 @@ import authRoutes from "./route/auth.js";
 import hospitalProfile from "./route/hospitalProfile.js"
 import hospitalFetch from "./route/hospitalFetch.js"
 import adminHospital from "./route/adminHospital.js"
+import job from "./route/job.js"
 
 import profileRoutes from "./route/profile.js";
 import auth from "./middleware/auth.js";
@@ -60,12 +61,14 @@ app.use("/admin", fetchtest);
 app.use("/hospital", hospitalProfile);
 app.use("/hospital", hospitalFetch);
 app.use("/hospital", hospitalDocuments);
+app.use(job);
 app.use("/admin", adminHospital);
 
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
 app.use("/verification", verificationRoutes);
 app.use("/admin", adminRoutes);
+
 
 /* 🔥 CHAT ROUTES */
 app.use("/users", usersRoutes);
