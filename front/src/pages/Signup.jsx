@@ -37,7 +37,7 @@ export default function Signup({setSignedIn, setRole}) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--color-accent)] via-white to-white px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
 
         {/* Heading */}
@@ -45,7 +45,7 @@ export default function Signup({setSignedIn, setRole}) {
           Create Account 🩺
         </h2>
         <p className="text-center text-gray-500 mb-8">
-          Join <span className="font-semibold">Doc Space</span> today
+          Join <span className="font-semibold text-[var(--color-primary)]">DocSpace</span> today
         </p>
 
         {/* Form */}
@@ -56,7 +56,7 @@ export default function Signup({setSignedIn, setRole}) {
               Full Name
             </label>
             <input
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               onChange={(e) =>
                 setForm({ ...form, name: e.target.value })
               }
@@ -73,7 +73,7 @@ export default function Signup({setSignedIn, setRole}) {
               onChange={(e) =>
                 setForm({ ...form, role: e.target.value })
               }
-              className="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               required
             >
               <option value="" disabled>
@@ -90,7 +90,7 @@ export default function Signup({setSignedIn, setRole}) {
             </label>
             <input
               type="email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
               }
@@ -105,7 +105,7 @@ export default function Signup({setSignedIn, setRole}) {
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })
               }
@@ -115,7 +115,7 @@ export default function Signup({setSignedIn, setRole}) {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold transition duration-200"
+            className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white py-2.5 rounded-lg font-semibold transition duration-200"
           >
             Sign Up
           </button>

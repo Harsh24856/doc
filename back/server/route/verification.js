@@ -450,4 +450,63 @@ router.post(
   }
 );
 
+/* =========================
+   SUBMIT VERIFICATION
+   ========================= */
+router.post("/submit", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { license_doc_url, id_doc_url, registration_council } = req.body;
+
+    if (!license_doc_url || !id_doc_url) {
+      return res.status(400).json({ error: "Both license and ID documents are required" });
+    }
+
+    // Check if user already has a pending or approved verification
+    const { data: existingUser, error: userError } = await supabase
+      .from("users")
+      .select("verification_status")
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      console.error("[Verification Submit] Error fetching user:", userError);
+      return res.status(500).json({ error: "Failed to fetch user data" });
+    }
+
+    if (existingUser?.verification_status === "pending") {
+      return res.status(400).json({ error: "Verification already submitted and pending review" });
+    }
+
+    if (existingUser?.verification_status === "approved") {
+      return res.status(400).json({ error: "User is already verified" });
+    }
+
+    // Update user with verification documents and set status to pending
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        license_doc_url,
+        id_doc_url,
+        registration_council: registration_council || null,
+        verification_status: "pending",
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("[Verification Submit] Error updating user:", updateError);
+      return res.status(500).json({ error: "Failed to submit verification" });
+    }
+
+    console.log(`[Verification Submit] ✅ Verification submitted for user: ${userId}`);
+    res.json({
+      message: "Verification submitted successfully",
+      verification_status: "pending",
+    });
+  } catch (err) {
+    console.error("[Verification Submit] Error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

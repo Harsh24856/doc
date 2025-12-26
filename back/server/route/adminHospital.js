@@ -240,8 +240,10 @@ router.get(
       });
     } catch (err) {
       console.error("AI INSIGHTS ERROR:", err.message);
+      console.error("AI INSIGHTS ERROR Stack:", err.stack);
       return res.status(500).json({
         message: "Failed to generate document insights",
+        error: err.message,
       });
     }
   }

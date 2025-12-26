@@ -66,7 +66,7 @@ export default function ChatInput({ onSend }) {
 
       <button
         onClick={handleSendText}
-        className="bg-blue-600 text-white px-4 rounded"
+        className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-4 py-2 rounded transition"
       >
         Send
       </button>

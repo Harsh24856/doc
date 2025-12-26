@@ -6,8 +6,9 @@ export async function checkIMR(name, registration_number) {
   console.log("=".repeat(60));
 
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     devtools: true,
+    slowMo: 100,
     
   });
 

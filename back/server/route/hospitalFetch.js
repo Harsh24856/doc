@@ -20,18 +20,45 @@ router.get("/fetch", auth, async (req, res) => {
       hospital_person_email,
       hospital_website
     `)
-
       .eq("user_id", hospitalId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Handle "not found" error gracefully
+      if (error.code === "PGRST116") {
+        // Return empty form data if hospital doesn't exist yet
+        return res.json({
+          hospital_name: "",
+          hospital_type: "",
+          registration_number_hospital: "",
+          hospital_city: "",
+          hospital_state: "",
+          hospital_person_name: "",
+          hospital_person_email: "",
+          hospital_website: "",
+        });
+      }
+      console.error("[Hospital Fetch] Error:", error);
+      throw error;
+    }
 
     if (!data) {
-      return res.status(404).json({ message: "Hospital not found" });
+      // Return empty form data if hospital doesn't exist yet
+      return res.json({
+        hospital_name: "",
+        hospital_type: "",
+        registration_number_hospital: "",
+        hospital_city: "",
+        hospital_state: "",
+        hospital_person_name: "",
+        hospital_person_email: "",
+        hospital_website: "",
+      });
     }
 
     res.json(data);
   } catch (err) {
+    console.error("[Hospital Fetch] Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

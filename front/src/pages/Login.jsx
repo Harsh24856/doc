@@ -32,15 +32,15 @@ export default function Login({setSignedIn, setRole}) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--color-accent)] via-white to-white px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         
         {/* Heading */}
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Doc Space 🩺
+          DocSpace 🩺
         </h2>
         <p className="text-center text-gray-500 mb-8">
-          Login to continue to <span className="font-semibold">Doc Space</span>
+          Login to continue to <span className="font-semibold text-[var(--color-primary)]">DocSpace</span>
         </p>
 
         {/* Form */}
@@ -51,7 +51,7 @@ export default function Login({setSignedIn, setRole}) {
             </label>
             <input
               type="email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
               }
@@ -66,7 +66,7 @@ export default function Login({setSignedIn, setRole}) {
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })
               }
@@ -77,7 +77,7 @@ export default function Login({setSignedIn, setRole}) {
           {/* Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold transition duration-200"
+            className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white py-2.5 rounded-lg font-semibold transition duration-200"
           >
             Login
           </button>
@@ -92,10 +92,10 @@ export default function Login({setSignedIn, setRole}) {
 
         {/* Signup link */}
         <p className="text-center text-sm text-gray-600">
-          New to Doc Space?{" "}
+          New to DocSpace?{" "}
           <Link
             to="/signUp"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-[var(--color-primary)] hover:underline font-medium"
           >
             Create an account
           </Link>

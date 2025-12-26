@@ -40,7 +40,10 @@ router.get("/medical-resume", auth, async (req, res) => {
         qualifications,
         skills,
         bio,
-        profile_completed
+        profile_completed,
+        verification_status,
+        license_doc_url,
+        id_doc_url
       `)
       .eq("id", userId)
       .single();
@@ -143,13 +146,196 @@ router.get("/verifications/pending", auth, adminOnly, async (req, res) => {
 });
 
 /* =========================
+   VIEW RESUME (Full resume with documents)
+   ========================= */
+router.get("/resume/:userId", auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requesterId = req.user.id;
+    const requesterRole = req.user.role;
+    
+    console.log("[Profile] Fetching resume for user:", userId, "by:", requesterId);
+
+    // Get user's full profile data
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select(`
+        id,
+        name,
+        email,
+        phone,
+        role,
+        designation,
+        specialization,
+        registration_number,
+        registration_council,
+        year_of_graduation,
+        years_of_experience,
+        hospital_affiliation,
+        qualifications,
+        skills,
+        bio,
+        profile_completed,
+        verification_status,
+        license_doc_url,
+        id_doc_url
+      `)
+      .eq("id", userId)
+      .single();
+
+    if (userError || !user) {
+      console.error("[Profile] Error fetching user:", userError);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Only return if profile is completed
+    if (!user.profile_completed) {
+      return res.status(404).json({ error: "Profile not completed" });
+    }
+
+    // Generate signed URLs for documents if they exist
+    let licenseUrl = null;
+    let idUrl = null;
+
+    if (user.license_doc_url) {
+      let licensePath = user.license_doc_url;
+      if (licensePath.startsWith("http")) {
+        licensePath = licensePath.split("/storage/v1/object/")[1]?.split("?")[0];
+      }
+      
+      const { data: licenseData, error: licenseError } = await supabaseAdmin.storage
+        .from("verification-docs")
+        .createSignedUrl(licensePath, 3600); // 1 hour expiry
+      
+      if (!licenseError && licenseData) {
+        licenseUrl = licenseData.signedUrl;
+      }
+    }
+
+    if (user.id_doc_url) {
+      let idPath = user.id_doc_url;
+      if (idPath.startsWith("http")) {
+        idPath = idPath.split("/storage/v1/object/")[1]?.split("?")[0];
+      }
+      
+      const { data: idData, error: idError } = await supabaseAdmin.storage
+        .from("verification-docs")
+        .createSignedUrl(idPath, 3600); // 1 hour expiry
+      
+      if (!idError && idData) {
+        idUrl = idData.signedUrl;
+      }
+    }
+
+    res.json({
+      ...user,
+      license_doc_url: licenseUrl,
+      id_doc_url: idUrl,
+    });
+  } catch (err) {
+    console.error("[Profile] Error in GET /resume/:userId:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
    PUBLIC PROFILE (No auth required)
    ========================= */
 router.get("/public/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log("[Profile] Fetching public profile for user:", userId);
     
-    const { data: user, error } = await supabase
+    // First, get the user to check their role
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select(`
+        id,
+        name,
+        role,
+        profile_completed
+      `)
+      .eq("id", userId)
+      .single();
+
+    if (userError) {
+      console.error("[Profile] Error fetching user:", userError.message);
+      console.error("[Profile] Error code:", userError.code);
+      if (userError.code === "PGRST116") {
+        return res.status(404).json({ error: "User not found" });
+      }
+      return res.status(500).json({ error: userError.message });
+    }
+
+    if (!user) {
+      console.error("[Profile] User not found for ID:", userId);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log("[Profile] User found:", { id: user.id, name: user.name, role: user.role, profile_completed: user.profile_completed });
+
+    // If user is a hospital, fetch from hospitals table
+    if (user.role === "hospital") {
+      console.log("[Profile] Fetching hospital profile for user:", userId);
+      
+      const { data: hospital, error: hospitalError } = await supabase
+        .from("hospitals")
+        .select(`
+          id,
+          user_id,
+          hospital_name,
+          hospital_type,
+          hospital_city,
+          hospital_state,
+          hospital_person_name,
+          hospital_person_email,
+          hospital_website,
+          hospital_profile_completed,
+          verification_status
+        `)
+        .eq("user_id", userId)
+        .single();
+
+      if (hospitalError) {
+        console.error("[Profile] Error fetching hospital:", hospitalError.message);
+        return res.status(404).json({ error: "Hospital profile not found" });
+      }
+
+      if (!hospital) {
+        return res.status(404).json({ error: "Hospital profile not found" });
+      }
+
+      // Check if hospital profile is completed
+      if (!hospital.hospital_profile_completed) {
+        console.log("[Profile] Hospital profile not completed for user:", userId);
+        return res.status(404).json({ error: "Hospital profile not available. Profile has not been completed." });
+      }
+
+      // Return hospital data in a format similar to user profile
+      console.log("[Profile] Returning hospital profile for user:", userId);
+      return res.json({
+        id: user.id,
+        name: hospital.hospital_name,
+        role: "hospital",
+        designation: hospital.hospital_type || "Hospital",
+        specialization: null,
+        hospital_affiliation: hospital.hospital_name,
+        qualifications: null,
+        skills: null,
+        bio: `${hospital.hospital_name}${hospital.hospital_city ? `, ${hospital.hospital_city}` : ""}${hospital.hospital_state ? `, ${hospital.hospital_state}` : ""}`,
+        profile_completed: hospital.hospital_profile_completed,
+        verification_status: hospital.verification_status,
+        // Additional hospital-specific fields
+        hospital_city: hospital.hospital_city,
+        hospital_state: hospital.hospital_state,
+        hospital_person_name: hospital.hospital_person_name,
+        hospital_person_email: hospital.hospital_person_email,
+        hospital_website: hospital.hospital_website,
+      });
+    }
+
+    // For regular users/doctors, fetch full user profile
+    const { data: fullUser, error: fullUserError } = await supabase
       .from("users")
       .select(`
         id,
@@ -167,23 +353,26 @@ router.get("/public/:userId", async (req, res) => {
       .eq("id", userId)
       .single();
 
-    if (error) {
-      console.error("[Profile] Error fetching public profile:", error.message);
-      return res.status(500).json({ error: error.message });
+    if (fullUserError) {
+      console.error("[Profile] Error fetching full user profile:", fullUserError.message);
+      return res.status(500).json({ error: fullUserError.message });
     }
 
-    if (!user) {
+    if (!fullUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Only return profile if it's completed
-    if (!user.profile_completed) {
-      return res.status(404).json({ error: "Profile not available" });
+    if (!fullUser.profile_completed) {
+      console.log("[Profile] Profile not completed for user:", userId);
+      return res.status(404).json({ error: "Profile not available. User has not completed their profile." });
     }
 
-    res.json(user);
+    console.log("[Profile] Returning public profile for user:", userId);
+    res.json(fullUser);
   } catch (err) {
     console.error("[Profile] Error in GET /public/:userId:", err.message);
+    console.error("[Profile] Stack:", err.stack);
     res.status(500).json({ error: err.message });
   }
 });

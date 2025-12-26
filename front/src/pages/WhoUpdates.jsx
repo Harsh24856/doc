@@ -73,7 +73,7 @@ export default function WhoUpdates() {
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 font-medium hover:underline"
+                className="text-[var(--color-primary)] font-medium hover:underline"
               >
                 Read on WHO →
               </a>

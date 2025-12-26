@@ -63,27 +63,49 @@ Guidelines:
 - Add risk_flags only if something needs admin attention.
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
-      },
-    ],
-  });
-
-  const rawText = response.text;
-  const cleanedText = rawText
-  .replace(/```json/i, "")
-  .replace(/```/g, "")
-  .trim();
-
-
   try {
-    return JSON.parse(cleanedText);
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is not set");
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
+    });
+
+    // Handle different response formats
+    let rawText;
+    if (typeof response.text === 'string') {
+      rawText = response.text;
+    } else if (response.response && response.response.text) {
+      rawText = response.response.text;
+    } else if (response.candidates && response.candidates[0] && response.candidates[0].content) {
+      rawText = response.candidates[0].content.parts[0].text;
+    } else {
+      console.error("Unexpected response format:", JSON.stringify(response, null, 2));
+      throw new Error("Unexpected response format from Gemini API");
+    }
+
+    const cleanedText = rawText
+      .replace(/```json/i, "")
+      .replace(/```/g, "")
+      .trim();
+
+    try {
+      return JSON.parse(cleanedText);
+    } catch (parseErr) {
+      console.error("RAW GEMINI OUTPUT:", rawText);
+      console.error("JSON Parse Error:", parseErr.message);
+      throw new Error(`Gemini returned invalid JSON: ${parseErr.message}`);
+    }
   } catch (err) {
-    console.error("RAW GEMINI OUTPUT:", rawText);
-    throw new Error("Gemini returned invalid JSON");
+    console.error("[aiService] Error calling Gemini API:", err.message);
+    console.error("[aiService] Error stack:", err.stack);
+    throw err;
   }
 }

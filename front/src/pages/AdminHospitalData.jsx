@@ -221,7 +221,7 @@ export default function AdminHospitalData() {
                         href={doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 text-sm font-medium hover:underline"
+                        className="text-[var(--color-primary)] text-sm font-medium hover:underline"
                       >
                         View PDF
                       </a>

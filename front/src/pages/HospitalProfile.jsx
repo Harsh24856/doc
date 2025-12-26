@@ -126,7 +126,7 @@ useEffect(()=>{
           {!editing && !isLocked && (
             <button
               onClick={() => setEditing(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition"
+              className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-5 py-2 rounded-lg font-medium transition"
             >
               Edit Profile
             </button>
@@ -230,11 +230,11 @@ useEffect(()=>{
         <div className="mt-12 border-t pt-8">
 
           {verificationStatus === "pending" && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-blue-700">
+            <div className="bg-[var(--color-accent)] border border-red-200 rounded-lg p-6 text-center">
+              <h3 className="text-lg font-semibold text-[var(--color-primary-dark)]">
                 Thank you for reaching out
               </h3>
-              <p className="text-sm text-blue-600 mt-2">
+              <p className="text-sm text-[var(--color-primary)] mt-2">
                 We have received your documents and will reach out to you soon.
               </p>
             </div>
@@ -277,7 +277,7 @@ function Input({ label, value, onChange, disabled }) {
         {label}
       </label>
       <input
-        className={`w-full px-4 py-2 border rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        className={`w-full px-4 py-2 border rounded-lg transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
           disabled
             ? "bg-gray-100 text-gray-500 cursor-not-allowed"
             : "bg-white"
