@@ -456,19 +456,17 @@ export default function HospJobData() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 ml-4">
-                          {/* View Resume button - only for approved applicants */}
-                          {status === "approved" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/resume/${a.users.id}`);
-                              }}
-                              className="px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm rounded-lg transition flex items-center gap-1.5"
-                            >
-                              <span className="material-symbols-outlined text-sm">description</span>
-                              View Resume
-                            </button>
-                          )}
+                          {/* View Resume button - always visible for all applicants */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/resume/${a.users.id}`);
+                            }}
+                            className="px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm rounded-lg transition flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-sm">description</span>
+                            View Resume
+                          </button>
                           {/* Approve button - only for non-approved applicants */}
                           {status !== "approved" && (
                             <button
@@ -562,7 +560,7 @@ function DateInputModal({ isOpen, onClose, onConfirm, applicantName }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
           Approve Application
