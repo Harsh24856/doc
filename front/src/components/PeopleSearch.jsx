@@ -33,13 +33,13 @@ export default function PeopleSearch() {
   }, [query]);
 
   return (
-    <div className="relative w-full max-w-md">
+    <div className="relative w-full">
       <input
         type="text"
-        placeholder="Search doctors and hospitals"
+        placeholder="Search doctors & hospitals..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all shadow-sm"
       />
 
       {results.length > 0 && (
@@ -49,7 +49,6 @@ export default function PeopleSearch() {
               key={`${item.type}-${item.id}`}
               onClick={() => {
                 if (item.type === "hospital") {
-                  // Navigate to hospital profile if route exists, otherwise profile
                   navigate(`/profile/${item.id}`);
                 } else {
                   navigate(`/profile/${item.id}`);
