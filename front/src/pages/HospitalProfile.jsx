@@ -76,7 +76,7 @@ useEffect(()=>{
   /* DERIVED FLAGS */
   const isLocked =
     verificationStatus === "pending" ||
-    verificationStatus === "approved";
+    verificationStatus === "verified";
 
   const canShowDocuments =
     verificationStatus === "not_submitted" ||
@@ -133,9 +133,15 @@ useEffect(()=>{
           )}
 
           {isLocked && (
-            <span className="text-sm text-gray-500">
-              Profile editing is locked during verification
-            </span>
+           verificationStatus === "verified" ? (
+           <span className="text-sm text-gray-500">
+             Verified
+           </span>
+           ) : (
+           <span className="text-sm text-gray-500">
+            Profile editing is locked during verification
+           </span>
+          )
           )}
         </div>
 
@@ -234,7 +240,7 @@ useEffect(()=>{
             </div>
           )}
 
-          {verificationStatus === "approved" && (
+          {verificationStatus === "verified" && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
               <h3 className="text-lg font-semibold text-green-700">
                 ✅ Hospital Verified

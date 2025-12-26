@@ -16,6 +16,11 @@ import AdminHospitals from "./pages/AdminHospitals";
 import AdminRoute from "./components/AdminRoute";
 import UsersPage from "./pages/UsersPage";
 import ChatPage from "./pages/ChatPage";
+import PostJob from "./pages/PostJob";
+import JobsPosted from "./pages/JobsPosted";
+import HospJobData from "./pages/HospJobData";
+import SearchJob from "./pages/SearchJob";
+import ViewJob from "./pages/ViewJob";
 import News from "./pages/News";
 import WhoUpdates from "./pages/WhoUpdates";
 import Profile from "./pages/Profile";
@@ -42,12 +47,13 @@ export default function App() {
       <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role} />
 
       <Routes>
-        {/* ROLE-BASED HOME */}
+        {/* ROLE BASED HOME */}
         <Route
           path="/"
           element={role === "hospital" ? <HospitalHome /> : <Home />}
         />
 
+        {/* AUTH */}
         <Route
           path="/login"
           element={<Login setSignedIn={setSignedIn} setRole={setRole} />}
@@ -57,8 +63,59 @@ export default function App() {
           element={<Signup setSignedIn={setSignedIn} setRole={setRole} />}
         />
 
-        <Route path="/hospital-profile" element={<HospitalProfile />} />
+        {/* HOSPITAL */}
+        <Route
+          path="/hospital-profile"
+          element={
+            <ProtectedRoute>
+              <HospitalProfile />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/post-job"
+          element={
+            <ProtectedRoute>
+              <PostJob />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/posted-jobs"
+          element={
+            <ProtectedRoute>
+              <JobsPosted />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/jobs/:jobId"
+          element={
+            <ProtectedRoute>
+              <HospJobData />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* PUBLIC JOB VIEW */}
+        <Route
+          path="/jobs/view/:jobId"
+          element={<ViewJob />}
+        />
+
+        <Route
+          path="/search/jobs"
+          element={
+            <ProtectedRoute>
+              <SearchJob />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* DOCTOR */}
         <Route
           path="/resume"
           element={
@@ -68,42 +125,7 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/get-verified"
-          element={
-            <ProtectedRoute>
-              <GetVerified />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-hospital"
-          element={
-            <AdminRoute>
-              <AdminHospitals />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin/hospital/:hospitalId"
-          element={
-            <AdminRoute>
-              <AdminHospitalData />
-            </AdminRoute>
-          }
-        />
-
+        {/* CHAT */}
         <Route
           path="/messages"
           element={
@@ -112,7 +134,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/chat/:userId"
           element={
@@ -122,11 +143,38 @@ export default function App() {
           }
         />
 
+        {/* ADMIN */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin-hospital"
+          element={
+            <AdminRoute>
+              <AdminHospitals />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/hospital/:hospitalId"
+          element={
+            <AdminRoute>
+              <AdminHospitalData />
+            </AdminRoute>
+          }
+        />
+
+        {/* MISC */}
         <Route path="/news" element={<News />} />
         <Route path="/who" element={<WhoUpdates />} />
         <Route path="/profile/:id" element={<Profile />} />
 
-        {/* Catch-all */}
+        {/* FALLBACK */}
         <Route path="*" element={<Home />} />
       </Routes>
     </>

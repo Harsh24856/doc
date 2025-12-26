@@ -105,3 +105,5 @@ docker-compose.override.yml
 *.bak
 *.tmp
 .cache/
+
+back/server/google-vision-key.json

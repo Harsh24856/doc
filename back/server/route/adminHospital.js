@@ -2,6 +2,8 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import admin from "../middleware/admin.js";
 import supabaseAdmin from "../Admin.js";
+import { extractPdfText } from "../services/pdfService.js";
+import { generateDocumentInsights } from "../services/aiService.js";
 
 const router = express.Router();
 
@@ -138,5 +140,146 @@ router.get(
     }
   }
 );
+
+router.get(
+  "/hospitals/:hospitalId/documents/:documentType/text",
+  auth,
+  admin,
+  async (req, res) => {
+    try {
+      const { hospitalId, documentType } = req.params;
+
+      //  Fetch document metadata
+      const { data: doc, error } = await supabaseAdmin
+        .from("hospital_documents")
+        .select("file_path")
+        .eq("hospital_id", hospitalId)
+        .eq("document_type", documentType)
+        .single();
+
+      if (error || !doc) {
+        return res.status(404).json({
+          message: "Document not found",
+        });
+      }
+
+      // Extract text
+      const text = await extractPdfText(doc.file_path);
+
+      // Return extracted text (for testing)
+      return res.json({
+        hospital_id: hospitalId,
+        document_type: documentType,
+        text_preview: text.substring(0, 2000), // limit output
+        text_length: text.length,
+      });
+    } catch (err) {
+      console.error("PDF extraction error:", err);
+      return res.status(500).json({
+        message: "Failed to extract PDF text",
+      });
+    }
+  }
+);
+
+router.get(
+  "/hospitals/:hospitalId/documents/:documentType/insights",
+  auth,
+  admin,
+  async (req, res) => {
+    try {
+      const { hospitalId, documentType } = req.params;
+
+      /*  Fetch document record */
+      const { data: document, error: docError } = await supabaseAdmin
+        .from("hospital_documents")
+        .select("file_path")
+        .eq("hospital_id", hospitalId)
+        .eq("document_type", documentType)
+        .single();
+
+      if (docError || !document) {
+        return res.status(404).json({
+          message: "Document not found",
+        });
+      }
+
+      /*  Extract text from PDF */
+      const extractedText = await extractPdfText(document.file_path);
+
+      /*  Fetch hospital profile */
+      const { data: hospital, error: hospitalError } = await supabaseAdmin
+        .from("hospitals")
+        .select(`
+          hospital_name,
+          hospital_city,
+          hospital_state,
+          registration_number_hospital
+        `)
+        .eq("id", hospitalId)
+        .single();
+
+      if (hospitalError || !hospital) {
+        return res.status(404).json({
+          message: "Hospital not found",
+        });
+      }
+
+      /*  Generate AI insights */
+      const insights = await generateDocumentInsights({
+        documentType,
+        extractedText,
+        hospitalProfile: hospital,
+      });
+
+      /*  Respond */
+      return res.json({
+        hospital_id: hospitalId,
+        document_type: documentType,
+        insights,
+      });
+    } catch (err) {
+      console.error("AI INSIGHTS ERROR:", err.message);
+      return res.status(500).json({
+        message: "Failed to generate document insights",
+      });
+    }
+  }
+);
+
+router.patch(
+  "/hospitals/:hospitalId/status",
+  auth,
+  admin,
+  async (req, res) => {
+    try {
+      const { hospitalId } = req.params;
+      const { status } = req.body;
+
+      // validate status
+      const allowedStatuses = ["pending", "verified", "rejected"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from("hospitals")
+        .update({ verification_status: status })   
+        .eq("id", hospitalId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      res.json({ message: "Hospital status updated successfully" });
+    } catch (err) {
+      console.error("STATUS UPDATE ERROR:", err.message);
+      res.status(500).json({ message: "Failed to update status" });
+    }
+  }
+);
+
+
+
 
 export default router;
