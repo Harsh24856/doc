@@ -36,26 +36,51 @@ export default function PeopleSearch() {
     <div className="relative w-full max-w-md">
       <input
         type="text"
-        placeholder="Search doctors by name"
+        placeholder="Search doctors and hospitals"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
       />
 
       {results.length > 0 && (
-        <div className="absolute z-20 mt-1 w-full bg-white rounded-lg shadow-lg border">
-          {results.map((user) => (
+        <div className="absolute z-20 mt-1 w-full bg-white rounded-lg shadow-lg border max-h-96 overflow-y-auto">
+          {results.map((item) => (
             <div
-              key={user.id}
-              onClick={() => navigate(`/profile/${user.id}`)}
-              className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+              key={`${item.type}-${item.id}`}
+              onClick={() => {
+                if (item.type === "hospital") {
+                  // Navigate to hospital profile if route exists, otherwise profile
+                  navigate(`/profile/${item.id}`);
+                } else {
+                  navigate(`/profile/${item.id}`);
+                }
+              }}
+              className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
             >
-              <p className="font-medium text-gray-800">
-                {user.name}
-              </p>
-              <p className="text-sm text-gray-500">
-                {user.designation || "Doctor"} • {user.specialization || "Medical"}
-              </p>
+              <div className="flex items-center gap-2">
+                {item.type === "hospital" && (
+                  <span className="text-lg">🏥</span>
+                )}
+                {item.type === "user" && (
+                  <span className="text-lg">👤</span>
+                )}
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">
+                    {item.name}
+                  </p>
+                  {item.type === "user" && (
+                    <p className="text-sm text-gray-500">
+                      {item.designation || "Doctor"} • {item.specialization || "Medical"}
+                    </p>
+                  )}
+                  {item.type === "hospital" && (
+                    <p className="text-sm text-gray-500">
+                      {item.hospital_type || "Hospital"}
+                      {item.location && ` • ${item.location}`}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>

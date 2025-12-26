@@ -8,6 +8,7 @@ export default function ViewJob() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -16,7 +17,7 @@ export default function ViewJob() {
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.message || "Failed to fetch job");
+          throw new Error(data.error || "Failed to fetch job");
         }
 
         setJob(data.job);
@@ -30,6 +31,48 @@ export default function ViewJob() {
     fetchJob();
   }, [jobId]);
 
+  /* =========================
+     APPLY HANDLER
+     ========================= */
+  const handleApply = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to apply for this job");
+      return;
+    }
+
+    try {
+      setApplying(true);
+
+      const res = await fetch(
+        `${API_BASE_URL}/applications/apply/${jobId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to apply");
+        return;
+      }
+
+      alert("✅ Applied successfully!");
+    } catch (err) {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  /* =========================
+     UI STATES
+     ========================= */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
@@ -54,6 +97,9 @@ export default function ViewJob() {
     );
   }
 
+  /* =========================
+     RENDER
+     ========================= */
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-10">
@@ -72,10 +118,7 @@ export default function ViewJob() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-8">
           <DetailItem label="Department" value={job.department} />
           <DetailItem label="Job Type" value={job.job_type} />
-          <DetailItem
-            label="Experience Required"
-            value={job.experience_required}
-          />
+          <DetailItem label="Experience Required" value={job.experience_required} />
           <DetailItem
             label="Salary Range"
             value={
@@ -97,12 +140,15 @@ export default function ViewJob() {
         {/* APPLY BUTTON */}
         <div className="flex justify-end">
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition"
-            onClick={() => {
-              // Apply functionality will be added later
-            }}
+            onClick={handleApply}
+            disabled={applying}
+            className={`px-8 py-3 rounded-lg font-semibold transition text-white
+              ${applying
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"}
+            `}
           >
-            Apply Now
+            {applying ? "Applying…" : "Apply Now"}
           </button>
         </div>
 
@@ -111,7 +157,9 @@ export default function ViewJob() {
   );
 }
 
-/* Helper component */
+/* =========================
+   HELPER COMPONENT
+   ========================= */
 function DetailItem({ label, value }) {
   return (
     <div>

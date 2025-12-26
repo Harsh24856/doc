@@ -24,6 +24,9 @@ import ViewJob from "./pages/ViewJob";
 import News from "./pages/News";
 import WhoUpdates from "./pages/WhoUpdates";
 import Profile from "./pages/Profile";
+import ViewResume from "./pages/ViewResume";
+import Dashboard from "./pages/Dashboard";
+
 
 export default function App() {
   const [signedIn, setSignedIn] = useState(false);
@@ -168,11 +171,24 @@ export default function App() {
             </AdminRoute>
           }
         />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
 
         {/* MISC */}
         <Route path="/news" element={<News />} />
         <Route path="/who" element={<WhoUpdates />} />
         <Route path="/profile/:id" element={<Profile />} />
+        <Route
+          path="/resume/:id"
+          element={
+            <ProtectedRoute>
+              <ViewResume />
+            </ProtectedRoute>
+          }
+        />
 
         {/* FALLBACK */}
         <Route path="*" element={<Home />} />

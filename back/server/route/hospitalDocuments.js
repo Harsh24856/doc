@@ -39,24 +39,48 @@ router.post(
       }
 
       /* Fetch Hospital */
+      console.log("[Hospital Upload] Fetching hospital for user:", userId);
       const { data: hospital, error: hospitalError } = await supabaseAdmin
         .from("hospitals")
-        .select("id, verified")
+        .select("id, verification_status")
         .eq("user_id", userId)
         .single();
 
-      if (hospitalError || !hospital) {
-        return res.status(403).json({
-          message: "Hospital not found for this user",
+      if (hospitalError) {
+        console.error("[Hospital Upload] Error fetching hospital:", hospitalError);
+        console.error("[Hospital Upload] Error code:", hospitalError.code);
+        // If hospital doesn't exist, return 404 instead of 403
+        if (hospitalError.code === "PGRST116") {
+          return res.status(404).json({
+            message: "Hospital profile not found. Please complete your hospital profile first.",
+          });
+        }
+        return res.status(500).json({
+          message: "Error fetching hospital information",
+          error: hospitalError.message,
         });
       }
 
+      if (!hospital) {
+        console.error("[Hospital Upload] Hospital not found for user:", userId);
+        return res.status(404).json({
+          message: "Hospital profile not found. Please complete your hospital profile first.",
+        });
+      }
+
+      console.log("[Hospital Upload] Hospital found:", { id: hospital.id, status: hospital.verification_status });
+
       /* Lock if Verified */
-      if (hospital.verified === true) {
+      const status = hospital.verification_status || "not_submitted";
+      if (status === "approved" || status === "verified") {
+        console.log("[Hospital Upload] Blocked: Hospital is verified");
         return res.status(403).json({
           message: "Verified hospitals cannot modify documents",
         });
       }
+
+      // Allow uploads for: not_submitted, null, or any status except approved/verified
+      console.log("[Hospital Upload] Proceeding with upload, status:", status);
 
       /* Upload to Storage */
       const filePath = `${hospital.id}/${document_type}.pdf`;
@@ -200,14 +224,27 @@ router.get("/status", auth, async (req, res) => {
       .eq("user_id", userId)
       .single();
 
-    if (hospitalError || !hospital) {
-      return res.status(404).json({
-        message: "Hospital not found",
+    if (hospitalError) {
+      // If hospital doesn't exist yet, return default status
+      if (hospitalError.code === "PGRST116") {
+        return res.json({
+          verification_status: "not_submitted",
+        });
+      }
+      console.error("[Hospital Status] Error:", hospitalError);
+      return res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+
+    if (!hospital) {
+      return res.json({
+        verification_status: "not_submitted",
       });
     }
 
     return res.json({
-      verification_status: hospital.verification_status,
+      verification_status: hospital.verification_status || "not_submitted",
     });
   } catch (err) {
     console.error("Error in fetching verification status", err);

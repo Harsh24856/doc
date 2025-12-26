@@ -26,6 +26,9 @@ import uploadRoutes from "./route/message_upload.js";
 import newsRoutes from "./route/news.js";
 import whoRoutes from "./route/who.js";
 import searchRoutes from "./route/search.js";
+import jobApplications from "./route/jobApplications.js";
+import dashboardRoutes from "./route/dashboard.js";
+import appliedRoutes from "./route/applied.js";
 
 import supabase from "./db.js";
 
@@ -67,14 +70,16 @@ app.use("/admin", fetchtest);
 app.use("/hospital", hospitalProfile);
 app.use("/hospital", hospitalFetch);
 app.use("/hospital", hospitalDocuments);
-app.use(job);
+app.use( job);
 app.use("/admin", adminHospital);
 
 app.use("/profile", profileRoutes);
 app.use("/verification", verificationUpload);
 app.use("/verification", verificationRoutes);
 app.use("/admin", adminRoutes);
-
+app.use("/applications", jobApplications);
+app.use("/api", dashboardRoutes);
+app.use("/jobs", appliedRoutes);
 
 /* 🔥 CHAT ROUTES */
 app.use("/users", usersRoutes);
