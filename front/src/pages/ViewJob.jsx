@@ -63,7 +63,7 @@ export default function ViewJob() {
       }
 
       alert("✅ Applied successfully!");
-    } catch (err) {
+    } catch {
       alert("Something went wrong. Please try again.");
     } finally {
       setApplying(false);
