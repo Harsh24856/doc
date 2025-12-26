@@ -1,152 +1,40 @@
 import express from "express";
 import auth from "../middleware/auth.js";
 import supabase from "../db.js";
+import supabaseAdmin from "../Admin.js";
 
 const router = express.Router();
 
 /* =========================
-   UPDATE MEDICAL RESUME
+   ADMIN ONLY
    ========================= */
-router.put("/medical-resume", auth, async (req, res) => {
-  console.log("\n[PUT /profile/medical-resume] =====================");
-  console.log("[PUT Medical Resume] Step 1: Request received");
-  
-  const userId = req.user.id;
-  console.log("[PUT Medical Resume] User ID:", userId);
-  console.log("[PUT Medical Resume] Authenticated user:", req.user?.email);
-  console.log("[PUT Medical Resume] Request body:", JSON.stringify(req.body, null, 2));
-
-  const allowedFields = [
-    "role",
-    "name",
-    "phone",
-    "designation",
-    "specialization",
-    "registration_number",
-    "years_of_experience",
-    "hospital_affiliation",
-    "qualifications",
-    "skills",
-    "bio",
-  ];
-
-  console.log("[PUT Medical Resume] Step 2: Filtering allowed fields and converting data types");
-  const updates = {};
-  for (const key of allowedFields) {
-    if (req.body[key] !== undefined) {
-      let value = req.body[key];
-      
-      // Convert qualifications and skills to arrays if they're strings
-      if (key === "qualifications" || key === "skills") {
-        if (typeof value === "string") {
-          // Handle comma-separated string
-          value = value.split(",").map((item) => item.trim()).filter(Boolean);
-          console.log(`[PUT Medical Resume] Converted ${key} from string to array:`, value);
-        } else if (!Array.isArray(value)) {
-          // If it's not a string and not an array, wrap it in an array
-          value = [value].filter(Boolean);
-          console.log(`[PUT Medical Resume] Converted ${key} to array:`, value);
-        }
-        // If it's already an array, use it as-is
-      }
-      
-      // Convert years_of_experience to number
-      if (key === "years_of_experience" && value !== null && value !== undefined) {
-        value = Number(value);
-        if (isNaN(value)) {
-          console.log(`[PUT Medical Resume] ⚠️ Invalid number for ${key}, setting to null`);
-          value = null;
-        }
-      }
-      
-      updates[key] = value;
-    }
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin access only" });
   }
-  console.log("[PUT Medical Resume] Filtered and converted updates:", JSON.stringify(updates, null, 2));
-
-  try {
-    console.log("[PUT Medical Resume] Step 3: Fetching current user data");
-    // 🔍 Fetch current role + profile status
-    const { data: currentUser, error } = await supabase
-      .from("users")
-      .select("role, profile_completed")
-      .eq("id", userId)
-      .single();
-
-    console.log("[PUT Medical Resume] Current user data:", currentUser);
-    console.log("[PUT Medical Resume] Has error:", !!error);
-
-    if (error) {
-      console.error("[PUT Medical Resume] ❌ Error fetching current user:", error.message);
-      throw error;
-    }
-
-    console.log("[PUT Medical Resume] Step 4: Validating role updates");
-    // 🚫 Block admin role
-    if (updates.role === "admin") {
-      console.log("[PUT Medical Resume] ⚠️ Admin role blocked, removing from updates");
-      delete updates.role;
-    }
-
-    // 🔒 Lock role after first completion
-    if (updates.role && currentUser.profile_completed) {
-      console.log("[PUT Medical Resume] ⚠️ Role change blocked - profile already completed");
-      console.log("[PUT Medical Resume] Current role:", currentUser.role);
-      console.log("[PUT Medical Resume] Attempted role:", updates.role);
-      delete updates.role;
-    }
-
-    console.log("[PUT Medical Resume] Step 5: Updating user in database");
-    console.log("[PUT Medical Resume] Final updates to apply:", JSON.stringify(updates, null, 2));
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({
-        ...updates,
-        profile_completed: true,
-      })
-      .eq("id", userId);
-
-    if (updateError) {
-      console.error("[PUT Medical Resume] ❌ Database update error:", updateError.message);
-      console.error("[PUT Medical Resume] Error details:", updateError);
-      throw updateError;
-    }
-
-    console.log("[PUT Medical Resume] ✅ Profile updated successfully");
-    console.log("[PUT Medical Resume] ✅ Sending response");
-    res.json({ message: "Profile updated successfully" });
-  } catch (err) {
-    console.error("[PUT Medical Resume] ❌ Error:", err.message);
-    console.error("[PUT Medical Resume] Error stack:", err.stack);
-    res.status(500).json({ error: err.message });
-  }
-});
+  next();
+};
 
 /* =========================
-   GET MEDICAL RESUME
+   MEDICAL RESUME (GET & PUT)
    ========================= */
 router.get("/medical-resume", auth, async (req, res) => {
-  console.log("\n[GET /profile/medical-resume] =====================");
-  console.log("[GET Medical Resume] Step 1: Request received");
-  
-  const userId = req.user.id;
-  console.log("[GET Medical Resume] User ID:", userId);
-  console.log("[GET Medical Resume] Authenticated user:", req.user?.email);
-
   try {
-    console.log("[GET Medical Resume] Step 2: Fetching user data from database");
-    const { data, error } = await supabase
+    const userId = req.user.id;
+    
+    const { data: user, error } = await supabase
       .from("users")
       .select(`
         id,
-        role,
         name,
         email,
+        role,
         phone,
         designation,
         specialization,
         registration_number,
+        registration_council,
+        year_of_graduation,
         years_of_experience,
         hospital_affiliation,
         qualifications,
@@ -157,27 +45,151 @@ router.get("/medical-resume", auth, async (req, res) => {
       .eq("id", userId)
       .single();
 
-    console.log("[GET Medical Resume] Step 3: Database query executed");
-    console.log("[GET Medical Resume] Has data:", !!data);
-    console.log("[GET Medical Resume] Has error:", !!error);
-
     if (error) {
-      console.error("[GET Medical Resume] ❌ Database error:", error.message);
-      console.error("[GET Medical Resume] Error details:", error);
-      throw error;
+      console.error("[Profile] Error fetching medical resume:", error.message);
+      return res.status(500).json({ error: error.message });
     }
 
-    console.log("[GET Medical Resume] ✅ Data retrieved successfully");
-    console.log("[GET Medical Resume] User name:", data?.name);
-    console.log("[GET Medical Resume] Profile completed:", data?.profile_completed);
-    console.log("[GET Medical Resume] ✅ Sending response");
-    
-    res.json(data);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
   } catch (err) {
-    console.error("[GET Medical Resume] ❌ Error:", err.message);
-    console.error("[GET Medical Resume] Error stack:", err.stack);
+    console.error("[Profile] Error in GET /medical-resume:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
+
+router.put("/medical-resume", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const updateData = { ...req.body };
+    const shouldSubmit = updateData.submit === true;
+
+    // Remove fields that shouldn't be updated
+    delete updateData.id;
+    delete updateData.email;
+    delete updateData.role;
+    delete updateData.submit; // Remove submit flag from update data
+
+    // Prepare update object
+    const updateObject = { ...updateData };
+
+    // Only set profile_completed if explicitly submitting
+    if (shouldSubmit) {
+      // Set profile_completed to true when user submits (just once)
+      updateObject.profile_completed = true;
+    }
+    // If not submitting, don't change profile_completed (keep existing value)
+
+    const { data, error } = await supabase
+      .from("users")
+      .update(updateObject)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[Profile] Error updating medical resume:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data);
+  } catch (err) {
+    console.error("[Profile] Error in PUT /medical-resume:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   HELPERS
+   ========================= */
+const normalizeText = (v) =>
+  String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const normalizeNumber = (v) =>
+  String(v || "").replace(/\D/g, "");
+
+/* =========================
+   GET PENDING USERS
+   ========================= */
+router.get("/verifications/pending", auth, adminOnly, async (req, res) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select(`
+      id,
+      name,
+      email,
+      role,
+      phone,
+      designation,
+      specialization,
+      registration_number,
+      registration_council,
+      year_of_graduation,
+      hospital_affiliation,
+      qualifications,
+      skills,
+      bio,
+      verification_status,
+      license_doc_url,
+      id_doc_url
+    `)
+    .eq("verification_status", "pending");
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+/* =========================
+   PUBLIC PROFILE (No auth required)
+   ========================= */
+router.get("/public/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const { data: user, error } = await supabase
+      .from("users")
+      .select(`
+        id,
+        name,
+        role,
+        designation,
+        specialization,
+        hospital_affiliation,
+        qualifications,
+        skills,
+        bio,
+        profile_completed,
+        verification_status
+      `)
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("[Profile] Error fetching public profile:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Only return profile if it's completed
+    if (!user.profile_completed) {
+      return res.status(404).json({ error: "Profile not available" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("[Profile] Error in GET /public/:userId:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =========================
+   AI VERIFICATION (Removed - now handled by verification.js)
+   ========================= */
 
 export default router;

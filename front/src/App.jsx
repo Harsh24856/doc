@@ -1,11 +1,12 @@
 import { Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+
 import Home from "./pages/Home";
+import HospitalHome from "./pages/HospitalHome";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useState } from "react";
-import { useEffect } from "react";
-import Navbar from "./components/Navbar"
+import Navbar from "./components/Navbar";
 import HospitalProfile from "./pages/HospitalProfile";
 import AdminHospitalData from "./pages/AdminHospitalData";
 import MedicalResume from "./pages/MedicalResume";
@@ -20,145 +21,162 @@ import JobsPosted from "./pages/JobsPosted";
 import HospJobData from "./pages/HospJobData";
 import SearchJob from "./pages/SearchJob";
 import ViewJob from "./pages/ViewJob";
+import News from "./pages/News";
+import WhoUpdates from "./pages/WhoUpdates";
+import Profile from "./pages/Profile";
+
 export default function App() {
-  const[signedIn, setSignedIn] = useState(false);
-  const[role, setRole] = useState("");
+  const [signedIn, setSignedIn] = useState(false);
+  const [role, setRole] = useState("");
+
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-  if (!token || !user) {
-    setSignedIn(false);
-    setRole(null);
-  } else {
-    setSignedIn(true);
-    setRole(user.role);
-  }
-}, []);
-
+    if (!token || !user) {
+      setSignedIn(false);
+      setRole(null);
+    } else {
+      setSignedIn(true);
+      setRole(user.role);
+    }
+  }, []);
 
   return (
-  <>
-  <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role}/>
-  <Routes>
-  <Route
-    path="/"
-    element={
-        <Home />
-    }
-  />
+    <>
+      <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role} />
 
-  <Route path="/login" element={<Login setSignedIn={setSignedIn} setRole={setRole}/>} />
-  <Route path="/signup" element={<Signup setSignedIn={setSignedIn} setRole={setRole}/>} />
-  <Route 
-        path="/hospital-profile" 
-        element={
-        <ProtectedRoute>
-        <HospitalProfile/>
-        </ProtectedRoute>
-        } />
-  <Route
-        path="/resume"
-        element={
-          <ProtectedRoute>
-            <MedicalResume />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/get-verified"
-        element={
-          <ProtectedRoute>
-            <GetVerified />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        }
-      />
-      <Route
-  path="/messages"
-  element={
-    <ProtectedRoute>
-      <UsersPage />
-    </ProtectedRoute>
-  }
-/>
+      <Routes>
+        {/* ROLE BASED HOME */}
+        <Route
+          path="/"
+          element={role === "hospital" ? <HospitalHome /> : <Home />}
+        />
 
-<Route
-  path="/chat/:userId"
-  element={
-    <ProtectedRoute>
-      <ChatPage />
-    </ProtectedRoute>
-  }
-/>
-      {/* Catch-all route for unmatched paths */}
-      <Route path="*" element={<Home />} />
-       <Route
-        path="/admin-hospital"
-        element={
-          <AdminRoute>
-            <AdminHospitals />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/hospital/:hospitalId"
-        element={
-          <AdminRoute>
-            <AdminHospitalData />
-          </AdminRoute>
-        }  
-      />
-      <Route 
-        path="/post-job"
-        element={
-          <ProtectedRoute>
-            <PostJob />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/posted-jobs"
-        element={
-          <ProtectedRoute>
-            <JobsPosted />
-          </ProtectedRoute>
-        }
-      />
-      <Route 
-        path="/jobs/:jobId"
-        element={
-          <ProtectedRoute>
-            <HospJobData />
-          </ProtectedRoute>
-        }
-      />   
-      <Route 
-        path="/search/jobs"
-        element={
-          <ProtectedRoute>
-            <SearchJob />
-          </ProtectedRoute>
-        }
-      /> 
-      <Route 
-        path="/jobs/view/:jobId"
-        element={
-          <ProtectedRoute>
-            <ViewJob />
-          </ProtectedRoute>
-        }
-      />  
-</Routes>
-</>
+        {/* AUTH */}
+        <Route
+          path="/login"
+          element={<Login setSignedIn={setSignedIn} setRole={setRole} />}
+        />
+        <Route
+          path="/signup"
+          element={<Signup setSignedIn={setSignedIn} setRole={setRole} />}
+        />
 
-    
+        {/* HOSPITAL */}
+        <Route
+          path="/hospital-profile"
+          element={
+            <ProtectedRoute>
+              <HospitalProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/post-job"
+          element={
+            <ProtectedRoute>
+              <PostJob />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/posted-jobs"
+          element={
+            <ProtectedRoute>
+              <JobsPosted />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/jobs/:jobId"
+          element={
+            <ProtectedRoute>
+              <HospJobData />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* PUBLIC JOB VIEW */}
+        <Route
+          path="/jobs/view/:jobId"
+          element={<ViewJob />}
+        />
+
+        <Route
+          path="/search/jobs"
+          element={
+            <ProtectedRoute>
+              <SearchJob />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* DOCTOR */}
+        <Route
+          path="/resume"
+          element={
+            <ProtectedRoute>
+              <MedicalResume />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* CHAT */}
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat/:userId"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ADMIN */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin-hospital"
+          element={
+            <AdminRoute>
+              <AdminHospitals />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/hospital/:hospitalId"
+          element={
+            <AdminRoute>
+              <AdminHospitalData />
+            </AdminRoute>
+          }
+        />
+
+        {/* MISC */}
+        <Route path="/news" element={<News />} />
+        <Route path="/who" element={<WhoUpdates />} />
+        <Route path="/profile/:id" element={<Profile />} />
+
+        {/* FALLBACK */}
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </>
   );
 }
