@@ -279,36 +279,36 @@ export default function HospJobData() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-10 px-3 sm:px-4">
       {/* Logo Section */}
-      <div className="max-w-4xl mx-auto mb-6 text-center">
+      <div className="max-w-4xl mx-auto mb-4 sm:mb-6 text-center">
         <img 
           src={logo1} 
           alt="DocSpace Logo" 
-          className="h-16 sm:h-24 md:h-32 w-auto object-contain mx-auto"
+          className="h-12 sm:h-20 md:h-28 w-auto object-contain mx-auto"
         />
       </div>
 
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-10">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-10">
 
         {/* ================= HEADER ================= */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 break-words">
             {editing ? "Edit Job" : job.title}
           </h2>
 
           {!editing && canEdit && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setEditing(true)}
-                className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-5 py-2 rounded-lg font-medium transition"
+                className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-4 sm:px-5 py-2 rounded-lg font-medium transition text-sm sm:text-base"
               >
                 Edit Job
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-5 py-2 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 {deleting ? "Deleting..." : "Delete Job"}
               </button>
@@ -318,7 +318,7 @@ export default function HospJobData() {
 
         {/* ================= VIEW MODE ================= */}
         {!editing && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
             <DetailItem label="Department" value={job.department} />
             <DetailItem label="Job Type" value={job.job_type} />
             <DetailItem label="Experience Required" value={job.experience_required} />
@@ -326,14 +326,14 @@ export default function HospJobData() {
               label="Salary Range"
               value={
                 job.min_salary && job.max_salary
-                  ? `₹${job.min_salary} – ₹${job.max_salary}`
+                  ? `₹${job.min_salary.toLocaleString()} – ₹${job.max_salary.toLocaleString()}`
                   : "—"
               }
             />
 
             <div className="md:col-span-2">
-              <p className="text-gray-500 mb-1">Job Description</p>
-              <p className="text-gray-800 whitespace-pre-line">
+              <p className="text-gray-500 mb-2 text-xs sm:text-sm">Job Description</p>
+              <p className="text-gray-800 whitespace-pre-line text-sm sm:text-base leading-relaxed">
                 {job.description || "—"}
               </p>
             </div>
@@ -344,7 +344,7 @@ export default function HospJobData() {
         {editing && (
           <form
             onSubmit={handleUpdate}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
           >
             <Input label="Job Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
             <Input label="Department" value={form.department} onChange={(v) => setForm({ ...form, department: v })} />
@@ -354,32 +354,32 @@ export default function HospJobData() {
             <Input label="Maximum Salary" type="number" value={form.max_salary} onChange={(v) => setForm({ ...form, max_salary: v })} />
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">
                 Job Description
               </label>
               <textarea
                 rows={5}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none"
               />
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-4">
+            <div className="md:col-span-2 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => {
                   setEditing(false);
                   setForm(job);
                 }}
-                className="px-6 py-2 rounded-lg border text-gray-600"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg border text-gray-600 text-sm sm:text-base font-medium hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base font-semibold transition"
               >
                 Save Changes
               </button>
@@ -389,17 +389,17 @@ export default function HospJobData() {
 
         {/* ================= APPLICANTS ================= */}
         {(userRole === "hospital" || isAdmin) && canViewApplicants && (
-          <div className="mt-12">
-            <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-              Applicants {isAdmin && <span className="text-sm font-normal text-gray-500">(Admin View)</span>}
+          <div className="mt-8 sm:mt-12">
+            <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">
+              Applicants {isAdmin && <span className="text-xs sm:text-sm font-normal text-gray-500">(Admin View)</span>}
             </h3>
 
             {loadingApplicants ? (
-              <p className="text-gray-500">Loading applicants…</p>
+              <p className="text-gray-500 text-sm sm:text-base">Loading applicants…</p>
             ) : applicants.length === 0 ? (
-              <p className="text-gray-500">No applications yet</p>
+              <p className="text-gray-500 text-sm sm:text-base">No applications yet</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {applicants.map((a) => {
                   const status = a.verification_status || a.users?.verification_status || "pending";
                   const statusColors = {
@@ -432,24 +432,24 @@ export default function HospJobData() {
                   return (
                     <div
                       key={a.id}
-                      className="p-4 border rounded-xl hover:bg-gray-50 transition"
+                      className="p-3 sm:p-4 border rounded-lg sm:rounded-xl hover:bg-gray-50 transition"
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         <div
                           onClick={() => navigate(`/profile/${a.users.id}`)}
-                          className="flex-1 cursor-pointer"
+                          className="flex-1 cursor-pointer min-w-0"
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold text-gray-800">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                            <p className="font-semibold text-gray-800 text-sm sm:text-base truncate">
                               {a.users?.name || "Unknown"}
                             </p>
                             <span
-                              className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${statusColors[status] || statusColors.pending}`}
+                              className={`px-2 py-0.5 text-xs font-semibold rounded-full border w-fit ${statusColors[status] || statusColors.pending}`}
                             >
                               {statusLabels[status] || "Pending"}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs sm:text-sm text-gray-600 break-words">
                             {a.users?.designation || "—"}
                             {a.users?.specialization ? ` • ${a.users.specialization}` : ""}
                           </p>
@@ -465,17 +465,18 @@ export default function HospJobData() {
                               : "—"}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 ml-4">
+                        <div className="flex flex-wrap items-center gap-2 sm:ml-4">
                           {/* View Resume button - always visible for all applicants */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/resume/${a.users.id}`);
                             }}
-                            className="px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm rounded-lg transition flex items-center gap-1.5"
+                            className="flex-1 sm:flex-none px-3 py-1.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-xs sm:text-sm rounded-lg transition flex items-center justify-center gap-1.5"
                           >
                             <span className="material-symbols-outlined text-sm">description</span>
-                            View Resume
+                            <span className="hidden sm:inline">View Resume</span>
+                            <span className="sm:hidden">Resume</span>
                           </button>
                           {/* Approve button - only for non-approved applicants */}
                           {status !== "approved" && (
@@ -486,10 +487,11 @@ export default function HospJobData() {
                                 setShowDateModal(true);
                               }}
                               disabled={isProcessing || status === "rejected"}
-                              className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                              className="flex-1 sm:flex-none px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                             >
                               <span className="material-symbols-outlined text-sm">check_circle</span>
-                              Approve
+                              <span className="hidden sm:inline">Approve</span>
+                              <span className="sm:hidden">Approve</span>
                             </button>
                           )}
                           {/* Reject button - only for non-rejected applicants */}
@@ -500,10 +502,11 @@ export default function HospJobData() {
                                 handleReject(a.id);
                               }}
                               disabled={isProcessing || status === "approved"}
-                              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                              className="flex-1 sm:flex-none px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                             >
                               <span className="material-symbols-outlined text-sm">cancel</span>
-                              Reject
+                              <span className="hidden sm:inline">Reject</span>
+                              <span className="sm:hidden">Reject</span>
                             </button>
                           )}
                         </div>
@@ -570,17 +573,17 @@ function DateInputModal({ isOpen, onClose, onConfirm, applicantName }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 max-w-md w-full">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
           Approve Application
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
           Select the interview date for <span className="font-semibold">{applicantName}</span>
         </p>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-4 sm:mb-6">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
             Interview Date
           </label>
           <input
@@ -588,23 +591,23 @@ function DateInputModal({ isOpen, onClose, onConfirm, applicantName }) {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             min={new Date().toISOString().split("T")[0]}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[var(--color-primary)] focus:outline-none transition"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:border-[var(--color-primary)] focus:outline-none transition"
             required
           />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium disabled:opacity-50 text-sm sm:text-base"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || !date}
-            className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             {loading ? "Approving..." : "Approve"}
           </button>
@@ -618,9 +621,9 @@ function DateInputModal({ isOpen, onClose, onConfirm, applicantName }) {
 
 function DetailItem({ label, value }) {
   return (
-    <div>
-      <p className="text-gray-500">{label}</p>
-      <p className="font-medium text-gray-800">{value || "—"}</p>
+    <div className="p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+      <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">{label}</p>
+      <p className="text-sm sm:text-base font-medium text-gray-800 break-words">{value || "—"}</p>
     </div>
   );
 }
@@ -628,14 +631,14 @@ function DetailItem({ label, value }) {
 function Input({ label, value, onChange, type = "text" }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
+      <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">
         {label}
       </label>
       <input
         type={type}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none transition"
       />
     </div>
   );

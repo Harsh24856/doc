@@ -88,9 +88,9 @@ export default function AllJobs() {
 
         {/* FILTERS CARD */}
         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8">
-          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <span className="material-symbols-outlined text-xl sm:text-2xl text-gray-700">search</span>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Search & Filter</h2>
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 md:mb-6">
+            <span className="material-symbols-outlined text-lg sm:text-xl md:text-2xl text-gray-700">search</span>
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Search & Filter</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -162,7 +162,7 @@ export default function AllJobs() {
           </div>
 
           {/* RESET BUTTON */}
-          <div className="flex justify-end mt-8 pt-8 border-t border-gray-200">
+          <div className="flex justify-end mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
             <button
               onClick={() =>
                 setFilters({
@@ -174,23 +174,23 @@ export default function AllJobs() {
                   city: "",
                 })
               }
-              className="px-8 py-3 rounded-2xl font-medium text-gray-700 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium text-sm sm:text-base text-gray-700 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-lg">refresh</span>
+              <span className="material-symbols-outlined text-base sm:text-lg">refresh</span>
               Reset Filters
             </button>
           </div>
         </div>
 
         {/* RESULTS SECTION */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10">
+        <div className="bg-white rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10">
           {/* RESULTS HEADER */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
                 {loading ? "Searching..." : `${jobs.length} Job${jobs.length !== 1 ? 's' : ''} Found`}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 {loading ? "Please wait..." : "Click on any job to view details"}
               </p>
             </div>
@@ -198,62 +198,64 @@ export default function AllJobs() {
 
           {/* ERROR */}
           {error && (
-            <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-2xl p-5">
-              <p className="text-sm font-medium text-red-800">{error}</p>
+            <div className="mb-4 sm:mb-6 bg-red-50 border-l-4 border-red-500 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+              <p className="text-xs sm:text-sm font-medium text-red-800 break-words">{error}</p>
             </div>
           )}
 
           {/* RESULTS */}
           {loading ? (
-            <div className="text-center py-16">
-              <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block animate-spin">hourglass_empty</span>
-              <p className="text-gray-500">Loading jobs…</p>
+            <div className="text-center py-12 sm:py-16">
+              <span className="material-symbols-outlined text-4xl sm:text-5xl text-gray-400 mb-3 sm:mb-4 block animate-spin">hourglass_empty</span>
+              <p className="text-sm sm:text-base text-gray-500">Loading jobs…</p>
             </div>
           ) : jobs.length === 0 ? (
-            <div className="text-center py-16">
-              <span className="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
-              <p className="text-xl font-semibold text-gray-800 mb-2">
+            <div className="text-center py-12 sm:py-16">
+              <span className="material-symbols-outlined text-5xl sm:text-6xl text-gray-400 mb-3 sm:mb-4 block">search_off</span>
+              <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                 No jobs found
               </p>
-              <p className="text-gray-500">
+              <p className="text-sm sm:text-base text-gray-500 px-4">
                 Try adjusting your filters to see more results
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5">
               {jobs.map((job) => (
                 <div
                   key={job.id}
-                  className="group relative bg-gradient-to-r from-white to-gray-50 border-2 border-gray-200 rounded-3xl p-8 cursor-pointer 
+                  className="group relative bg-gradient-to-r from-white to-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 cursor-pointer 
                            hover:border-[var(--color-primary)] hover:shadow-2xl transition-all duration-300 ease-in-out
                            hover:scale-[1.01]"
                   onClick={() => navigate(`/jobs/view/${job.id}`)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-2 border-gray-200 
-                                     flex items-center justify-center shadow-lg overflow-hidden p-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl sm:rounded-2xl bg-white border-2 border-gray-200 
+                                     flex items-center justify-center shadow-lg overflow-hidden p-1.5 sm:p-2 flex-shrink-0">
                           <img 
                             src={logo2} 
                             alt="DocSpace Logo" 
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition duration-300">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition duration-300 break-words">
                             {job.title}
                           </h3>
                           {job.hospital && (
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-sm font-medium text-gray-700">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2">
+                              <span className="text-xs sm:text-sm font-medium text-gray-700 break-words">
                                 {job.hospital.name}
                               </span>
                               {job.hospital.city && (
-                                <span className="text-sm text-gray-500 flex items-center gap-1">
-                                  <span className="material-symbols-outlined text-sm">location_on</span>
-                                  {job.hospital.city}
-                                  {job.hospital.state && `, ${job.hospital.state}`}
+                                <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs sm:text-sm">location_on</span>
+                                  <span className="break-words">
+                                    {job.hospital.city}
+                                    {job.hospital.state && `, ${job.hospital.state}`}
+                                  </span>
                                 </span>
                               )}
                             </div>
@@ -261,11 +263,11 @@ export default function AllJobs() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-2xl font-semibold text-sm shadow-md">
+                    <div className="flex items-center justify-end sm:justify-start gap-2 sm:gap-3 flex-shrink-0">
+                      <span className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm shadow-md whitespace-nowrap">
                         View Details
                       </span>
-                      <span className="text-2xl group-hover:translate-x-1 transition-transform duration-300">→</span>
+                      <span className="text-xl sm:text-2xl group-hover:translate-x-1 transition-transform duration-300">→</span>
                     </div>
                   </div>
                 </div>
@@ -283,7 +285,7 @@ export default function AllJobs() {
 function Input({ label, value, onChange, placeholder, type = "text", icon }) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+      <label className="block text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
         {icon && (typeof icon === 'string' ? <span>{icon}</span> : icon)}
         {label}
       </label>
@@ -292,7 +294,7 @@ function Input({ label, value, onChange, placeholder, type = "text", icon }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-5 py-3.5 border-2 border-gray-200 rounded-2xl transition-all duration-300
+        className="w-full px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base border-2 border-gray-200 rounded-xl sm:rounded-2xl transition-all duration-300
                    focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20
                    bg-gray-50 focus:bg-white hover:border-gray-300"
       />
@@ -304,14 +306,14 @@ function Input({ label, value, onChange, placeholder, type = "text", icon }) {
 function Select({ label, value, onChange, options, icon }) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+      <label className="block text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
         {icon && (typeof icon === 'string' ? <span>{icon}</span> : icon)}
         {label}
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-5 py-3.5 border-2 border-gray-200 rounded-2xl transition-all duration-300
+        className="w-full px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base border-2 border-gray-200 rounded-xl sm:rounded-2xl transition-all duration-300
                    focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20
                    bg-gray-50 focus:bg-white hover:border-gray-300 cursor-pointer"
       >

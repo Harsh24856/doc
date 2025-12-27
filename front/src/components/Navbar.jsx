@@ -98,7 +98,7 @@ export default function Navbar({ signedIn, role }) {
 
           {/* SEARCH BAR - Only visible when signed in */}
           {signedIn && (
-            <div className="flex-1 max-w-2xl mx-2 sm:mx-4">
+            <div className="flex-1 max-w-full sm:max-w-2xl mx-1 sm:mx-2 md:mx-4 min-w-0">
               <div className="relative">
                 <PeopleSearch />
               </div>
