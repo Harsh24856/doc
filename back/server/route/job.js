@@ -316,27 +316,29 @@ router.get("/search", async (req, res) => {
       city,
     } = req.query;
 
-    // Base query
+    /* BASE JOB QUERY */
     let query = supabase
       .from("jobs")
-      .select("id, title, created_at, hospital_id");
+      .select(
+        "id, title, department, min_salary, max_salary, experience_required, created_at, hospital_id"
+      );
 
-    // Department search (PRIMARY)
+    // Department 
     if (department) {
       query = query.ilike("department", `%${department}%`);
     }
 
-    // Job type filter
+    // Job type
     if (job_type) {
       query = query.eq("job_type", job_type);
     }
 
-    // Experience filter
+    // Experience: job requires <= user experience
     if (experience) {
-      query = query.ilike("experience_required", `%${experience}%`);
+      query = query.lte("experience_required", Number(experience));
     }
 
-    // Salary overlap filtering
+    // Salary filters
     if (min_salary) {
       query = query.gte("min_salary", Number(min_salary));
     }
@@ -345,35 +347,29 @@ router.get("/search", async (req, res) => {
       query = query.lte("max_salary", Number(max_salary));
     }
 
-    // Order newest first (will be re-sorted by city if city is provided)
-    query = query.order("created_at", { ascending: false });
-
+    //  NO ordering here
     const { data: jobsData, error } = await query;
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     if (!jobsData || jobsData.length === 0) {
       return res.json({ jobs: [] });
     }
 
-    // Get unique hospital IDs
-    const hospitalIds = [...new Set(jobsData.map(job => job.hospital_id).filter(Boolean))];
+    /* FETCH HOSPITAL INFO */
+    const hospitalIds = [
+      ...new Set(jobsData.map(j => j.hospital_id).filter(Boolean)),
+    ];
 
-    // Fetch hospital information
     let hospitalsMap = {};
+
     if (hospitalIds.length > 0) {
       let hospitalQuery = supabase
         .from("hospitals")
-        .select("id, hospital_name, hospital_city, hospital_state");
+        .select("id, hospital_name, hospital_city, hospital_state")
+        .in("id", hospitalIds);
 
-      // Filter by city if provided
-      if (city) {
-        hospitalQuery = hospitalQuery.ilike("hospital_city", `%${city}%`);
-      }
-
-      const { data: hospitals, error: hospitalError } = await hospitalQuery.in("id", hospitalIds);
+      const { data: hospitals, error: hospitalError } = await hospitalQuery;
 
       if (!hospitalError && hospitals) {
         hospitals.forEach(h => {
@@ -386,60 +382,83 @@ router.get("/search", async (req, res) => {
       }
     }
 
-    // Transform data to include hospital info
+    /* MERGE + CITY FILTER */
     let jobs = jobsData
-      .map((job) => ({
-        id: job.id,
-        title: job.title,
-        created_at: job.created_at,
-        hospital: hospitalsMap[job.hospital_id] || null,
-      }))
-      .filter(job => {
-        // If city filter is provided, only include jobs with matching cities
-        if (city && city.trim()) {
-          return job.hospital && job.hospital.city && 
-                 job.hospital.city.toLowerCase().includes(city.toLowerCase().trim());
-        }
-        return true;
-      });
-
-    // Sort by city proximity if city is provided
+  .map(job => ({
+    id: job.id,
+    title: job.title,
+    min_salary: job.min_salary,
+    max_salary: job.max_salary,
+    experience_required: job.experience_required,
+    created_at: job.created_at,
+    hospital: hospitalsMap[job.hospital_id] || null,
+  }))
+  .filter(job => {
     if (city && city.trim()) {
-      const searchCity = city.toLowerCase().trim();
-      jobs.sort((a, b) => {
-        const cityA = (a.hospital?.city || "").toLowerCase();
-        const cityB = (b.hospital?.city || "").toLowerCase();
-
-        // Exact match first
-        if (cityA === searchCity && cityB !== searchCity) return -1;
-        if (cityA !== searchCity && cityB === searchCity) return 1;
-        if (cityA === searchCity && cityB === searchCity) return 0;
-
-        // Starts with search city
-        if (cityA.startsWith(searchCity) && !cityB.startsWith(searchCity)) return -1;
-        if (!cityA.startsWith(searchCity) && cityB.startsWith(searchCity)) return 1;
-
-        // Contains search city
-        if (cityA.includes(searchCity) && !cityB.includes(searchCity)) return -1;
-        if (!cityA.includes(searchCity) && cityB.includes(searchCity)) return 1;
-
-        // Alphabetical by city name
-        return cityA.localeCompare(cityB);
-      });
+      return (
+        job.hospital &&
+        job.hospital.city &&
+        job.hospital.city
+          .toLowerCase()
+          .includes(city.toLowerCase().trim())
+      );
     }
+    return true;
+  });
 
-    res.json({ jobs });
+
+    /*CITY RELEVANCE SORT */
+    
+      const searchCity = city?.toLowerCase().trim() || null;
+
+      jobs.sort((a, b) => {
+  /*  MIN salary (higher first) */
+  if ((b.min_salary ?? 0) !== (a.min_salary ?? 0)) {
+    return (b.min_salary ?? 0) - (a.min_salary ?? 0);
+  }
+
+  /*  MAX salary (higher first) */
+  if ((b.max_salary ?? 0) !== (a.max_salary ?? 0)) {
+    return (b.max_salary ?? 0) - (a.max_salary ?? 0);
+  }
+
+  /*  EXPERIENCE required (higher first) */
+  if ((b.experience_required ?? 0) !== (a.experience_required ?? 0)) {
+    return (b.experience_required ?? 0) - (a.experience_required ?? 0);
+  }
+
+  /*  CITY relevance */
+  if (searchCity) {
+    const cityA = (a.hospital?.city || "").toLowerCase();
+    const cityB = (b.hospital?.city || "").toLowerCase();
+
+    // Exact match
+    if (cityA === searchCity && cityB !== searchCity) return -1;
+    if (cityA !== searchCity && cityB === searchCity) return 1;
+
+    // Starts with
+    if (cityA.startsWith(searchCity) && !cityB.startsWith(searchCity)) return -1;
+    if (!cityA.startsWith(searchCity) && cityB.startsWith(searchCity)) return 1;
+
+    // Contains
+    if (cityA.includes(searchCity) && !cityB.includes(searchCity)) return -1;
+    if (!cityA.includes(searchCity) && cityB.includes(searchCity)) return 1;
+  }
+
+  /*  FINAL → newest first */
+  return new Date(b.created_at) - new Date(a.created_at);
+});
+    return res.json({ jobs });
   } catch (err) {
-    console.error("JOB SEARCH ERROR:", err.message);
-    res.status(500).json({
+    console.error("JOB SEARCH ERROR:", err);
+    return res.status(500).json({
       message: "Failed to search jobs",
     });
   }
 });
 
-/* =========================
-   DELETE JOB
-   ========================= */
+
+/* DELETE JOB */
 router.delete(
   "/jobs/:jobId",
   auth,

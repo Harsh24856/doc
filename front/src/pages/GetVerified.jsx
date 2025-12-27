@@ -111,18 +111,34 @@ export default function GetVerified() {
         throw new Error(data.error || "Submission failed");
       }
 
-      alert("Verification submitted successfully. Status: Pending");
-      // Refresh verification status
-      const refreshRes = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        setVerificationStatus(refreshData.verification_status || "pending");
-        setVerificationData(refreshData);
+      // Update state immediately
+      setVerificationStatus("pending");
+      setVerificationData((prev) => ({
+        ...prev,
+        license_doc_url: upload.license_doc_url,
+        id_doc_url: upload.id_doc_url,
+        registration_council: registrationCouncil,
+        verification_status: "pending",
+      }));
+      
+      // Refresh verification status from server
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          setVerificationStatus(refreshData.verification_status || "pending");
+          setVerificationData(refreshData);
+        }
+      } catch (refreshErr) {
+        console.error("[GetVerified] Error refreshing status:", refreshErr);
+        // Don't show error to user, state is already updated
       }
     } catch (err) {
-      alert(err.message);
+      console.error("[GetVerified] Submission error:", err);
+      const errorMessage = err.message || "Failed to submit verification. Please try again.";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -139,8 +155,13 @@ export default function GetVerified() {
     );
   }
 
-  // Determine if form should be shown (only if status is null/not_submitted)
-  const showForm = !verificationStatus || verificationStatus === "not_submitted";
+  // Determine if form should be shown (only if status is null/not_submitted/not_started/rejected)
+  // Allow resubmission if rejected, and allow initial submission if not_started
+  const showForm = 
+    !verificationStatus || 
+    verificationStatus === "not_submitted" || 
+    verificationStatus === "not_started" ||
+    verificationStatus === "rejected";
 
   // Get status display info
   const getStatusInfo = (status) => {
@@ -200,9 +221,17 @@ export default function GetVerified() {
 
         {showForm ? (
           /* =========================
-             FORM (NOT SUBMITTED)
+             FORM (NOT SUBMITTED OR REJECTED)
              ========================= */
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
+            {/* Show rejection message if status is rejected */}
+            {verificationStatus === "rejected" && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+                <p className="font-semibold mb-1">❌ Verification Rejected</p>
+                <p>Your previous verification request was rejected. Please review and resubmit your documents below.</p>
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* LICENSE */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -268,9 +297,10 @@ export default function GetVerified() {
                   : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)]"
               }`}
             >
-              {loading ? "Submitting..." : "Submit for Verification"}
+              {loading ? "Submitting..." : verificationStatus === "rejected" ? "Resubmit for Verification" : "Submit for Verification"}
             </button>
           </form>
+          </div>
         ) : (
           /* =========================
              FILLED VIEW (SUBMITTED)
@@ -317,12 +347,6 @@ export default function GetVerified() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800 text-sm">
                 <p className="font-semibold mb-1">✅ Verification Approved</p>
                 <p>Your account has been verified successfully!</p>
-              </div>
-            )}
-            {verificationStatus === "rejected" && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-                <p className="font-semibold mb-1">❌ Verification Rejected</p>
-                <p>Your verification request was rejected. Please contact support for more information.</p>
               </div>
             )}
           </div>

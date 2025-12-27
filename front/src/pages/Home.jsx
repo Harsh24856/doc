@@ -52,20 +52,20 @@ export default function Home() {
     }
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white">
+    <div className="min-h-screen bg-linear-to-br from-accent via-white to-white">
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 pt-20 pb-16 flex flex-col md:flex-row items-center gap-12">
 
         {/* Left Text */}
         <div className="md:w-1/2 text-center md:text-left">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-red-100 text-[var(--color-primary-dark)] text-sm font-semibold mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-red-100 text-primary-dark text-sm font-semibold mb-6">
              The #1 Healthcare Network
           </span>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
             Connect, Collaborate, <br/>
-            <span className="text-[var(--color-primary)]">Save Lives.</span>
+            <span className="text-primary">Save Lives.</span>
           </h1>
 
           <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0">
@@ -74,7 +74,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <a href="/resume" className="px-8 py-3.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold shadow-lg hover:bg-[var(--color-primary-dark)] hover:shadow-xl transition transform hover:-translate-y-0.5">
+            <a href="/resume" className="px-8 py-3.5 bg-primary text-white rounded-lg font-semibold shadow-lg hover:bg-[var(--color-primary-dark)] hover:shadow-xl transition transform hover:-translate-y-0.5">
               Get Started
             </a>
             <a href="/search/jobs" className="px-8 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-lg font-semibold shadow-sm hover:bg-gray-50 transition">
@@ -88,7 +88,7 @@ export default function Home() {
             {/* Using a clean placeholder or the existing image with different styling if desired.
                 For now, a clean card or abstract shape looks modern. */}
             <div className="relative w-full max-w-lg aspect-square bg-white rounded-3xl shadow-2xl p-8 flex items-center justify-center overflow-hidden">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-red-50 to-transparent opacity-50"></div>
+                 <div className="absolute inset-0 bg-linear-to-tr from-red-50 to-transparent opacity-50"></div>
                  {/* Re-using the image but without full background overlay */}
                  <img src={doctorBg} alt="Doctors" className="object-cover w-full h-full rounded-2xl opacity-90" />
             </div>
@@ -122,7 +122,7 @@ export default function Home() {
       </div>
 
       {/* Stats Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white">
+      <div className="max-w-7xl mx-auto px-6 py-16 bg-linear-to-r from-primary to-primary-dark text-white">
         <div className="grid md:grid-cols-4 gap-8 text-center">
           <div>
             <div className="text-4xl font-bold mb-2">10K+</div>
@@ -172,7 +172,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-6 py-20 bg-gray-50">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-            <span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">newspaper</span>
+            <span className="material-symbols-outlined text-4xl text-primary">newspaper</span>
             Stay Informed
           </h2>
           <p className="text-gray-500">Latest medical news and WHO updates</p>
@@ -183,12 +183,12 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">article</span>
+                <span className="material-symbols-outlined text-2xl text-primary">article</span>
                 Medical News
               </h3>
               <Link 
                 to="/news" 
-                className="text-[var(--color-primary)] text-sm font-semibold hover:underline flex items-center gap-1"
+                className="text-primary text-sm font-semibold hover:underline flex items-center gap-1"
               >
                 View All
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -212,12 +212,12 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">local_hospital</span>
+                <span className="material-symbols-outlined text-2xl text-primary">local_hospital</span>
                 WHO Updates
               </h3>
               <Link 
                 to="/who" 
-                className="text-[var(--color-primary)] text-sm font-semibold hover:underline flex items-center gap-1"
+                className="text-primary text-sm font-semibold hover:underline flex items-center gap-1"
               >
                 View All
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -240,7 +240,7 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16 bg-gradient-to-br from-[var(--color-accent)] to-white rounded-3xl mx-6 mb-20">
+      <div className="max-w-7xl mx-auto px-6 py-16 bg-linear-to-br from-accent to-white rounded-3xl mx-auto mb-20">
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Ready to Transform Your Career?
@@ -251,7 +251,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="/resume" 
-              className="px-8 py-3.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold shadow-lg hover:bg-[var(--color-primary-dark)] hover:shadow-xl transition transform hover:-translate-y-0.5"
+              className="px-8 py-3.5 bg-primary text-white rounded-lg font-semibold shadow-lg hover:bg-primary-dark hover:shadow-xl transition transform hover:-translate-y-0.5"
             >
               Join DocSpace Today
             </a>
@@ -273,7 +273,7 @@ export default function Home() {
 function StepCard({ number, title, desc }) {
   return (
     <div className="text-center p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition duration-300 border border-transparent hover:border-gray-100">
-      <div className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-white text-2xl font-bold flex items-center justify-center mx-auto mb-6">
+      <div className="w-16 h-16 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center mx-auto mb-6">
         {number}
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
@@ -300,7 +300,7 @@ function NewsCard({ article }) {
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block border-l-4 border-[var(--color-primary)] pl-4 py-3 hover:bg-gray-50 transition rounded-r group"
+      className="block border-l-4 border-primary pl-4 py-3 hover:bg-gray-50 transition rounded-r group"
     >
       {article.image && (
         <img
@@ -312,7 +312,7 @@ function NewsCard({ article }) {
           }}
         />
       )}
-      <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-[var(--color-primary)] transition">
+      <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-primary transition">
         {article.title}
       </h4>
       <p className="text-xs text-gray-600 mb-2 line-clamp-2">
@@ -320,7 +320,7 @@ function NewsCard({ article }) {
       </p>
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">{article.source}</span>
-        <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1">
+        <span className="text-xs text-primary font-medium flex items-center gap-1">
           Read
           <span className="material-symbols-outlined text-xs">arrow_forward</span>
         </span>
@@ -335,7 +335,7 @@ function WHOUpdateCard({ article }) {
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block border-l-4 border-[var(--color-primary)] pl-4 py-3 hover:bg-gray-50 transition rounded-r group"
+      className="block border-l-4 border-primary pl-4 py-3 hover:bg-gray-50 transition rounded-r group"
     >
       {article.image && (
         <img
@@ -347,7 +347,7 @@ function WHOUpdateCard({ article }) {
           }}
         />
       )}
-      <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-[var(--color-primary)] transition">
+      <h4 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-primary transition">
         {article.title}
       </h4>
       <div 
@@ -363,7 +363,7 @@ function WHOUpdateCard({ article }) {
             ? new Date(article.publishedAt).toLocaleDateString()
             : "WHO"}
         </span>
-        <span className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1">
+        <span className="text-xs text-primary font-medium flex items-center gap-1">
           Read
           <span className="material-symbols-outlined text-xs">arrow_forward</span>
         </span>
