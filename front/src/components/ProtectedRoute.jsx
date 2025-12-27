@@ -7,8 +7,8 @@ export default function ProtectedRoute({ children }) {
 
   // ❌ Not logged in
   if (!token) {
-    console.warn('⚠️ [ProtectedRoute] No token found, redirecting to login');
-    return <Navigate to="/login" replace />;
+    console.warn('⚠️ [ProtectedRoute] No token found, redirecting to auth');
+    return <Navigate to="/auth" replace />;
   }
 
   // ✅ Logged in

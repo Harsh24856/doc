@@ -44,6 +44,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - HEADLESS=true
     stdin_open: true
     tty: true
     # Playwright needs these for browser execution

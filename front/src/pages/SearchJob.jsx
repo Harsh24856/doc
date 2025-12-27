@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
+import logo2 from "../assets/2.png";
 
 export default function AllJobs() {
   const navigate = useNavigate();
@@ -65,30 +66,34 @@ export default function AllJobs() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-6 sm:py-8 md:py-12 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         
         {/* HEADER SECTION */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] mb-6 shadow-2xl">
-            <span className="material-symbols-outlined text-5xl text-white">local_hospital</span>
+        <div className="text-center mb-8 sm:mb-10 md:mb-12">
+          <div className="inline-flex items-center justify-center mb-4 sm:mb-6">
+            <img 
+              src={logo2} 
+              alt="DocSpace Logo" 
+              className="h-24 sm:h-32 md:h-40 w-auto object-contain"
+            />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
             Job Openings
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
             Discover your next career opportunity in healthcare
           </p>
         </div>
 
         {/* FILTERS CARD */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="material-symbols-outlined text-2xl text-gray-700">search</span>
-            <h2 className="text-xl font-bold text-gray-800">Search & Filter</h2>
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <span className="material-symbols-outlined text-xl sm:text-2xl text-gray-700">search</span>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Search & Filter</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Input
               label="Department"
               value={filters.department}
@@ -227,9 +232,13 @@ export default function AllJobs() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-3">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] 
-                                     flex items-center justify-center text-white shadow-lg">
-                          <span className="material-symbols-outlined text-3xl">local_hospital</span>
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-2 border-gray-200 
+                                     flex items-center justify-center shadow-lg overflow-hidden p-2">
+                          <img 
+                            src={logo2} 
+                            alt="DocSpace Logo" 
+                            className="w-full h-full object-contain"
+                          />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition duration-300">

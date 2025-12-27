@@ -15,6 +15,11 @@ env/
 ENV/
 .venv
 
+# Environment
+.env
+.env.local
+.env.*.local
+
 # IDE
 .vscode/
 .idea/
@@ -32,6 +37,13 @@ htmlcov/
 test_*.py
 *_test.py
 medcert*.pdf
+
+# Sensitive credentials
+google-vision-key.json
+*-key.json
+*-keys.json
+*.key
+*.pem
 
 # Documentation
 README.md

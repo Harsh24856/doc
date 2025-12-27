@@ -170,6 +170,19 @@ io.on("connection", (socket) => {
 // Export io for use in other modules (after initialization)
 export { io };
 
+/* ---------------- ERROR HANDLING ---------------- */
+// Catch unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
+  // Don't exit the process, just log the error
+});
+
+// Catch uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("❌ Uncaught Exception:", error);
+  // Don't exit the process, just log the error
+});
+
 /* ---------------- START ---------------- */
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);

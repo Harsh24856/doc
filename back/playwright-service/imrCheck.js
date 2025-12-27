@@ -5,11 +5,13 @@ export async function checkIMR(name, registration_number) {
   console.log("[Playwright IMR Check] 🚀 Starting IMR verification (NON-BLOCKING LOAD)");
   console.log("=".repeat(60));
 
+  // Use headless mode for Docker (no display server available)
+  // Can be overridden with HEADLESS=false environment variable for local debugging
+  const headlessMode = process.env.HEADLESS !== "false";
+  
   const browser = await chromium.launch({
-    headless: false,
-    devtools: true,
-    slowMo: 100,
-    
+    headless: headlessMode,
+    ...(headlessMode ? {} : { devtools: true, slowMo: 100 }), // Only use devtools/slowMo in non-headless mode
   });
 
   const context = await browser.newContext({

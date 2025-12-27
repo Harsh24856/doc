@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
+import logo1 from "../assets/1.png";
 
 export default function PostJob() {
   const navigate = useNavigate();
@@ -102,13 +103,19 @@ export default function PostJob() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-6 sm:py-8 md:py-12 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
+        {/* Logo Section */}
+        <div className="mb-6 text-center">
+          <img 
+            src={logo1} 
+            alt="DocSpace Logo" 
+            className="h-20 sm:h-28 md:h-36 w-auto object-contain mx-auto"
+          />
+        </div>
+
         {/* HEADER SECTION */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] mb-4 shadow-lg">
-            <span className="text-3xl">💼</span>
-          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
             Post Job Opening
           </h1>

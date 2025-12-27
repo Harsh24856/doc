@@ -478,9 +478,11 @@ router.post("/submit", auth, async (req, res) => {
       return res.status(400).json({ error: "Verification already submitted and pending review" });
     }
 
-    if (existingUser?.verification_status === "approved") {
+    if (existingUser?.verification_status === "approved" || existingUser?.verification_status === "verified") {
       return res.status(400).json({ error: "User is already verified" });
     }
+
+    // Allow resubmission if rejected or if status is null/not_submitted
 
     // Update user with verification documents and set status to pending
     const { error: updateError } = await supabase

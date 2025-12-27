@@ -8,60 +8,77 @@ const router = express.Router();
    GET NOTIFICATIONS
    ========================= */
 router.get("/", auth, async (req, res) => {
-  const notifications = [];
-  const userId = req.user.id;
-  const role = req.user.role;
+  try {
+    const notifications = [];
+    const userId = req.user.id;
+    const role = req.user.role;
 
-  if (role === "user" || role === "doctor") {
-    const { data: applications } = await supabase
-      .from("job_applications")
-      .select(`
-        id,
-        interview_date,
-        verification_status,
-        created_at,
-        jobs ( id, title )
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(10);
+    if (role === "user" || role === "doctor") {
+      const { data: applications, error } = await supabase
+        .from("job_applications")
+        .select(`
+          id,
+          interview_date,
+          verification_status,
+          created_at,
+          jobs ( id, title )
+        `)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-    applications?.forEach(app => {
-      if (app.verification_status === "approved") {
-        const interviewDate = app.interview_date 
-          ? new Date(app.interview_date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : "TBD";
-        notifications.push({
-          id: `job-approved-${app.id}`,
-          type: "job",
-          title: "Application Approved",
-          message: `Your application for "${app.jobs.title}" has been approved! Interview date: ${interviewDate}`,
-          link: `/jobs/view/${app.jobs.id}`,
-          read: false,
-          created_at: app.created_at || new Date().toISOString(),
-        });
-      } else if (app.verification_status === "rejected") {
-        notifications.push({
-          id: `job-rejected-${app.id}`,
-          type: "job",
-          title: "Application Rejected",
-          message: `Your application for "${app.jobs.title}" has been rejected.`,
-          link: `/jobs/view/${app.jobs.id}`,
-          read: false,
-          created_at: app.created_at || new Date().toISOString(),
+      if (error) {
+        console.error("[Notifications] Error fetching applications:", error.message);
+        return res.json({
+          notifications: [],
+          unread_count: 0,
         });
       }
+
+      applications?.forEach(app => {
+        if (app.verification_status === "approved") {
+          const interviewDate = app.interview_date 
+            ? new Date(app.interview_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "TBD";
+          notifications.push({
+            id: `job-approved-${app.id}`,
+            type: "job",
+            title: "Application Approved",
+            message: `Your application for "${app.jobs?.title || "job"}" has been approved! Interview date: ${interviewDate}`,
+            link: `/jobs/view/${app.jobs?.id || ""}`,
+            read: false,
+            created_at: app.created_at || new Date().toISOString(),
+          });
+        } else if (app.verification_status === "rejected") {
+          notifications.push({
+            id: `job-rejected-${app.id}`,
+            type: "job",
+            title: "Application Rejected",
+            message: `Your application for "${app.jobs?.title || "job"}" has been rejected.`,
+            link: `/jobs/view/${app.jobs?.id || ""}`,
+            read: false,
+            created_at: app.created_at || new Date().toISOString(),
+          });
+        }
+      });
+    }
+
+    res.json({
+      notifications,
+      unread_count: notifications.length,
+    });
+  } catch (err) {
+    console.error("[Notifications] Error in GET /:", err.message);
+    res.status(500).json({
+      notifications: [],
+      unread_count: 0,
+      error: "Failed to fetch notifications",
     });
   }
-
-  res.json({
-    notifications,
-    unread_count: notifications.length,
-  });
 });
 
 /* =========================

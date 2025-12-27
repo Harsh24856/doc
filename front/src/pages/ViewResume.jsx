@@ -376,10 +376,13 @@ export default function ViewResume() {
                     Medical License
                   </h4>
                   <div className="border-2 border-gray-200 rounded-xl overflow-hidden relative">
-                    {/* NMC Verification Overlay */}
-                    <div className="absolute top-2 right-2 z-10 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg">
-                      Verified by NMC Website
-                    </div>
+                    {/* NMC Verification Overlay - Only show if verified */}
+                    {(data.verification_status === "verified" || data.verification_status === "approved") && (
+                      <div className="absolute top-2 right-2 z-10 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">verified</span>
+                        Verified by NMC
+                      </div>
+                    )}
                     <iframe
                       src={data.license_doc_url}
                       className="w-full h-96"
@@ -410,10 +413,13 @@ export default function ViewResume() {
                     ID Document
                   </h4>
                   <div className="border-2 border-gray-200 rounded-xl overflow-hidden relative">
-                    {/* NMC Verification Overlay */}
-                    <div className="absolute top-2 right-2 z-10 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg">
-                      Verified by NMC Website
-                    </div>
+                    {/* NMC Verification Overlay - Only show if verified */}
+                    {(data.verification_status === "verified" || data.verification_status === "approved") && (
+                      <div className="absolute top-2 right-2 z-10 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">verified</span>
+                        Verified by NMC
+                      </div>
+                    )}
                     <iframe
                       src={data.id_doc_url}
                       className="w-full h-96"

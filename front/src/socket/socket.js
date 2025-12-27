@@ -20,15 +20,24 @@ if (token) {
 
 // Handle connection errors gracefully
 socket.on("connect_error", (error) => {
-  console.warn("🔴 Socket.IO connection error:", error.message);
-  // Don't show error to user if server is just not running
-  if (error.message.includes("ECONNREFUSED") || error.message.includes("ERR_CONNECTION_REFUSED")) {
-    console.warn("⚠️  Backend server may not be running on", API_BASE_URL);
+  // Suppress connection refused errors (server not running) - only log once
+  if (error.message.includes("ECONNREFUSED") || 
+      error.message.includes("ERR_CONNECTION_REFUSED") ||
+      error.message.includes("xhr poll error")) {
+    // Only log once to avoid spam
+    if (!socket._connectionRefusedLogged) {
+      console.warn("⚠️  Backend server not available. Socket.IO will retry automatically.");
+      socket._connectionRefusedLogged = true;
+    }
+    return; // Don't log the full error
   }
+  console.warn("🔴 Socket.IO connection error:", error.message);
 });
 
 socket.on("connect", () => {
   console.log("🟢 Socket.IO connected to", API_BASE_URL);
+  // Reset the flag when successfully connected
+  socket._connectionRefusedLogged = false;
 });
 
 socket.on("disconnect", (reason) => {
