@@ -132,6 +132,7 @@ router.post(
 router.post("/documents/send", auth, async (req, res) => {
   try {
     const userId = req.user.id;
+    const { submitted_documents = [] } = req.body;
 
     /* Fetch hospital */
     const { data: hospital, error: hospitalError } = await supabaseAdmin
@@ -141,44 +142,23 @@ router.post("/documents/send", auth, async (req, res) => {
       .single();
 
     if (hospitalError || !hospital) {
-      return res.status(404).json({
-        message: "Hospital not found",
-      });
+      return res.status(404).json({ message: "Hospital not found" });
     }
 
-    /*  Prevent re-submission */
+    /* Prevent re-submission */
     if (hospital.verification_status === "pending") {
-      return res.status(400).json({
-        message: "Verification already submitted",
-      });
+      return res.status(400).json({ message: "Verification already submitted" });
     }
 
-    if (hospital.verification_status === "approved") {
-      return res.status(400).json({
-        message: "Hospital already verified",
-      });
+    if (hospital.verification_status === "verified") {
+      return res.status(400).json({ message: "Hospital already verified" });
     }
 
-    /*  Check required documents */
-    const REQUIRED_DOCS = [
-      "registration",
-      "authorization",
-      "address",
-    ];
+    /* Required documents */
+    const REQUIRED_DOCS = ["registration", "authorization", "address"];
 
-    const { data: documents, error: docsError } = await supabaseAdmin
-      .from("hospital_documents")
-      .select("document_type")
-      .eq("hospital_id", hospital.id)
-      .in("document_type", REQUIRED_DOCS);
-
-    if (docsError) {
-      throw docsError;
-    }
-
-    const uploadedTypes = documents.map((d) => d.document_type);
     const missingDocs = REQUIRED_DOCS.filter(
-      (doc) => !uploadedTypes.includes(doc)
+      (doc) => !submitted_documents.includes(doc)
     );
 
     if (missingDocs.length > 0) {
@@ -188,12 +168,35 @@ router.post("/documents/send", auth, async (req, res) => {
       });
     }
 
-    /*  Mark verification as pending */
+    /* OPTIONAL DOC CLEANUP */
+    const OPTIONAL_DOCS = ["gst", "nabh"];
+
+    const docsToDelete = OPTIONAL_DOCS.filter(
+      (doc) => !submitted_documents.includes(doc)
+    );
+
+    if (docsToDelete.length > 0) {
+      await supabaseAdmin
+        .from("hospital_documents")
+        .delete()
+        .eq("hospital_id", hospital.id)
+        .in("document_type", docsToDelete);
+
+      //  delete from storage
+      for (const doc of docsToDelete) {
+        const filePath = `${hospital.id}/${doc}.pdf`;
+        await supabaseAdmin.storage
+          .from("hospital-verification")
+          .remove([filePath]);
+      }
+    }
+
+    /* Mark verification as pending */
     const { error: updateError } = await supabaseAdmin
       .from("hospitals")
       .update({
         verification_status: "pending",
-        verification_submitted_at: new Date(),
+        verification_submitted_at: new Date().toISOString(),
       })
       .eq("id", hospital.id);
 
@@ -201,7 +204,6 @@ router.post("/documents/send", auth, async (req, res) => {
       throw updateError;
     }
 
-    /*  Success */
     return res.json({
       message: "Hospital sent for verification",
       verification_status: "pending",
@@ -214,6 +216,7 @@ router.post("/documents/send", auth, async (req, res) => {
   }
 });
 
+
 router.get("/status", auth, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -225,10 +228,9 @@ router.get("/status", auth, async (req, res) => {
       .single();
 
     if (hospitalError) {
-      // If hospital doesn't exist yet, return default status
       if (hospitalError.code === "PGRST116") {
         return res.json({
-          verification_status: "not_submitted",
+          verification_status: "incomplete",
         });
       }
       console.error("[Hospital Status] Error:", hospitalError);
@@ -239,12 +241,12 @@ router.get("/status", auth, async (req, res) => {
 
     if (!hospital) {
       return res.json({
-        verification_status: "not_submitted",
+        verification_status: "incomplete",
       });
     }
 
     return res.json({
-      verification_status: hospital.verification_status || "not_submitted",
+      verification_status: hospital.verification_status || "incomplete",
     });
   } catch (err) {
     console.error("Error in fetching verification status", err);
@@ -253,6 +255,34 @@ router.get("/status", auth, async (req, res) => {
     });
   }
 });
+
+router.get("/message", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const { data: hospital, error } = await supabaseAdmin
+      .from("hospitals")
+      .select("rejection_reason")
+      .eq("user_id", userId)
+      .single();
+
+    if (error) {
+      return res.status(404).json({
+        message: "Hospital not found",
+      });
+    }
+
+    return res.json({
+      rejection_reason: hospital.rejection_reason, 
+    });
+  } catch (err) {
+    console.error("Error fetching rejection reason:", err.message);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
 
 
 

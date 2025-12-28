@@ -158,8 +158,8 @@ export default function HospitalHome() {
         <div className="grid md:grid-cols-3 gap-8">
           <FeatureCard
             icon={<span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">verified_user</span>}
-            title="Doctor Verification"
-            desc="Verify and manage doctors linked to your hospital. Ensure all credentials are authentic and up-to-date."
+            title="Hospital Profile"
+            desc="Set up your hospital profile to get verified and connect with qualified healthcare professionals."
             link="/hospital-profile"
             linkText="Manage Doctors"
           />

@@ -8,24 +8,25 @@ export default function MedicalResume() {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+ useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setLoading(false);
+    return;
+  }
 
-    fetch(`${API_BASE_URL}/profile/medical-resume`, {
-      headers: { Authorization: `Bearer ${token}` },
+  fetch(`${API_BASE_URL}/profile/medical-resume`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((res) => res.json())
+    .then((res) => {
+      setData(res);
+      setEditMode(false);
+      setLoading(false);
     })
-      .then((res) => res.json())
-      .then((res) => {
-        setData(res);
-        setEditMode(false); // always start in view mode
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    .catch(() => setLoading(false));
+}, []);
+
 
   if (loading) {
     return (
@@ -42,10 +43,21 @@ export default function MedicalResume() {
       </div>
     );
   }
+  
+  const isEditLocked =
+  data?.verification_status === "pending" ||
+  data?.verification_status === "approved";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 py-6 sm:py-8 md:py-10 flex justify-center">
       <div className="w-full max-w-5xl bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
+        {isEditLocked && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            {data.verification_status === "pending"
+             ? "Your profile is currently under verification. Editing is temporarily disabled."
+             : "Your profile has been verified. Editing is no longer allowed."}
+          </div>
+        )}
 
         {!data.profile_completed && (
           <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 bg-yellow-50 text-yellow-800 rounded-lg text-xs sm:text-sm">
@@ -62,7 +74,11 @@ export default function MedicalResume() {
             }}
           />
         ) : (
-          <ViewResume data={data} onEdit={() => setEditMode(true)} />
+          <ViewResume
+           data={data}
+           onEdit={() => setEditMode(true)}
+           editLocked={isEditLocked}
+          />
         )}
       </div>
     </div>
@@ -71,7 +87,7 @@ export default function MedicalResume() {
 
 /* ================= VIEW MODE ================= */
 
-function ViewResume({ data, onEdit }) {
+function ViewResume({ data, onEdit, editLocked }) {
   return (
     <>
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
@@ -111,7 +127,14 @@ function ViewResume({ data, onEdit }) {
 
       <button
         onClick={onEdit}
-        className="mt-6 sm:mt-8 w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition"
+        disabled={editLocked}
+        className={`mt-6 sm:mt-8 w-full py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition
+        ${
+           editLocked
+           ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white"
+         }
+         `}
       >
         Edit Resume
       </button>

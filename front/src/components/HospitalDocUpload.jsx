@@ -79,15 +79,20 @@ if (!confirmed) {
   setMessage("");
 
   try {
+    const submittedDocuments = Object.keys(documents)
     const res = await fetch(
-      `${API_BASE_URL}/hospital/documents/send`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  `${API_BASE_URL}/hospital/documents/send`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      submitted_documents: submittedDocuments,
+    }),
+  }
+);
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to send");

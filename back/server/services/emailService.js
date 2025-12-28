@@ -61,3 +61,83 @@ export async function sendApplicationRejectionEmail({
     html,
   });
 }
+
+export async function sendHospitalVerificationEmail({
+  hospitalEmail,
+  hospitalName,
+}) {
+  const html = `
+    <div style="font-family: Arial; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #10b981;">Hospital Verified ✅</h2>
+
+      <p>Dear <b>${hospitalName}</b>,</p>
+
+      <p>
+        We are pleased to inform you that your hospital profile on
+        <b>DocSpace</b> has been <b>successfully verified</b>.
+      </p>
+
+      <p>
+        You can now post job openings, manage applications, and connect
+        with doctors on the platform.
+      </p>
+
+      <p style="margin-top:20px;">
+        Regards,<br/>
+        <b>DocSpace Team</b>
+      </p>
+    </div>
+  `;
+
+  await sendMail({
+    to: hospitalEmail,
+    subject: "Your Hospital Has Been Verified – DocSpace",
+    html,
+  });
+}
+
+export async function sendHospitalRejectionEmail({
+  hospitalEmail,
+  hospitalName,
+  rejectionReason,
+}) {
+  const html = `
+    <div style="font-family: Arial; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #ef4444;">Hospital Verification Update</h2>
+
+      <p>Dear <b>${hospitalName}</b>,</p>
+
+      <p>
+        Thank you for registering your hospital on <b>DocSpace</b>.
+        After reviewing your submitted documents, we are unable to
+        verify your hospital profile at this time.
+      </p>
+
+      ${
+        rejectionReason
+          ? `<p><b>Reason:</b><br/>${rejectionReason}</p>`
+          : ""
+      }
+
+      <p>
+        You may update your documents and resubmit your profile for
+        verification.
+      </p>
+
+      <p style="margin-top:20px;">
+        If you believe this was a mistake, feel free to contact our support team.
+      </p>
+
+      <p>
+        Regards,<br/>
+        <b>DocSpace Team</b>
+      </p>
+    </div>
+  `;
+
+  await sendMail({
+    to: hospitalEmail,
+    subject: "Hospital Verification Rejected – DocSpace",
+    html,
+  });
+}

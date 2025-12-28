@@ -4,6 +4,7 @@ import admin from "../middleware/admin.js";
 import supabaseAdmin from "../Admin.js";
 import { extractPdfText } from "../services/pdfService.js";
 import { generateDocumentInsights } from "../services/aiService.js";
+import { sendHospitalVerificationEmail, sendHospitalRejectionEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
@@ -264,6 +265,26 @@ router.patch(
         return res.status(400).json({ message: "Invalid status" });
       }
 
+      const { data: hospital, error: fetchError } = await supabaseAdmin
+      .from("hospitals")
+      .select("user_id, hospital_name")
+      .eq("id", hospitalId)
+      .single();
+
+      if (fetchError || !hospital) {
+         return res.status(404).json({ message: "Hospital not found" });
+      }
+
+      const{ data: user, error: userFetchError} = await supabaseAdmin
+      .from("users")
+      .select("email")
+      .eq("id", hospital.user_id)
+      .single();
+      
+      if(userFetchError || !user){
+        return res.status(404).json({message: "User not found"});
+      }
+
       // Prepare update payload
       const updatePayload = {
         verification_status: status,
@@ -284,6 +305,26 @@ router.patch(
         throw updateError;
       }
 
+      try {
+        if (status === "verified") {
+          await sendHospitalVerificationEmail({
+           hospitalEmail: user.email,
+           hospitalName: hospital.hospital_name,
+         });
+        }
+
+        if (status === "rejected") {
+          await sendHospitalRejectionEmail({
+            hospitalEmail: user.email,
+            hospitalName: hospital.hospital_name,
+            rejectionReason: reason,
+         });
+       }
+       } catch (mailErr) {
+         console.error("EMAIL ERROR:", mailErr.message);
+       }
+
+
       res.json({ message: "Hospital status updated successfully" });
     } catch (err) {
       console.error("STATUS UPDATE ERROR:", err.message);
@@ -291,9 +332,6 @@ router.patch(
     }
   }
 );
-
-
-
 
 
 export default router;

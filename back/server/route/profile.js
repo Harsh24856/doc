@@ -381,4 +381,33 @@ router.get("/public/:userId", async (req, res) => {
    AI VERIFICATION (Removed - now handled by verification.js)
    ========================= */
 
+//    router.get("/verification-status", auth, async (req, res) => { 
+//   try {
+//     const userId = req.user.id;
+
+//     const { data: doctor, error } = await supabase
+//       .from("users")
+//       .select("verification_status")
+//       .eq("id", userId)
+//       .single();
+
+//     if (error || !doctor) {
+//       console.error("Could not find doctor profile", error);
+//       return res.status(404).json({
+//         message: "Doctor profile not found",
+//       });
+//     }
+
+//     return res.json({
+//       verification_status: doctor.verification_status,
+//     });
+//   } catch (err) {
+//     console.error("Error fetching the verification status", err);
+//     return res.status(500).json({
+//       message: "Internal server error",
+//     });
+//   }
+// });
+
+
 export default router;

@@ -8,6 +8,8 @@ import logo1 from "../assets/1.png";
 export default function Navbar({ signedIn, role }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasUpdates, setHasUpdates] = useState(false);
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -59,6 +61,31 @@ export default function Navbar({ signedIn, role }) {
       .catch(() => {});
   }, [signedIn, role]);
 
+  useEffect(() => {
+     if (!signedIn) return;
+
+     const token = localStorage.getItem("token");
+     if (!token) return;
+
+     const checkNotifications = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setHasUpdates((data.notifications || []).length > 0);
+      } catch {
+      setHasUpdates(false);
+    }
+  };
+
+  checkNotifications();
+}, [signedIn]);
+
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
@@ -71,8 +98,10 @@ export default function Navbar({ signedIn, role }) {
 
           {/* SEARCH */}
           {signedIn && (
-            <div className="flex-1 max-w-2xl mx-4 hidden sm:block">
-              <PeopleSearch />
+            <div className="flex-1 max-w-full sm:max-w-2xl mx-1 sm:mx-2 md:mx-4 min-w-0">
+              <div className="relative">
+                <PeopleSearch />
+              </div>
             </div>
           )}
 
@@ -113,10 +142,14 @@ export default function Navbar({ signedIn, role }) {
             {/* NOTIFICATIONS */}
             {signedIn && (
               <button
-                onClick={() => setShowNotifications(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+               onClick={() => setShowNotifications(true)}
+               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
                 <span className="material-symbols-outlined">notifications</span>
+
+                {hasUpdates && (
+                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                )}
               </button>
             )}
 
@@ -125,7 +158,7 @@ export default function Navbar({ signedIn, role }) {
               <>
                 <Link
                   to="/dashboard"
-                  className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold"
+                  className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
                 >
                   {role === "admin" ? "A" : role === "hospital" ? "H" : "U"}
                 </Link>
