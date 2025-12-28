@@ -314,6 +314,7 @@ router.get("/search", async (req, res) => {
       min_salary,
       max_salary,
       city,
+      sort_order,
     } = req.query;
 
     /* BASE JOB QUERY */
@@ -409,45 +410,63 @@ router.get("/search", async (req, res) => {
 
     /*CITY RELEVANCE SORT */
     
-      const searchCity = city?.toLowerCase().trim() || null;
+     /* ---------------- SORTING LOGIC ---------------- */
 
-      jobs.sort((a, b) => {
-  /*  MIN salary (higher first) */
-  if ((b.min_salary ?? 0) !== (a.min_salary ?? 0)) {
-    return (b.min_salary ?? 0) - (a.min_salary ?? 0);
+const sortPriority = sort_order
+  ? sort_order.split(",")
+  : [];
+
+const searchCity = city?.toLowerCase().trim() || null;
+
+jobs.sort((a, b) => {
+  for (const key of sortPriority) {
+    switch (key) {
+      case "min_salary": {
+        const diff = (b.min_salary ?? 0) - (a.min_salary ?? 0);
+        if (diff !== 0) return diff;
+        break;
+      }
+
+      case "max_salary": {
+        const diff = (b.max_salary ?? 0) - (a.max_salary ?? 0);
+        if (diff !== 0) return diff;
+        break;
+      }
+
+      case "experience": {
+        const diff =
+          (b.experience_required ?? 0) - (a.experience_required ?? 0);
+        if (diff !== 0) return diff;
+        break;
+      }
+
+      case "city": {
+        if (!searchCity) break;
+
+        const cityA = (a.hospital?.city || "").toLowerCase();
+        const cityB = (b.hospital?.city || "").toLowerCase();
+
+        if (cityA === searchCity && cityB !== searchCity) return -1;
+        if (cityA !== searchCity && cityB === searchCity) return 1;
+
+        if (cityA.startsWith(searchCity) && !cityB.startsWith(searchCity)) return -1;
+        if (!cityA.startsWith(searchCity) && cityB.startsWith(searchCity)) return 1;
+
+        if (cityA.includes(searchCity) && !cityB.includes(searchCity)) return -1;
+        if (!cityA.includes(searchCity) && cityB.includes(searchCity)) return 1;
+
+        break;
+      }
+
+      default:
+        break;
+    }
   }
 
-  /*  MAX salary (higher first) */
-  if ((b.max_salary ?? 0) !== (a.max_salary ?? 0)) {
-    return (b.max_salary ?? 0) - (a.max_salary ?? 0);
-  }
-
-  /*  EXPERIENCE required (higher first) */
-  if ((b.experience_required ?? 0) !== (a.experience_required ?? 0)) {
-    return (b.experience_required ?? 0) - (a.experience_required ?? 0);
-  }
-
-  /*  CITY relevance */
-  if (searchCity) {
-    const cityA = (a.hospital?.city || "").toLowerCase();
-    const cityB = (b.hospital?.city || "").toLowerCase();
-
-    // Exact match
-    if (cityA === searchCity && cityB !== searchCity) return -1;
-    if (cityA !== searchCity && cityB === searchCity) return 1;
-
-    // Starts with
-    if (cityA.startsWith(searchCity) && !cityB.startsWith(searchCity)) return -1;
-    if (!cityA.startsWith(searchCity) && cityB.startsWith(searchCity)) return 1;
-
-    // Contains
-    if (cityA.includes(searchCity) && !cityB.includes(searchCity)) return -1;
-    if (!cityA.includes(searchCity) && cityB.includes(searchCity)) return 1;
-  }
-
-  /*  FINAL → newest first */
+  /* FINAL FALLBACK → newest jobs first */
   return new Date(b.created_at) - new Date(a.created_at);
 });
+
     return res.json({ jobs });
   } catch (err) {
     console.error("JOB SEARCH ERROR:", err);

@@ -9,6 +9,8 @@ export default function AllJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sortPriority, setSortPriority] = useState([]);
+
 
   /* FILTER STATE (single source of truth) */
   const [filters, setFilters] = useState({
@@ -19,6 +21,34 @@ export default function AllJobs() {
     max_salary: "",
     city: "",
   });
+
+  const updateFilter = (key, value) => {
+  setFilters((prev) => ({
+    ...prev,
+    [key]: value,
+  }));
+
+  const sortableFields = ["experience", "min_salary", "max_salary", "city"];
+
+  if (!sortableFields.includes(key)) return;
+
+  setSortPriority((prev) => {
+    // if cleared → remove from priority
+    if (!value) {
+      return prev.filter((k) => k !== key);
+    }
+
+    // if already present → keep order
+    if (prev.includes(key)) {
+      return prev;
+    }
+
+    // first time added → append (lower priority)
+    return [...prev, key];
+  });
+};
+
+
 
   /* AUTO SEARCH EFFECT */
   useEffect(() => {
@@ -33,6 +63,9 @@ export default function AllJobs() {
         Object.entries(filters).forEach(([key, value]) => {
           if (value) params.append(key, value);
         });
+        if (sortPriority.length > 0) {
+           params.append("sort_order", sortPriority.join(","));
+        }
 
         const url =
           params.toString().length > 0
@@ -63,7 +96,7 @@ export default function AllJobs() {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [filters]);
+  }, [filters, sortPriority]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-6 sm:py-8 md:py-12 px-4 sm:px-6">
@@ -97,18 +130,14 @@ export default function AllJobs() {
             <Input
               label="Department"
               value={filters.department}
-              onChange={(v) =>
-                setFilters({ ...filters, department: v })
-              }
+              onChange={(v) => updateFilter("department", v)}
               icon={<span className="material-symbols-outlined text-lg">local_hospital</span>}
             />
 
             <Input
               label="City"
               value={filters.city}
-              onChange={(v) =>
-                setFilters({ ...filters, city: v })
-              }
+              onChange={(v) => updateFilter("city", v)}
               placeholder="e.g. Mumbai, Delhi, Bangalore"
               icon={<span className="material-symbols-outlined text-lg">location_on</span>}
             />
@@ -116,9 +145,7 @@ export default function AllJobs() {
             <Input
               label="Experience"
               value={filters.experience}
-              onChange={(v) =>
-                setFilters({ ...filters, experience: v })
-              }
+              onChange={(v) => updateFilter("experience", v)}
               placeholder="Years of experience"
               icon={<span className="material-symbols-outlined text-lg">star</span>}
             />
@@ -126,9 +153,7 @@ export default function AllJobs() {
             <Select
               label="Job Type"
               value={filters.job_type}
-              onChange={(v) =>
-                setFilters({ ...filters, job_type: v })
-              }
+              onChange={(v) => updateFilter("job_type", v)}
               options={[
                 { label: "Any Type", value: "" },
                 { label: "Full Time", value: "full-time" },
@@ -142,9 +167,7 @@ export default function AllJobs() {
               label="Min Salary"
               type="number"
               value={filters.min_salary}
-              onChange={(v) =>
-                setFilters({ ...filters, min_salary: v })
-              }
+              onChange={(v) => updateFilter("min_salary", v)}
               placeholder="₹"
               icon={<span className="material-symbols-outlined text-lg">payments</span>}
             />
@@ -153,9 +176,7 @@ export default function AllJobs() {
               label="Max Salary"
               type="number"
               value={filters.max_salary}
-              onChange={(v) =>
-                setFilters({ ...filters, max_salary: v })
-              }
+              onChange={(v) => updateFilter("max_salary", v)}
               placeholder="₹"
               icon={<span className="material-symbols-outlined text-lg">payments</span>}
             />
@@ -164,7 +185,7 @@ export default function AllJobs() {
           {/* RESET BUTTON */}
           <div className="flex justify-end mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
             <button
-              onClick={() =>
+              onClick={() =>{
                 setFilters({
                   department: "",
                   job_type: "",
@@ -173,7 +194,8 @@ export default function AllJobs() {
                   max_salary: "",
                   city: "",
                 })
-              }
+                setSortPriority([]);
+              }}
               className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium text-sm sm:text-base text-gray-700 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-base sm:text-lg">refresh</span>
