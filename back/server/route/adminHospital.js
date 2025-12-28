@@ -256,17 +256,28 @@ router.patch(
   async (req, res) => {
     try {
       const { hospitalId } = req.params;
-      const { status } = req.body;
+      const { status, reason } = req.body;
 
-      // validate status
+      // Validate status
       const allowedStatuses = ["pending", "verified", "rejected"];
       if (!allowedStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
+      // Prepare update payload
+      const updatePayload = {
+        verification_status: status,
+        updated_at: new Date().toISOString(), 
+      };
+
+      // Attach rejection reason ONLY if rejected
+      if (status === "rejected") {
+        updatePayload.rejection_reason = reason || null;
+      }
+
       const { error: updateError } = await supabaseAdmin
         .from("hospitals")
-        .update({ verification_status: status })   
+        .update(updatePayload)
         .eq("id", hospitalId);
 
       if (updateError) {
@@ -280,6 +291,7 @@ router.patch(
     }
   }
 );
+
 
 
 

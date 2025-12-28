@@ -19,7 +19,7 @@ export default function GetVerified() {
     const checkProfile = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/login");
+        navigate("/auth");
         return;
       }
 
@@ -147,9 +147,9 @@ export default function GetVerified() {
   // Show loading while checking profile completion
   if (checkingProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white flex items-center justify-center px-4 py-8">
         <div className="text-center">
-          <p className="text-gray-600">Checking profile completion...</p>
+          <p className="text-gray-600 text-sm sm:text-base">Checking profile completion...</p>
         </div>
       </div>
     );
@@ -196,12 +196,12 @@ export default function GetVerified() {
   const statusInfo = getStatusInfo(verificationStatus);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white flex items-center justify-center px-4">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white flex items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-xl bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">
           🛡️ Get Verified
         </h2>
-        <p className="text-center text-gray-500 mb-8">
+        <p className="text-center text-gray-500 mb-6 sm:mb-8 text-sm sm:text-base px-2">
           {showForm
             ? "Upload your documents to verify your medical credentials"
             : "Your verification status"}
@@ -209,9 +209,9 @@ export default function GetVerified() {
 
         {/* STATUS BADGE */}
         {!showForm && (
-          <div className="mb-6 text-center">
+          <div className="mb-4 sm:mb-6 text-center">
             <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${statusInfo.color} font-semibold`}
+              className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border ${statusInfo.color} font-semibold text-sm sm:text-base`}
             >
               <span>{statusInfo.icon}</span>
               <span>{statusInfo.text}</span>
@@ -223,18 +223,18 @@ export default function GetVerified() {
           /* =========================
              FORM (NOT SUBMITTED OR REJECTED)
              ========================= */
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Show rejection message if status is rejected */}
             {verificationStatus === "rejected" && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 text-red-800 text-xs sm:text-sm">
                 <p className="font-semibold mb-1">❌ Verification Rejected</p>
                 <p>Your previous verification request was rejected. Please review and resubmit your documents below.</p>
               </div>
             )}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* LICENSE */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
                 Medical License (PDF)
               </label>
               <input
@@ -242,10 +242,10 @@ export default function GetVerified() {
                 accept="application/pdf"
                 required
                 onChange={(e) => setLicensePdf(e.target.files[0])}
-                className="block w-full text-sm text-gray-600
-                  file:mr-4 file:py-2.5 file:px-4
+                className="block w-full text-xs sm:text-sm text-gray-600
+                  file:mr-2 sm:file:mr-4 file:py-2 sm:file:py-2.5 file:px-3 sm:file:px-4
                   file:rounded-lg file:border-0
-                  file:text-sm file:font-semibold
+                  file:text-xs sm:file:text-sm file:font-semibold
                   file:bg-[var(--color-accent)] file:text-[var(--color-primary-dark)]
                   hover:file:bg-red-100
                   cursor-pointer"
@@ -254,7 +254,7 @@ export default function GetVerified() {
 
             {/* ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
                 ID Proof (PDF)
               </label>
               <input
@@ -262,10 +262,10 @@ export default function GetVerified() {
                 accept="application/pdf"
                 required
                 onChange={(e) => setIdPdf(e.target.files[0])}
-                className="block w-full text-sm text-gray-600
-                  file:mr-4 file:py-2.5 file:px-4
+                className="block w-full text-xs sm:text-sm text-gray-600
+                  file:mr-2 sm:file:mr-4 file:py-2 sm:file:py-2.5 file:px-3 sm:file:px-4
                   file:rounded-lg file:border-0
-                  file:text-sm file:font-semibold
+                  file:text-xs sm:file:text-sm file:font-semibold
                   file:bg-[var(--color-accent)] file:text-[var(--color-primary-dark)]
                   hover:file:bg-red-100
                   cursor-pointer"
@@ -274,7 +274,7 @@ export default function GetVerified() {
 
             {/* REG COUNCIL */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">
                 Registration Council
               </label>
               <input
@@ -283,7 +283,7 @@ export default function GetVerified() {
                 required
                 value={registrationCouncil}
                 onChange={(e) => setRegistrationCouncil(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               />
             </div>
 
@@ -291,7 +291,7 @@ export default function GetVerified() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-lg font-semibold text-white transition ${
+              className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base text-white transition ${
                 loading
                   ? "bg-[var(--color-primary-dark)] opacity-60 cursor-not-allowed"
                   : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)]"
@@ -305,46 +305,46 @@ export default function GetVerified() {
           /* =========================
              FILLED VIEW (SUBMITTED)
              ========================= */
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* LICENSE */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
                 Medical License (PDF)
               </label>
-              <div className="px-4 py-3 bg-gray-50 border rounded-lg text-sm text-gray-700">
+              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border rounded-lg text-xs sm:text-sm text-gray-700">
                 {verificationData?.license_doc_url ? "✓ Document uploaded" : "No document"}
               </div>
             </div>
 
             {/* ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1.5 sm:mb-2">
                 ID Proof (PDF)
               </label>
-              <div className="px-4 py-3 bg-gray-50 border rounded-lg text-sm text-gray-700">
+              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border rounded-lg text-xs sm:text-sm text-gray-700">
                 {verificationData?.id_doc_url ? "✓ Document uploaded" : "No document"}
               </div>
             </div>
 
             {/* REG COUNCIL */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-600 mb-1">
                 Registration Council
               </label>
-              <div className="px-4 py-3 bg-gray-50 border rounded-lg text-sm text-gray-700">
+              <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 border rounded-lg text-xs sm:text-sm text-gray-700">
                 {verificationData?.registration_council || "Not provided"}
               </div>
             </div>
 
             {/* STATUS MESSAGE */}
             {verificationStatus === "pending" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800 text-sm">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 text-blue-800 text-xs sm:text-sm">
                 <p className="font-semibold mb-1">⏳ Verification Under Process</p>
                 <p>Your documents are being reviewed. You will be notified once the verification is complete.</p>
               </div>
             )}
             {verificationStatus === "approved" && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800 text-sm">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 text-green-800 text-xs sm:text-sm">
                 <p className="font-semibold mb-1">✅ Verification Approved</p>
                 <p>Your account has been verified successfully!</p>
               </div>

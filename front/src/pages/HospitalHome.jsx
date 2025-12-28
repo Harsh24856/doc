@@ -80,13 +80,15 @@ export default function HospitalHome() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white">
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 pt-20 pb-16 flex flex-col md:flex-row items-center gap-12">
+      <div className="max-w-7xl mx-auto px-6 pt-12 sm:pt-16 md:pt-20 pb-16 flex flex-col md:flex-row items-center gap-12">
         {/* Left Text */}
         <div className="md:w-1/2 text-center md:text-left">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-100 text-[var(--color-primary-dark)] text-sm font-semibold mb-6">
-            <span className="material-symbols-outlined text-base">local_hospital</span>
-            Hospital Portal
-          </span>
+          <div className="mb-8 sm:mb-10">
+            <span className="inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white text-lg sm:text-xl md:text-2xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <span className="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl">local_hospital</span>
+              <span>Hospital Portal</span>
+            </span>
+          </div>
           
           {hospitalData && hospitalData.hospital_name && (
             <div className="mb-6">
@@ -239,7 +241,7 @@ export default function HospitalHome() {
             icon={<span className="material-symbols-outlined text-2xl text-white">search</span>}
             title="Search Doctors"
             desc="Find qualified candidates"
-            link="/"
+            link="/find-doctor"
             color="bg-[var(--color-primary-dark)]"
           />
         </div>

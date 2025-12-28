@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
+import logo1 from "../assets/1.png";
 
 export default function HospJobData() {
   const { jobId } = useParams();
@@ -279,6 +280,15 @@ export default function HospJobData() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
+      {/* Logo Section */}
+      <div className="max-w-4xl mx-auto mb-6 text-center">
+        <img 
+          src={logo1} 
+          alt="DocSpace Logo" 
+          className="h-16 sm:h-24 md:h-32 w-auto object-contain mx-auto"
+        />
+      </div>
+
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-10">
 
         {/* ================= HEADER ================= */}

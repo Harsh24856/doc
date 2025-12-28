@@ -21,7 +21,12 @@ export default function UsersPage() {
     fetchUsers()
       .then(setUsers)
       .catch((error) => {
-        console.error("Failed to load users:", error);
+        // Suppress connection errors when server is not running
+        if (error.code === "ERR_NETWORK" || error.message?.includes("ERR_CONNECTION_REFUSED")) {
+          console.warn("⚠️  Backend server not available. Users list will be empty.");
+        } else {
+          console.error("Failed to load users:", error);
+        }
         setUsers([]);
       });
   };
@@ -75,7 +80,12 @@ export default function UsersPage() {
         setTimeout(scrollToBottom, 100);
       })
       .catch((error) => {
-        console.error("Failed to load messages:", error);
+        // Suppress connection errors when server is not running
+        if (error.code === "ERR_NETWORK" || error.message?.includes("ERR_CONNECTION_REFUSED")) {
+          console.warn("⚠️  Backend server not available. Messages cannot be loaded.");
+        } else {
+          console.error("Failed to load messages:", error);
+        }
         setMessages([]);
       });
   }, [selectedUserId, users]);

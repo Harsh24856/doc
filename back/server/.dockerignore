@@ -33,3 +33,10 @@ logs/
 # Testing
 coverage/
 .nyc_output/
+
+# Sensitive credentials
+google-vision-key.json
+*-key.json
+*-keys.json
+*.key
+*.pem

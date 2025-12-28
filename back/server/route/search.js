@@ -80,6 +80,61 @@ router.get("/users", async (req, res) => {
 });
 
 /* =========================
+   🔍 SEARCH DOCTORS WITH FILTERS
+   ========================= */
+router.get("/doctors", async (req, res) => {
+  const { name, department, council, registration_number } = req.query;
+
+  try {
+    let query = supabase
+      .from("users")
+      .select(`
+        id,
+        name,
+        designation,
+        specialization,
+        registration_number,
+        registration_council,
+        hospital_affiliation,
+        qualifications,
+        verification_status,
+        role
+      `)
+      .eq("profile_completed", true)
+      .eq("role", "doctor");
+
+    // Apply filters
+    if (name) {
+      query = query.ilike("name", `%${name}%`);
+    }
+
+    if (department) {
+      query = query.ilike("specialization", `%${department}%`);
+    }
+
+    if (council) {
+      query = query.ilike("registration_council", `%${council}%`);
+    }
+
+    if (registration_number) {
+      query = query.ilike("registration_number", `%${registration_number}%`);
+    }
+
+    const { data: doctors, error } = await query.order("name", { ascending: true });
+
+    if (error) {
+      console.error("[Search Doctors Error]:", error.message);
+      return res.status(500).json({ error: "Failed to search doctors" });
+    }
+
+    res.json({ doctors: doctors || [] });
+  } catch (err) {
+    console.error("[Search Doctors Error]:", err.message);
+    return res.status(500).json({ error: "Search failed" });
+  }
+});
+
+/* =========================
    👤 PUBLIC PROFILE
    ========================= */
 router.get("/profile/:id", async (req, res) => {

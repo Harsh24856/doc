@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
+import logo2 from "../assets/2.png";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [verifyingId, setVerifyingId] = useState(null);
@@ -94,80 +97,156 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600 text-lg">Loading admin dashboard…</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading admin dashboard…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow p-8">
-        <h2 className="text-3xl font-bold mb-6">Pending Verifications</h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-6 sm:mb-8 text-center">
+          <img 
+            src={logo2} 
+            alt="DocSpace Logo" 
+            className="h-16 sm:h-24 md:h-32 w-auto mx-auto mb-4 sm:mb-6 object-contain"
+          />
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            Admin Dashboard
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Manage pending verifications
+          </p>
+        </div>
 
-        {pending.length === 0 && (
-          <p className="text-gray-500">No pending verifications</p>
-        )}
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <span className="material-symbols-outlined text-2xl sm:text-3xl text-[var(--color-primary)]">pending_actions</span>
+              Pending Verifications
+            </h2>
+            {pending.length > 0 && (
+              <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-full text-xs sm:text-sm font-semibold">
+                {pending.length} Pending
+              </span>
+            )}
+          </div>
 
-        {pending.map((u) => {
-          const result = results[u.id];
-
-          return (
-            <div key={u.id} className="border rounded-lg p-6 mb-6">
-              {/* USER INFO */}
-              <div className="grid grid-cols-2 gap-4 text-gray-700">
-                <p><b>Name:</b> {u.name}</p>
-                <p><b>Email:</b> {u.email}</p>
-                <p><b>Role:</b> <span className="capitalize">{u.role}</span></p>
-                <p><b>Registration No:</b> {u.registration_number}</p>
+          <div>
+            {pending.length === 0 && (
+              <div className="text-center py-12 sm:py-16">
+                <span className="material-symbols-outlined text-6xl sm:text-7xl text-gray-300 mb-4">check_circle</span>
+                <p className="text-lg sm:text-xl text-gray-500 font-medium">No pending verifications</p>
+                <p className="text-sm sm:text-base text-gray-400 mt-2">All verifications have been processed</p>
               </div>
+            )}
 
-              {/* DOCUMENTS */}
-              <div className="mt-4 flex gap-4">
-                <button
-                  onClick={() => openDocument(u.id, "license")}
-                  className="text-[var(--color-primary)] underline"
-                >
-                  View License
-                </button>
-                <button
-                  onClick={() => openDocument(u.id, "id")}
-                  className="text-[var(--color-primary)] underline"
-                >
-                  View ID
-                </button>
-              </div>
+            {pending.map((u) => {
+            const result = results[u.id];
 
-              {/* AI RESULT */}
-              {result && (
-                <div className="mt-5 space-y-4">
-                  <div className="p-4 rounded bg-gray-100">
-                    <p className="font-semibold mb-1">
-                      Verification Status:{" "}
-                      <span
-                        className={
-                          result.verification_status === "VERIFIED"
-                            ? "text-green-600"
-                            : result.verification_status === "PARTIALLY_VERIFIED"
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {result.verification_status}
-                      </span>
-                    </p>
-
-                    <p>
-                      <b>Verification Score:</b>{" "}
-                      {result.verification_score}%
-                    </p>
-
-                    <p className="text-sm text-gray-600">
-                      Registry: {result.breakdown?.registry_score ?? 0}% ·
-                      License OCR: {result.breakdown?.license_ocr_score ?? 0}% ·
-                      ID OCR: {result.breakdown?.id_ocr_score ?? 0}%
-                    </p>
+            return (
+              <div key={u.id} className="border-2 border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 bg-gradient-to-br from-white to-gray-50 hover:shadow-lg transition-all duration-300">
+                {/* USER INFO */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-400">person</span>
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Name</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900">{u.name}</p>
+                    </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-400">email</span>
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Email</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900 break-all">{u.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-400">badge</span>
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Role</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900 capitalize">{u.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-400">description</span>
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Registration No</p>
+                      <p className="text-sm sm:text-base font-semibold text-gray-900">{u.registration_number || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* DOCUMENTS */}
+                <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <button
+                    onClick={() => navigate(`/resume/${u.id}`)}
+                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg"
+                  >
+                    <span className="material-symbols-outlined text-lg">description</span>
+                    View Resume
+                  </button>
+                  <button
+                    onClick={() => openDocument(u.id, "license")}
+                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-lg font-semibold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300"
+                  >
+                    <span className="material-symbols-outlined text-lg">description</span>
+                    View License
+                  </button>
+                  <button
+                    onClick={() => openDocument(u.id, "id")}
+                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-lg font-semibold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300"
+                  >
+                    <span className="material-symbols-outlined text-lg">badge</span>
+                    View ID
+                  </button>
+                </div>
+
+                {/* AI RESULT */}
+                {result && (
+                  <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+                    <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border-2 border-gray-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3">
+                        <p className="font-bold text-base sm:text-lg">
+                          Verification Status:{" "}
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm sm:text-base ${
+                              result.verification_status === "VERIFIED"
+                                ? "bg-green-100 text-green-700"
+                                : result.verification_status === "PARTIALLY_VERIFIED"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {result.verification_status}
+                          </span>
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold text-[var(--color-primary)]">
+                          Score: {result.verification_score}%
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">database</span>
+                          Registry: {result.breakdown?.registry_score ?? 0}%
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">description</span>
+                          License OCR: {result.breakdown?.license_ocr_score ?? 0}%
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">badge</span>
+                          ID OCR: {result.breakdown?.id_ocr_score ?? 0}%
+                        </span>
+                      </div>
+                    </div>
 
                   {/* REGISTRY RESULT */}
                   {result.registry_result && (result.registry_result.status === "SUCCESS" || result.registry_result.status === "FOUND") && (
@@ -337,37 +416,44 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* ACTIONS */}
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => runAICheck(u.id)}
-                  disabled={verifyingId === u.id}
-                  className={`px-4 py-2 rounded text-white ${
-                    verifyingId === u.id
-                      ? "bg-[var(--color-primary-dark)] opacity-60 cursor-not-allowed"
-                      : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)]"
-                  }`}
-                >
-                  {verifyingId === u.id ? "Verifying…" : "Run AI Check"}
-                </button>
+                {/* ACTIONS */}
+                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => runAICheck(u.id)}
+                    disabled={verifyingId === u.id}
+                    className={`flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-white transition-all duration-300 ${
+                      verifyingId === u.id
+                        ? "bg-[var(--color-primary-dark)] opacity-60 cursor-not-allowed"
+                        : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] hover:shadow-lg transform hover:scale-105"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {verifyingId === u.id ? "hourglass_empty" : "auto_awesome"}
+                    </span>
+                    {verifyingId === u.id ? "Verifying…" : "Run AI Check"}
+                  </button>
 
-                <button
-                  onClick={() => approve(u.id)}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                >
-                  Approve
-                </button>
+                  <button
+                    onClick={() => approve(u.id)}
+                    className="flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+                  >
+                    <span className="material-symbols-outlined text-lg">check_circle</span>
+                    Approve
+                  </button>
 
-                <button
-                  onClick={() => reject(u.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                >
-                  Reject
-                </button>
+                  <button
+                    onClick={() => reject(u.id)}
+                    className="flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+                  >
+                    <span className="material-symbols-outlined text-lg">cancel</span>
+                    Reject
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+          </div>
+        </div>
       </div>
     </div>
   );

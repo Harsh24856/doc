@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 
 import Home from "./pages/Home";
 import HospitalHome from "./pages/HospitalHome";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import PageTransition from "./components/PageTransition";
@@ -28,6 +27,7 @@ import Profile from "./pages/Profile";
 import ViewResume from "./pages/ViewResume";
 import Dashboard from "./pages/Dashboard";
 import Notifications from "./pages/Notifications";
+import FindDoctor from "./pages/FindDoctor";
 
 
 export default function App() {
@@ -35,18 +35,49 @@ export default function App() {
   const [signedIn, setSignedIn] = useState(false);
   const [role, setRole] = useState("");
 
+  // Check auth state on mount and whenever location changes
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const userStr = localStorage.getItem("user");
+      
+      if (!token || !userStr) {
+        setSignedIn(false);
+        setRole("");
+        return;
+      }
 
-    if (!token || !user) {
-      setSignedIn(false);
-      setRole(null);
-    } else {
-      setSignedIn(true);
-      setRole(user.role);
-    }
-  }, []);
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.role) {
+          setSignedIn(true);
+          setRole(user.role);
+        } else {
+          setSignedIn(false);
+          setRole("");
+        }
+      } catch (e) {
+        setSignedIn(false);
+        setRole("");
+      }
+    };
+
+    checkAuth();
+
+    // Also listen for storage changes (logout from other tabs/windows)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for custom logout event
+    window.addEventListener('logout', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('logout', handleStorageChange);
+    };
+  }, [location.pathname]); // Re-check when route changes
 
   return (
     <>
@@ -57,17 +88,30 @@ export default function App() {
           {/* ROLE BASED HOME */}
           <Route
             path="/"
-            element={role === "hospital" ? <HospitalHome /> : <Home />}
+            element={
+              <ProtectedRoute>
+                {role === "hospital" ? <HospitalHome /> : <Home />}
+              </ProtectedRoute>
+            }
           />
 
-        {/* AUTH */}
+        {/* AUTH - Public route (not protected) */}
+        <Route
+          path="/auth"
+          element={<Auth setSignedIn={setSignedIn} setRole={setRole} />}
+        />
+        {/* Legacy routes redirect to /auth */}
         <Route
           path="/login"
-          element={<Login setSignedIn={setSignedIn} setRole={setRole} />}
+          element={<Auth setSignedIn={setSignedIn} setRole={setRole} />}
         />
         <Route
           path="/signup"
-          element={<Signup setSignedIn={setSignedIn} setRole={setRole} />}
+          element={<Auth setSignedIn={setSignedIn} setRole={setRole} />}
+        />
+        <Route
+          path="/signUp"
+          element={<Auth setSignedIn={setSignedIn} setRole={setRole} />}
         />
 
         {/* HOSPITAL */}
@@ -210,6 +254,7 @@ export default function App() {
         {/* MISC */}
         <Route path="/news" element={<News />} />
         <Route path="/who" element={<WhoUpdates />} />
+        <Route path="/find-doctor" element={<FindDoctor />} />
         <Route path="/profile/:id" element={<Profile />} />
         <Route
           path="/resume/:id"
