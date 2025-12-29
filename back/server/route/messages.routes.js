@@ -30,6 +30,7 @@ router.get("/:userId", auth, async (req, res) => {
 
   res.json(
       (data || []).map((msg) => ({
+      id: msg.id,
       from: msg.sender_id === myId ? "me" : otherId,
         type: msg.type || "text",
         text: msg.content || "",

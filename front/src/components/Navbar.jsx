@@ -163,13 +163,13 @@ export default function Navbar({ signedIn, role }) {
                   {role === "admin" ? "A" : role === "hospital" ? "H" : "U"}
                 </Link>
 
-                <button
+                {/* <button
                   onClick={handleLogout}
                   className="flex items-center gap-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <span className="material-symbols-outlined">logout</span>
                   Logout
-                </button>
+                </button> */}
               </>
             ) : !isAuthPage && (
               <button
@@ -200,21 +200,31 @@ export default function Navbar({ signedIn, role }) {
                 {mobileMenuOpen ? "close" : "menu"}
               </span>
             </button>
+            {/* PROFILE ICON (ALL ROLES) */}
+          {signedIn && (
+         <Link
+         to="/dashboard"
+         className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
+         >
+          {role === "admin" ? "A" : role === "hospital" ? "H" : "U"}
+         </Link>
+        )}
           </div>
         </div>
 
         {/* MOBILE MENU */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t py-4 space-y-2">
+            
             {signedIn && role === "hospital" && (
-      <>
+            <>
              <MobileNavItem to="/find-doctor" label="Find Doctor" />
               <MobileNavItem to="/hospital-profile" label="Profile" />
               <MobileNavItem to="/post-job" label="Post Job" />
               <MobileNavItem to="/posted-jobs" label="Posted Jobs" />
                <MobileNavItem to="/messages" label="Chat" />
-      </>
-    )}
+            </>
+            )}
 
 
             {signedIn && role !== "hospital" && role !== "admin" && (
