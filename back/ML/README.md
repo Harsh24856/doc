@@ -51,7 +51,8 @@ pip install -r requirements.txt
 2. **Place credentials:**
    ```bash
    # Copy your service account JSON to:
-   back/ML/google-vision-key.json
+   back/ML/.env
+   GOOGLE_VISION_KEY=
    ```
 
 3. **Optional - Set environment variable:**

@@ -35,6 +35,16 @@ JWT_SECRET=your_jwt_secret_key
 # Service URLs (for Docker, use service names)
 ML_SERVICE_URL=http://localhost:8001
 PLAYWRIGHT_SERVICE_URL=http://localhost:9000
+GNEWS_KEY=your_gnews_key
+NEWSDATA_API_KEY=your_newsdata_api_key
+GEMINI_API_KEY=your_gemini_api_key
+   SMTP_HOST=your_smtp_host
+   SMTP_PORT=your_smtp_port
+   SMTP_USER=your_smtp_uer
+   SMTP_PASS=your_smtp_pass
+   SMTP_FROM=your_smtp_from
+FRONTEND_URL=http://localhost:5173
+GOOGLE_VISION_KEY=your_google_vision_key in json format
 ```
 
 ### Run Server
