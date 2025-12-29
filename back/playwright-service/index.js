@@ -8,7 +8,7 @@ import { checkIMR } from "./imrCheck.js";
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
     methods: ["POST", "GET"],
     allowedHeaders: ["Content-Type"],
   })
