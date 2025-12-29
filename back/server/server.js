@@ -42,14 +42,12 @@ const PORT = process.env.PORT || 3000;
 /* ---------------- MIDDLEWARE ---------------- */
 // CORS configuration - allow all origins in development, specific origins in production
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env.NODE_ENV === "production"
     ? [
-        "http://localhost:5173",
-      "http://localhost:5174",
-      "http://127.0.0.1:5173",
+        process.env.FRONTEND_URL
       ]
-    : true, // Allow all origins in development (for network access)
-    credentials: true,
+    : true,
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -111,13 +109,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production'
-      ? [
-      "http://localhost:5173",
-      "http://localhost:5174",
-          "http://127.0.0.1:5173",
-        ]
-      : true, // Allow all origins in development (for network access)
+    origin: process.env.NODE_ENV === "production"
+      ? [process.env.FRONTEND_URL]
+      : true,
     credentials: true,
   },
 });
