@@ -2,16 +2,14 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-/* ================= VERIFICATION EMAIL ================= */
-
 export async function sendHospitalVerificationEmail({
   hospitalEmail,
   hospitalName,
 }) {
-  console.log(" [RESEND] Sending verification email");
+  console.log("📨 [RESEND] Sending verification email");
 
-  return resend.emails.send({
-    from: "DocSpace <onboarding@resend.dev>", // change after domain verification
+  const response = await resend.emails.send({
+    from: "DocSpace <onboarding@resend.dev>",
     to: hospitalEmail,
     subject: "Hospital Verified 🎉",
     html: `
@@ -20,9 +18,10 @@ export async function sendHospitalVerificationEmail({
       <p>You can now post jobs and access all features.</p>
     `,
   });
-}
 
-/* ================= REJECTION EMAIL ================= */
+  console.log("✅ [RESEND] Response:", response);
+  return response;
+}
 
 export async function sendHospitalRejectionEmail({
   hospitalEmail,
@@ -31,7 +30,7 @@ export async function sendHospitalRejectionEmail({
 }) {
   console.log("📨 [RESEND] Sending rejection email");
 
-  return resend.emails.send({
+  const response = await resend.emails.send({
     from: "DocSpace <onboarding@resend.dev>",
     to: hospitalEmail,
     subject: "Hospital Verification Update",
@@ -41,4 +40,7 @@ export async function sendHospitalRejectionEmail({
       <p><strong>Reason:</strong> ${rejectionReason || "Not specified"}</p>
     `,
   });
+
+  console.log("✅ [RESEND] Response:", response);
+  return response;
 }

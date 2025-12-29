@@ -9,6 +9,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [verifyingId, setVerifyingId] = useState(null);
   const [results, setResults] = useState({});
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectUserId, setRejectUserId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchPending = async () => {
     try {
@@ -82,18 +85,33 @@ export default function AdminDashboard() {
     fetchPending();
   };
 
-  const reject = async (id) => {
-    await fetch(
-      `${API_BASE_URL}/admin/verifications/${id}/reject`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-    fetchPending();
-  };
+  const reject = (id) => {
+  setRejectUserId(id);
+  setRejectionReason("");
+  setShowRejectModal(true);
+};
+
+  const confirmReject = async () => {
+  await fetch(
+    `${API_BASE_URL}/admin/verifications/${rejectUserId}/reject`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rejection_reason: rejectionReason || null,
+      }),
+    }
+  );
+
+  setShowRejectModal(false);
+  setRejectUserId(null);
+  setRejectionReason("");
+  fetchPending();
+};
+
 
   if (loading) {
     return (
@@ -455,6 +473,44 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      {showRejectModal && (
+  <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <h2 className="text-xl font-bold text-red-600 mb-3">
+        Reject Verification
+      </h2>
+
+      <p className="text-sm text-gray-600 mb-3">
+        You may optionally provide a rejection reason.
+      </p>
+
+      <textarea
+        value={rejectionReason}
+        onChange={(e) => setRejectionReason(e.target.value)}
+        placeholder="Optional rejection reason…"
+        rows={4}
+        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+      />
+
+      <div className="flex justify-end gap-3 mt-5">
+        <button
+          onClick={() => setShowRejectModal(false)}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmReject}
+          className="px-4 py-2 rounded-lg bg-red-600 text-white"
+        >
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

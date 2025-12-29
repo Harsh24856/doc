@@ -297,6 +297,10 @@ router.patch(
         updatePayload.rejection_reason = reason || null;
       }
 
+      if(status === "approved"){
+        updatePayload.rejection_reason = null;
+      }
+
       //  Update hospital status
       const { error: updateError } = await supabaseAdmin
         .from("hospitals")
@@ -311,24 +315,24 @@ router.patch(
       res.json({ message: "Hospital status updated successfully" });
 
       //  SEND EMAIL IN BACKGROUND (NON-BLOCKING)
-      if (status === "verified") {
-        sendHospitalVerificationEmail({
-          hospitalEmail: user.email,
-          hospitalName: hospital.hospital_name,
-        }).catch(err => {
-          console.error("EMAIL ERROR (verified):", err.message);
-        });
-      }
+      // if (status === "verified") {
+      //   sendHospitalVerificationEmail({
+      //     hospitalEmail: user.email,
+      //     hospitalName: hospital.hospital_name,
+      //   }).catch(err => {
+      //     console.error("EMAIL ERROR (verified):", err.message);
+      //   });
+      // }
 
-      if (status === "rejected") {
-        sendHospitalRejectionEmail({
-          hospitalEmail: user.email,
-          hospitalName: hospital.hospital_name,
-          rejectionReason: reason,
-        }).catch(err => {
-          console.error("EMAIL ERROR (rejected):", err.message);
-        });
-      }
+      // if (status === "rejected") {
+      //   sendHospitalRejectionEmail({
+      //     hospitalEmail: user.email,
+      //     hospitalName: hospital.hospital_name,
+      //     rejectionReason: reason,
+      //   }).catch(err => {
+      //     console.error("EMAIL ERROR (rejected):", err.message);
+      //   });
+      // }
 
     } catch (err) {
       console.error("STATUS UPDATE ERROR:", err.message);

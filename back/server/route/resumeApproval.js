@@ -72,21 +72,21 @@ router.post("/approve/:userId", auth, async (req, res) => {
     }
 
     // Send email notification
-    try {
-      await sendResumeApprovalEmail({
-        userEmail: user.email,
-        userName: user.name,
-        hospitalName: hospital.hospital_name,
-        hospitalPersonName: hospital.hospital_person_name,
-        hospitalPersonEmail: hospital.hospital_person_email,
-        interviewDate: formattedDate,
-        jobTitle: "Position at " + hospital.hospital_name,
-      });
-      console.log(`[Resume Approval] ✅ Email sent to ${user.email}`);
-    } catch (emailError) {
-      console.error(`[Resume Approval] ⚠️ Email sending failed:`, emailError.message);
-      // Don't fail the request if email fails, just log it
-    }
+    // try {
+    //   await sendResumeApprovalEmail({
+    //     userEmail: user.email,
+    //     userName: user.name,
+    //     hospitalName: hospital.hospital_name,
+    //     hospitalPersonName: hospital.hospital_person_name,
+    //     hospitalPersonEmail: hospital.hospital_person_email,
+    //     interviewDate: formattedDate,
+    //     jobTitle: "Position at " + hospital.hospital_name,
+    //   });
+    //   console.log(`[Resume Approval] ✅ Email sent to ${user.email}`);
+    // } catch (emailError) {
+    //   console.error(`[Resume Approval] ⚠️ Email sending failed:`, emailError.message);
+    //   // Don't fail the request if email fails, just log it
+    // }
 
     res.json({
       success: true,
@@ -257,20 +257,20 @@ router.post("/application/approve/:applicationId", auth, async (req, res) => {
     }
 
     /* Email */
-    try {
-      await sendResumeApprovalEmail({
-        userEmail: userData.email,
-        userName: userData.name,
-        hospitalName: hospital.hospital_name,
-        hospitalPersonName: hospital.hospital_person_name,
-        hospitalPersonEmail: hospital.hospital_person_email,
-        interviewDate: formattedDate,
-        jobTitle: jobData.title,
-      });
-    } catch (emailError) {
-      console.error("[Approve] Email error:", emailError);
-      // Don't fail the request if email fails
-    }
+    // try {
+    //   await sendResumeApprovalEmail({
+    //     userEmail: userData.email,
+    //     userName: userData.name,
+    //     hospitalName: hospital.hospital_name,
+    //     hospitalPersonName: hospital.hospital_person_name,
+    //     hospitalPersonEmail: hospital.hospital_person_email,
+    //     interviewDate: formattedDate,
+    //     jobTitle: jobData.title,
+    //   });
+    // } catch (emailError) {
+    //   console.error("[Approve] Email error:", emailError);
+    //   // Don't fail the request if email fails
+    // }
 
     res.json({
       success: true,
@@ -349,18 +349,18 @@ router.post("/application/reject/:applicationId", auth, async (req, res) => {
     }
 
     /* Email */
-    try {
-      await sendApplicationRejectionEmail({
-        userEmail: userData.email,
-        userName: userData.name,
-        hospitalName: hospital.hospital_name,
-        jobTitle: jobData.title,
-      });
-      console.log(`[Reject] ✅ Email sent to ${userData.email}`);
-    } catch (emailError) {
-      console.error("[Reject] Email error:", emailError);
-      // Don't fail the request if email fails
-    }
+    // try {
+    //   await sendApplicationRejectionEmail({
+    //     userEmail: userData.email,
+    //     userName: userData.name,
+    //     hospitalName: hospital.hospital_name,
+    //     jobTitle: jobData.title,
+    //   });
+    //   console.log(`[Reject] ✅ Email sent to ${userData.email}`);
+    // } catch (emailError) {
+    //   console.error("[Reject] Email error:", emailError);
+    //   // Don't fail the request if email fails
+    // }
 
     res.json({
       success: true,

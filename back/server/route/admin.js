@@ -105,19 +105,44 @@ router.post(
   adminOnly,
   async (req, res) => {
     const { userId, action } = req.params;
-    console.log(`[Admin] ${action === "approve" ? "✅" : "❌"} ${action.toUpperCase()} request for user: ${userId}`);
+    const { rejection_reason } = req.body;
 
+    console.log(
+      `[Admin] ${action === "approve" ? "✅" : "❌"} ${action.toUpperCase()} request for user: ${userId}`
+    );
+
+    //  Validate action
     if (!["approve", "reject"].includes(action)) {
       console.error(`[Admin] ❌ Invalid action: ${action}`);
       return res.status(400).json({ error: "Invalid action" });
     }
 
+    //  If rejecting, rejection reason is REQUIRED
+    if (action === "reject" && (!rejection_reason || rejection_reason.trim() === "")) {
+      return res.status(400).json({
+        error: "Rejection reason is required when rejecting a user",
+      });
+    }
+
+    //  Prepare update payload
     const updates =
       action === "approve"
-        ? { verified: true, verification_status: "approved" }
-        : { verified: false, verification_status: "rejected" };
+        ? {
+            verified: true,
+            verification_status: "approved",
+            rejection_reason: null, // clear old reason if any
+          }
+        : {
+            verified: false,
+            verification_status: "rejected",
+            rejection_reason: rejection_reason.trim(),
+          };
 
-    const { error } = await supabase.from("users").update(updates).eq("id", userId);
+    //  Update DB
+    const { error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", userId);
 
     if (error) {
       console.error(`[Admin] ❌ Error ${action}ing user:`, error.message);
@@ -125,8 +150,12 @@ router.post(
     }
 
     console.log(`[Admin] ✅ User ${action}d successfully`);
-    res.json({ message: `User ${action}d successfully` });
+    res.json({
+      message: `User ${action}d successfully`,
+      ...(action === "reject" && { rejection_reason }),
+    });
   }
 );
+
 
 export default router;

@@ -51,6 +51,40 @@ if (!hospitalError && hospital) {
     }
 
     if (role === "user" || role === "doctor") {
+  const { data: doctor, error: doctorError } = await supabase
+    .from("users")
+    .select("id, verification_status, rejection_reason, updated_at")
+    .eq("id", userId)
+    .single();
+
+  if (!doctorError && doctor) {
+    if (doctor.verification_status === "approved") {
+      notifications.push({
+        id: `doctor-verified-${doctor.id}`,
+        type: "verification",
+        title: "Verification Approved",
+        message: "Your doctor profile has been successfully verified.",
+        link: "/profile",
+        read: false,
+        created_at: doctor.updated_at,
+      });
+    }
+
+    if (doctor.verification_status === "rejected") {
+      notifications.push({
+        id: `doctor-rejected-${doctor.id}`,
+        type: "verification",
+        title: "Verification Rejected",
+        message: doctor.rejection_reason
+          ? `Reason: ${doctor.rejection_reason}`
+          : "Your verification was rejected. Please review and resubmit.",
+        link: "/profile",
+        read: false,
+        created_at: doctor.updated_at,
+      });
+    }
+  }
+
       const { data: applications, error } = await supabase
         .from("job_applications")
         .select(`
