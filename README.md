@@ -32,11 +32,13 @@ cd DocSpace
 ```bash
 # Backend server - Copy example and fill in your credentials
 cp back/server/.env.example back/server/.env
-# Edit back/server/.env with your Supabase credentials and JWT secret
-
-# ML service - Place your Google Vision credentials
-# You need to obtain google-vision-key.json from Google Cloud Console
-# Then place it in: back/ML/google-vision-key.json
+# Edit back/server/.env with the following fields : PORT, SUPABASE(_URL,_ANON_KEY AND _SERVICE_ROLE_KEY), JWT_SECRET, PLAYWRIGHT_SERVICE_URL, ML_SERVICE_URL, NEWSAPI_KEY, NEWSDATA_API_KEY, GEMINI_API_KEY, SMTP_(HOST, PORT, USER, PASS AND FROM), FRONTEND_URL, GOOGLE_VISION_KEY(Obtained from Google Cloud console)
+# For ML server
+ Create a .env in back/Ml
+ Place GOOGLE_VISION_KEY in there
+#For playwright service
+ Create a .env in back/playwright-service
+ Add the following fields : PORT, HEADLESS = true, FRONTEND_URL, BACKEND_URL
 ```
 
 3. **Start all services**
@@ -176,7 +178,6 @@ docker-compose down
 - Locally, use `localhost:8001`
 
 ### ML Service errors
-- Ensure `google-vision-key.json` exists in `back/ML/`
 - Check Poppler is installed (for local dev)
 - Verify Google Vision API is enabled
 
