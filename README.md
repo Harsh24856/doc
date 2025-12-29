@@ -39,6 +39,9 @@ cp back/server/.env.example back/server/.env
 #For playwright service
  Create a .env in back/playwright-service
  Add the following fields : PORT, HEADLESS = true, FRONTEND_URL, BACKEND_URL
+#For front
+ Create a .env inside front/
+ Add VITE_API_URL=(Backend Server)
 ```
 
 3. **Start all services**
