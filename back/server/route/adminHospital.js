@@ -259,43 +259,45 @@ router.patch(
       const { hospitalId } = req.params;
       const { status, reason } = req.body;
 
-      // Validate status
+      //  Validate status
       const allowedStatuses = ["pending", "verified", "rejected"];
       if (!allowedStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
+      //  Fetch hospital
       const { data: hospital, error: fetchError } = await supabaseAdmin
-      .from("hospitals")
-      .select("user_id, hospital_name")
-      .eq("id", hospitalId)
-      .single();
+        .from("hospitals")
+        .select("user_id, hospital_name")
+        .eq("id", hospitalId)
+        .single();
 
       if (fetchError || !hospital) {
-         return res.status(404).json({ message: "Hospital not found" });
+        return res.status(404).json({ message: "Hospital not found" });
       }
 
-      const{ data: user, error: userFetchError} = await supabaseAdmin
-      .from("users")
-      .select("email")
-      .eq("id", hospital.user_id)
-      .single();
-      
-      if(userFetchError || !user){
-        return res.status(404).json({message: "User not found"});
+      //  Fetch user email
+      const { data: user, error: userFetchError } = await supabaseAdmin
+        .from("users")
+        .select("email")
+        .eq("id", hospital.user_id)
+        .single();
+
+      if (userFetchError || !user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
-      // Prepare update payload
+      //  Prepare update payload
       const updatePayload = {
         verification_status: status,
-        updated_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString(),
       };
 
-      // Attach rejection reason ONLY if rejected
       if (status === "rejected") {
         updatePayload.rejection_reason = reason || null;
       }
 
+      //  Update hospital status
       const { error: updateError } = await supabaseAdmin
         .from("hospitals")
         .update(updatePayload)
@@ -305,33 +307,36 @@ router.patch(
         throw updateError;
       }
 
-      try {
-        if (status === "verified") {
-          await sendHospitalVerificationEmail({
-           hospitalEmail: user.email,
-           hospitalName: hospital.hospital_name,
-         });
-        }
-
-        if (status === "rejected") {
-          await sendHospitalRejectionEmail({
-            hospitalEmail: user.email,
-            hospitalName: hospital.hospital_name,
-            rejectionReason: reason,
-         });
-       }
-       } catch (mailErr) {
-         console.error("EMAIL ERROR:", mailErr.message);
-       }
-
-
+      //  RESPOND TO CLIENT IMMEDIATELY (IMPORTANT)
       res.json({ message: "Hospital status updated successfully" });
+
+      //  SEND EMAIL IN BACKGROUND (NON-BLOCKING)
+      if (status === "verified") {
+        sendHospitalVerificationEmail({
+          hospitalEmail: user.email,
+          hospitalName: hospital.hospital_name,
+        }).catch(err => {
+          console.error("EMAIL ERROR (verified):", err.message);
+        });
+      }
+
+      if (status === "rejected") {
+        sendHospitalRejectionEmail({
+          hospitalEmail: user.email,
+          hospitalName: hospital.hospital_name,
+          rejectionReason: reason,
+        }).catch(err => {
+          console.error("EMAIL ERROR (rejected):", err.message);
+        });
+      }
+
     } catch (err) {
       console.error("STATUS UPDATE ERROR:", err.message);
       res.status(500).json({ message: "Failed to update status" });
     }
   }
 );
+
 
 
 export default router;
