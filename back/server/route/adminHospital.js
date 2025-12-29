@@ -4,7 +4,7 @@ import admin from "../middleware/admin.js";
 import supabaseAdmin from "../Admin.js";
 import { extractPdfText } from "../services/pdfService.js";
 import { generateDocumentInsights } from "../services/aiService.js";
-import { sendHospitalVerificationEmail, sendHospitalRejectionEmail } from "../services/emailService.js";
+import { sendHospitalVerificationEmail, sendHospitalRejectionEmail } from "../services/resendEmail.js";
 
 const router = express.Router();
 
