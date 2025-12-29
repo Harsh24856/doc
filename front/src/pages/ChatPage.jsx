@@ -12,6 +12,7 @@ export default function ChatPage() {
   const [socketConnected, setSocketConnected] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const processedMessageIds = useRef(new Set()); // Track processed message IDs to prevent duplicates
 
   // Ensure socket is connected
   useEffect(() => {
@@ -49,6 +50,9 @@ export default function ChatPage() {
   useEffect(() => {
     if (!userId) return;
     
+    // Clear processed IDs when switching users
+    processedMessageIds.current.clear();
+    
     axios
       .get(`${API_BASE_URL}/messages/${userId}`, {
         headers: {
@@ -57,6 +61,11 @@ export default function ChatPage() {
       })
       .then((res) => {
         const loadedMessages = res.data || [];
+        // Mark all loaded messages as processed
+        loadedMessages.forEach(msg => {
+          const messageKey = msg.id || `${msg.text || msg.file_url}-${msg.created_at}`;
+          processedMessageIds.current.add(messageKey);
+        });
         setMessages(loadedMessages);
         // Scroll to bottom after loading
         setTimeout(() => {
@@ -73,130 +82,185 @@ export default function ChatPage() {
   useEffect(() => {
     if (!userId) return;
 
-    let cleanupFunctions = [];
+    // Use refs to track handlers and prevent duplicate listeners
+    const handlersRef = { receive: null, sent: null, connect: null };
+    let isCleanedUp = false;
 
-    // Wait for socket to be connected before setting up listeners
-    const setupListeners = () => {
-      if (!socket.connected) {
-        console.log("Socket not connected, waiting...");
-        setTimeout(setupListeners, 100);
-        return;
-      }
-
-      console.log("Setting up socket listeners for userId:", userId, "socket connected:", socket.connected);
-
-      const handleReceiveMessage = (msg) => {
-        console.log("🔵 Received message event:", msg, "current userId:", userId);
+    const handleReceiveMessage = (msg) => {
+      if (isCleanedUp) return;
+      
+      console.log("🔵 Received message event:", msg, "current userId:", userId);
+      
+      // Normalize IDs for comparison (handle both string and number)
+      const msgFrom = msg.from ? String(msg.from) : null;
+      const currentUserId = String(userId);
+      
+      // Also try numeric comparison
+      const msgFromNum = msg.from ? Number(msg.from) : null;
+      const userIdNum = Number(userId);
+      
+      // Handle messages from the other user
+      if (msgFrom === currentUserId || msgFromNum === userIdNum) {
+        // Create a unique key for duplicate detection
+        const messageKey = msg.id || `${msg.text || msg.file_url}-${msg.created_at}`;
         
-        // Normalize IDs for comparison (handle both string and number)
-        const msgFrom = msg.from ? String(msg.from) : null;
-        const currentUserId = String(userId);
-        
-        // Also try numeric comparison
-        const msgFromNum = msg.from ? Number(msg.from) : null;
-        const userIdNum = Number(userId);
-        
-        console.log("Comparing: msgFrom=", msgFrom, "userId=", currentUserId, "match:", msgFrom === currentUserId || msgFromNum === userIdNum);
-        
-        // Handle messages from the other user
-        if (msgFrom === currentUserId || msgFromNum === userIdNum) {
-          console.log("✅ Message matches! Adding to state");
-          setMessages((prev) => {
-            // Check if message already exists (avoid duplicates)
-            const exists = prev.some(
-              (m) => (m.id && msg.id && m.id === msg.id) ||
-                     (m.text === msg.text && 
-                      msg.created_at &&
-                      m.created_at === msg.created_at &&
-                      m.type === (msg.type || "text"))
-            );
-            if (exists) {
-              console.log("⚠️ Duplicate message ignored");
-              return prev;
-            }
-            console.log("➕ Adding new message from other user");
-            return [...prev, { ...msg, from: userId }];
-          });
-        } else {
-          console.log("❌ Message not for this user. msg.from:", msg.from, "userId:", userId);
-        }
-      };
-
-      const handleMessageSent = (msg) => {
-        console.log("✅ Message sent confirmation:", msg);
-        // Handle confirmation of our own sent messages
-        if (msg.error) {
-          // Remove failed optimistic message
-          setMessages((prev) => prev.filter(m => !m.pending));
+        // Check if we've already processed this message
+        if (processedMessageIds.current.has(messageKey)) {
+          console.log("⚠️ Duplicate message ignored (already processed):", messageKey);
           return;
         }
-
+        
         setMessages((prev) => {
-          // Find and replace optimistic message with confirmed one
-          const optimisticIndex = prev.findIndex(
-            (m) => m.from === "me" && m.pending && 
-                   ((m.text && msg.text && m.text.trim() === msg.text.trim()) || 
-                    (m.file_url && msg.file_url && m.file_url === msg.file_url))
-          );
-          
-          if (optimisticIndex !== -1) {
-            console.log("🔄 Replacing optimistic message");
-            // Replace optimistic message
-            const newMessages = [...prev];
-            newMessages[optimisticIndex] = {
-              ...msg,
-              from: "me",
-              pending: false,
-            };
-            return newMessages;
-          }
-          
-          // Check if message already exists (avoid duplicates)
+          // Double-check in state as well
           const exists = prev.some(
-            (m) => (m.id && msg.id && m.id === msg.id) ||
-                   (m.text === msg.text && m.from === "me" && !m.pending)
+            (m) => {
+              // Check by ID if available
+              if (m.id && msg.id && m.id === msg.id) return true;
+              // Check by content and timestamp
+              if (m.text === msg.text && 
+                  msg.created_at &&
+                  m.created_at === msg.created_at &&
+                  m.type === (msg.type || "text")) return true;
+              // Check by file URL if it's a file message
+              if (msg.file_url && m.file_url === msg.file_url && 
+                  m.created_at === msg.created_at) return true;
+              return false;
+            }
           );
           if (exists) {
-            console.log("⚠️ Duplicate sent message ignored");
+            console.log("⚠️ Duplicate message ignored (in state)");
             return prev;
           }
           
-          console.log("➕ Adding new confirmed message");
-          // Add new confirmed message
-          return [...prev, { ...msg, from: "me", pending: false }];
+          // Mark as processed
+          processedMessageIds.current.add(messageKey);
+          console.log("➕ Adding new message from other user");
+          return [...prev, { ...msg, from: userId }];
         });
-      };
+      }
+    };
+
+    const handleMessageSent = (msg) => {
+      if (isCleanedUp) return;
+      
+      console.log("✅ Message sent confirmation:", msg);
+      
+      // Handle confirmation of our own sent messages
+      if (msg.error) {
+        // Remove failed optimistic message
+        setMessages((prev) => prev.filter(m => !m.pending));
+        return;
+      }
+
+      // Create a unique key for duplicate detection
+      const messageKey = msg.id || `${msg.text || msg.file_url}-${msg.created_at}`;
+      
+      // Check if we've already processed this confirmation
+      if (processedMessageIds.current.has(`sent-${messageKey}`)) {
+        console.log("⚠️ Duplicate message_sent event ignored:", messageKey);
+        return;
+      }
+      
+      setMessages((prev) => {
+        // Find and replace optimistic message with confirmed one
+        const optimisticIndex = prev.findIndex(
+          (m) => m.from === "me" && m.pending && 
+                 ((m.text && msg.text && m.text.trim() === msg.text.trim()) || 
+                  (m.file_url && msg.file_url && m.file_url === msg.file_url))
+        );
+        
+        if (optimisticIndex !== -1) {
+          console.log("🔄 Replacing optimistic message");
+          // Mark as processed
+          processedMessageIds.current.add(`sent-${messageKey}`);
+          // Replace optimistic message
+          const newMessages = [...prev];
+          newMessages[optimisticIndex] = {
+            ...msg,
+            from: "me",
+            pending: false,
+          };
+          return newMessages;
+        }
+        
+        // Check if message already exists (avoid duplicates) - use multiple checks
+        const exists = prev.some(
+          (m) => {
+            // Check by ID if available
+            if (m.id && msg.id && m.id === msg.id) return true;
+            // Check by content and sender
+            if (m.text === msg.text && m.from === "me" && !m.pending && 
+                msg.created_at && m.created_at === msg.created_at) return true;
+            // Check by file URL if it's a file message
+            if (msg.file_url && m.file_url === msg.file_url && 
+                m.from === "me" && !m.pending &&
+                msg.created_at && m.created_at === msg.created_at) return true;
+            return false;
+          }
+        );
+        if (exists) {
+          console.log("⚠️ Duplicate sent message ignored (in state)");
+          return prev;
+        }
+        
+        // Mark as processed
+        processedMessageIds.current.add(`sent-${messageKey}`);
+        console.log("➕ Adding new confirmed message");
+        // Add new confirmed message
+        return [...prev, { ...msg, from: "me", pending: false }];
+      });
+    };
+
+    const setupListeners = () => {
+      if (isCleanedUp) return;
+      
+      // Remove existing listeners first to prevent duplicates
+      if (handlersRef.receive) {
+        socket.off("receive_message", handlersRef.receive);
+      }
+      if (handlersRef.sent) {
+        socket.off("message_sent", handlersRef.sent);
+      }
+
+      // Store handlers in ref
+      handlersRef.receive = handleReceiveMessage;
+      handlersRef.sent = handleMessageSent;
 
       // Set up listeners
       socket.on("receive_message", handleReceiveMessage);
       socket.on("message_sent", handleMessageSent);
 
       console.log("✅ Socket listeners set up for userId:", userId);
-
-      // Store cleanup functions
-      cleanupFunctions.push(() => {
-        console.log("🧹 Cleaning up socket listeners");
-        socket.off("receive_message", handleReceiveMessage);
-        socket.off("message_sent", handleMessageSent);
-      });
     };
 
-    // Start setting up listeners
-    setupListeners();
+    // Set up listeners when socket is connected
+    if (socket.connected) {
+      setupListeners();
+    }
 
     // Also set up listeners when socket connects
     const onConnect = () => {
+      if (isCleanedUp) return;
       console.log("Socket connected, setting up listeners");
-      cleanupFunctions.forEach(fn => fn());
-      cleanupFunctions = [];
       setupListeners();
     };
 
+    handlersRef.connect = onConnect;
     socket.on("connect", onConnect);
 
     return () => {
-      socket.off("connect", onConnect);
-      cleanupFunctions.forEach(fn => fn());
+      isCleanedUp = true;
+      console.log("🧹 Cleaning up socket listeners");
+      
+      if (handlersRef.receive) {
+        socket.off("receive_message", handlersRef.receive);
+      }
+      if (handlersRef.sent) {
+        socket.off("message_sent", handlersRef.sent);
+      }
+      if (handlersRef.connect) {
+        socket.off("connect", handlersRef.connect);
+      }
     };
   }, [userId]);
 
