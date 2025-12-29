@@ -1,5 +1,9 @@
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 import { checkIMR } from "./imrCheck.js";
+
+
 
 const app = express();
 app.use(express.json());
@@ -70,7 +74,7 @@ app.get("/health", (req, res) => {
 /* =========================
    START SERVER
    ========================= */
-const PORT = 9000;
+const PORT = process.env.PORT || 9000;
 app.listen(PORT, "0.0.0.0", () => {
   const headlessMode =
     process.env.HEADLESS === "false" ? "visible" : "headless";
