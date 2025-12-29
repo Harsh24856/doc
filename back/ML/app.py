@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, UploadFile, File
 import tempfile
 import shutil
@@ -101,3 +104,7 @@ async def extract_id(file: UploadFile = File(...)):
             "success": False,
             "error": str(e)
         }
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}       

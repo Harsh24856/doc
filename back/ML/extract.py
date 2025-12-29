@@ -1,20 +1,22 @@
 import io
 import os
+import json
 from google.cloud import vision
 from google.oauth2 import service_account
 from pdf2image import convert_from_path
 
-# Load credentials from local file
-credentials_path = os.path.join(os.path.dirname(__file__), "google-vision-key.json")
-if os.path.exists(credentials_path):
-    credentials = service_account.Credentials.from_service_account_file(
-        credentials_path,
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-    client = vision.ImageAnnotatorClient(credentials=credentials)
-else:
-    # Fall back to environment variable or default credentials
-    client = vision.ImageAnnotatorClient()
+# --- Load Google Vision credentials from env ---
+if "GOOGLE_VISION_KEY" not in os.environ:
+    raise RuntimeError("GOOGLE_VISION_KEY environment variable is missing")
+
+credentials_info = json.loads(os.environ["GOOGLE_VISION_KEY"])
+
+credentials = service_account.Credentials.from_service_account_info(
+    credentials_info,
+    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+)
+
+client = vision.ImageAnnotatorClient(credentials=credentials)
 
 
 def extract_from_pdf(pdf_path: str):
