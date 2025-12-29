@@ -28,6 +28,8 @@ import ViewResume from "./pages/ViewResume";
 import Dashboard from "./pages/Dashboard";
 import Notifications from "./pages/Notifications";
 import FindDoctor from "./pages/FindDoctor";
+import HospitalRoute from "./components/HospitalRoute"
+import DocRoute from "./components/DocRoute"
 
 
 export default function App() {
@@ -118,36 +120,36 @@ export default function App() {
         <Route
           path="/hospital-profile"
           element={
-            <ProtectedRoute>
+            <HospitalRoute>
               <HospitalProfile />
-            </ProtectedRoute>
+            </HospitalRoute>
           }
         />
 
         <Route
           path="/post-job"
           element={
-            <ProtectedRoute>
+            <HospitalRoute>
               <PostJob />
-            </ProtectedRoute>
+            </HospitalRoute>
           }
         />
 
         <Route
           path="/posted-jobs"
           element={
-            <ProtectedRoute>
+            <HospitalRoute>
               <JobsPosted />
-            </ProtectedRoute>
+            </HospitalRoute>
           }
         />
 
         <Route
           path="/jobs/:jobId"
           element={
-            <ProtectedRoute>
+            <HospitalRoute>
               <HospJobData />
-            </ProtectedRoute>
+            </HospitalRoute>
           }
         />
 
@@ -170,17 +172,17 @@ export default function App() {
         <Route
           path="/resume"
           element={
-            <ProtectedRoute>
+            <DocRoute>
               <MedicalResume />
-            </ProtectedRoute>
+            </DocRoute>
           }
         />
         <Route
           path="/get-verified"
           element={
-            <ProtectedRoute>
+            <DocRoute>
               <GetVerified />
-            </ProtectedRoute>
+            </DocRoute>
           }
         />
 

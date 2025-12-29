@@ -80,7 +80,7 @@ export default function Footer() {
               <li>
                 <span className="flex items-center gap-2">
                   <span>📧</span>
-                  <span>support@docspace.com</span>
+                  <span>Docspace2430@gmail.com</span>
                 </span>
               </li>
               <li>
@@ -92,7 +92,7 @@ export default function Footer() {
               <li>
                 <span className="flex items-center gap-2">
                   <span>📍</span>
-                  <span>Healthcare District, Medical City</span>
+                  <span>PEC, Chandigarh</span>
                 </span>
               </li>
             </ul>
