@@ -207,17 +207,26 @@ export default function Navbar({ signedIn, role }) {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t py-4 space-y-2">
             {signedIn && role === "hospital" && (
-              <>
-                <MobileNavItem to="/hospital-profile" label="Profile" />
-                <MobileNavItem to="/posted-jobs" label="Jobs" />
-              </>
-            )}
+      <>
+             <MobileNavItem to="/find-doctor" label="Find Doctor" />
+              <MobileNavItem to="/hospital-profile" label="Profile" />
+              <MobileNavItem to="/post-job" label="Post Job" />
+              <MobileNavItem to="/posted-jobs" label="Posted Jobs" />
+               <MobileNavItem to="/messages" label="Chat" />
+      </>
+    )}
 
-            {signedIn && role === "admin" && (
-              <>
-                <MobileNavItem to="/admin" label="Dashboard" />
-                <MobileNavItem to="/admin-hospital" label="Hospitals" />
-              </>
+
+            {signedIn && role !== "hospital" && role !== "admin" && (
+               <>
+              <MobileNavItem to="/find-doctor" label="Find Doctor" />
+              <MobileNavItem to="/search/jobs" label="Find Jobs" />
+              <MobileNavItem to="/resume" label="Resume" />
+              <MobileNavItem to="/messages" label="Chat" />
+              {profileCompleted && (
+                 <MobileNavItem to="/get-verified" label="Get Verified" />
+              )}
+            </>
             )}
 
             {signedIn && (
