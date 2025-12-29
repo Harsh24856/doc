@@ -1,8 +1,7 @@
 import vision from "@google-cloud/vision";
-import path from "path";
 
 const client = new vision.ImageAnnotatorClient({
-  keyFilename: path.resolve("google-vision-key.json"),
+  credentials: JSON.parse(process.env.GOOGLE_VISION_KEY),
 });
 
 export default client;
