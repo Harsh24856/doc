@@ -3,6 +3,7 @@ import auth from "../middleware/auth.js";
 import supabase from "../db.js";
 import supabaseAdmin from "../Admin.js";
 import verificationRoutes from "./verification.js";
+import { io } from "../server.js";
 
 const router = express.Router();
 
@@ -131,11 +132,13 @@ router.post(
             verified: true,
             verification_status: "approved",
             rejection_reason: null, // clear old reason if any
+            updated_at: new Date().toISOString(),
           }
         : {
             verified: false,
             verification_status: "rejected",
             rejection_reason: rejection_reason.trim(),
+            updated_at: new Date().toISOString(),
           };
 
     //  Update DB
@@ -154,6 +157,10 @@ router.post(
       message: `User ${action}d successfully`,
       ...(action === "reject" && { rejection_reason }),
     });
+    if (io) {
+     io.to(String(userId)).emit("notifications_updated");
+   }
+
   }
 );
 

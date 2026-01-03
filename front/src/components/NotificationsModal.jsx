@@ -2,38 +2,48 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
 
-export default function NotificationsModal({ isOpen, onClose }) {
+export default function NotificationsModal({ isOpen, onClose, onMarkedRead }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* =========================
-     FETCH NOTIFICATIONS
-     ========================= */
+  /* FETCH NOTIFICATIONS */
   useEffect(() => {
     if (!isOpen || !token) return;
 
     const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  try {
+    setLoading(true);
 
-        if (!res.ok) throw new Error("Failed to fetch notifications");
+    const res = await fetch(`${API_BASE_URL}/notifications`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-      } catch (err) {
-        console.error("Error fetching notifications:", err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!res.ok) throw new Error("Failed to fetch notifications");
 
-    fetchNotifications();
+    const data = await res.json();
+    const notifications = data.notifications || [];
+
+    setNotifications(notifications);
+
+    // we mark-read only if there were unread notifications
+    if ((data.unread_count || 0) > 0) {
+      fetch(`${API_BASE_URL}/notifications/mark-read`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).then(()=> {onMarkedRead?.()}).catch(() => {});
+    }
+  } catch (err) {
+    console.error("Error fetching notifications:", err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+  fetchNotifications();
   }, [isOpen, token]);
 
   /* =========================

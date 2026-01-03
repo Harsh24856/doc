@@ -5,6 +5,7 @@ import supabaseAdmin from "../Admin.js";
 import { extractPdfText } from "../services/pdfService.js";
 import { generateDocumentInsights } from "../services/aiService.js";
 import { sendHospitalVerificationEmail, sendHospitalRejectionEmail } from "../services/resendEmail.js";
+import { io } from "../server.js";
 
 const router = express.Router();
 
@@ -313,6 +314,9 @@ router.patch(
 
       //  RESPOND TO CLIENT IMMEDIATELY (IMPORTANT)
       res.json({ message: "Hospital status updated successfully" });
+      if (io) {
+       io.to(String(hospital.user_id)).emit("notifications_updated");
+      }
 
       //  SEND EMAIL IN BACKGROUND (NON-BLOCKING)
       // if (status === "verified") {

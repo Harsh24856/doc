@@ -7,6 +7,60 @@ import FormData from "form-data";
 
 const router = express.Router();
 
+ const normalize = (str) =>
+  str
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ") // remove dots, commas, numbers
+    .replace(/\s+/g, " ")
+    .trim();
+  
+  const getTokens = (str) =>
+  str
+    .split(" ")
+    .filter(
+      (w) =>
+        w.length >= 3 &&                 // avoid "dr", "mr", "r"
+        !["dr", "mr", "ms", "mrs"].includes(w)
+    );
+
+const safeNameMatch = (a, b) => {
+   if (!a || !b) return false;
+
+   const na = normalize(a);
+   const nb = normalize(b);
+
+   // Rule 1: Minimum length safeguard
+   if (na.length < 6 || nb.length < 6) return false;
+
+   const ta = getTokens(na);
+   const tb = getTokens(nb);
+
+   if (ta.length === 0 || tb.length === 0) return false;
+
+  const matches = ta.filter(t => tb.includes(t));
+
+   // Rule 2: Require strong overlap
+    return (
+     matches.length >= 2 ||                       // at least 2 words match
+     matches.length / Math.min(ta.length, tb.length) >= 0.6
+      );
+   };
+
+ const safeCouncilMatch = (a, b) => {
+   if (!a || !b) return false;
+
+    const na = normalize(a);
+    const nb = normalize(b);
+
+    if (na.length < 6 || nb.length < 6) return false;
+
+     return (
+        na === nb ||
+        na.includes(nb) && nb.length >= 6 ||
+        nb.includes(na) && na.length >= 6
+      );
+  };
+
 /* =========================
    ADMIN ONLY
    ========================= */
@@ -231,9 +285,11 @@ router.post(
                   const ur = normalize(user.registration_number);
                   const rc = normalize(registryData.council || "");
                   const uc = normalize(user.registration_council || "");
+
+
                   
                   // Rule 1: Name match (+20)
-                  if (rn && (userName.includes(rn) || rn.includes(userName))) {
+                  if (safeNameMatch(userName, rn)) {
                     score += 20;
                     console.log(`[Verification] ✅ Registry Rule 1: Name match (+20)`);
                   } else {
@@ -241,7 +297,7 @@ router.post(
                   }
                   
                   // Rule 2: Council match (+20)
-                  if (rc && uc && (rc === uc || rc.includes(uc) || uc.includes(rc))) {
+                  if (safeCouncilMatch(rc, uc)) {
                     score += 20;
                     console.log(`[Verification] ✅ Registry Rule 2: Council match (+20)`);
                   } else {
@@ -358,7 +414,7 @@ router.post(
                   const uc = normalize(user.registration_council || "");
                   
                   // Rule 1: Name match (+20)
-                  if (rn && (userName.includes(rn) || rn.includes(userName))) {
+                  if (safeNameMatch(userName, rn)) {
                     score += 20;
                     console.log(`[Verification] ✅ Registry Rule 1: Name match (+20)`);
                   } else {
@@ -366,7 +422,7 @@ router.post(
                   }
                   
                   // Rule 2: Council match (+20)
-                  if (rc && uc && (rc === uc || rc.includes(uc) || uc.includes(rc))) {
+                  if (safeCouncilMatch(rc, uc)) {
                     score += 20;
                     console.log(`[Verification] ✅ Registry Rule 2: Council match (+20)`);
                   } else {

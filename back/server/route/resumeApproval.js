@@ -232,6 +232,7 @@ router.post("/application/approve/:applicationId", auth, async (req, res) => {
       .update({
         verification_status: "approved",
         interview_date,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", applicationId);
 
@@ -247,13 +248,8 @@ router.post("/application/approve/:applicationId", auth, async (req, res) => {
     });
 
     /* Socket notification */
-    if (io) {
-      io.to(application.user_id).emit("job_application_approved", {
-        job_title: jobData.title,
-        hospital_name: hospital.hospital_name,
-        interview_date: formattedDate,
-        created_at: new Date().toISOString(),
-      });
+     if (io) {
+      io.to(String(application.user_id)).emit("notifications_updated");
     }
 
     /* Email */
@@ -336,16 +332,13 @@ router.post("/application/reject/:applicationId", auth, async (req, res) => {
       .from("job_applications")
       .update({
         verification_status: "rejected",
+        updated_at: new Date().toISOString(),
       })
       .eq("id", applicationId);
 
     /* Socket notification */
     if (io) {
-      io.to(application.user_id).emit("job_application_rejected", {
-        job_title: jobData.title,
-        hospital_name: hospital.hospital_name,
-        created_at: new Date().toISOString(),
-      });
+      io.to(String(application.user_id)).emit("notifications_updated");
     }
 
     /* Email */

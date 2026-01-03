@@ -4,6 +4,7 @@ import PeopleSearch from "./PeopleSearch";
 import NotificationsModal from "./NotificationsModal";
 import API_BASE_URL from "../config/api.js";
 import logo1 from "../assets/1.png";
+import socket from "../socket/socket.js";
 
 export default function Navbar({ signedIn, role }) {
   const navigate = useNavigate();
@@ -12,10 +13,13 @@ export default function Navbar({ signedIn, role }) {
 
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authFormMode");
-    navigate("/");
-  };
+  localStorage.removeItem("token");
+  localStorage.removeItem("authFormMode");
+  socket.disconnect();
+  navigate("/");
+};
+
+
 
   const isAuthPage =
     location.pathname === "/auth" ||
@@ -30,9 +34,7 @@ export default function Navbar({ signedIn, role }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  /* =========================
-     AUTH FORM MODE SYNC
-     ========================= */
+  /* AUTH FORM MODE SYNC */
   useEffect(() => {
     const handleStorageChange = () => {
       setAuthFormMode(localStorage.getItem("authFormMode") || "login");
@@ -44,9 +46,7 @@ export default function Navbar({ signedIn, role }) {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [location.pathname]);
 
-  /* =========================
-     PROFILE COMPLETED
-     ========================= */
+  /* PROFILE COMPLETED*/
   useEffect(() => {
     if (!signedIn || role === "hospital" || role === "admin") return;
 
@@ -61,29 +61,47 @@ export default function Navbar({ signedIn, role }) {
       .catch(() => {});
   }, [signedIn, role]);
 
-  useEffect(() => {
-     if (!signedIn) return;
-
-     const token = localStorage.getItem("token");
-     if (!token) return;
-
      const checkNotifications = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/notifications`, {
+        const token = localStorage.getItem("token"); 
+        if (!token) return;
+
+      const res = await fetch(`${API_BASE_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) return;
 
       const data = await res.json();
-      setHasUpdates((data.notifications || []).length > 0);
+      setHasUpdates((data.unread_count || 0) > 0);
       } catch {
-      setHasUpdates(false);
-    }
+       setHasUpdates(false);
+     }
+   };
+
+
+  useEffect(() => {
+  if (!signedIn) return;
+
+  const handleNotificationsUpdate = () => {
+    checkNotifications();
   };
 
+  socket.on("notifications_updated", handleNotificationsUpdate);
+
+  return () => {
+    socket.off("notifications_updated", handleNotificationsUpdate);
+  };
+}, [signedIn]);
+
+
+useEffect(() => {
+  if (!signedIn) return;
+  const token = localStorage.getItem("token");
+     if (!token) return;
   checkNotifications();
 }, [signedIn]);
+
 
 
   return (
@@ -256,6 +274,7 @@ export default function Navbar({ signedIn, role }) {
         <NotificationsModal
           isOpen={showNotifications}
           onClose={() => setShowNotifications(false)}
+          onMarkedRead={checkNotifications}
         />
       )}
     </nav>

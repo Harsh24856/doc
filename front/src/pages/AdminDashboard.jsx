@@ -12,6 +12,22 @@ export default function AdminDashboard() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectUserId, setRejectUserId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const normalize = (str) =>
+  str
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ") // remove dots, commas, numbers
+    .replace(/\s+/g, " ")
+    .trim();
+  
+  const getTokens = (str) =>
+  str
+    .split(" ")
+    .filter(
+      (w) =>
+        w.length >= 3 &&                 // avoid "dr", "mr", "r"
+        !["dr", "mr", "ms", "mrs"].includes(w)
+    );
+
 
   const fetchPending = async () => {
     try {
@@ -288,11 +304,43 @@ export default function AdminDashboard() {
                             const graduation = parseInt(userGraduationYear, 10);
                             return registry === graduation || Math.abs(registry - graduation) <= 1;
                           };
+                           const safeNameMatch = (a, b) => {
+                              if (!a || !b) return false;
 
-                          // Compare values
-                          const nameMatch = registryData.name && u.name && 
-                            (normalize(registryData.name).includes(normalize(u.name)) || 
-                             normalize(u.name).includes(normalize(registryData.name)));
+                              const na = normalize(a);
+                              const nb = normalize(b);
+
+                              // Rule 1: Minimum length safeguard
+                              if (na.length < 6 || nb.length < 6) return false;
+
+                              const ta = getTokens(na);
+                              const tb = getTokens(nb);
+
+                              if (ta.length === 0 || tb.length === 0) return false;
+
+                              const matches = ta.filter(t => tb.includes(t));
+
+                              // Rule 2: Require strong overlap
+                              return (
+                                matches.length >= 2 ||                       // at least 2 words match
+                                matches.length / Math.min(ta.length, tb.length) >= 0.6
+                             );
+                          };
+
+                          const safeCouncilMatch = (a, b) => {
+                             if (!a || !b) return false;
+
+                             const na = normalize(a);
+                             const nb = normalize(b);
+
+                             if (na.length < 6 || nb.length < 6) return false;
+
+                             return (
+                              na === nb ||
+                              na.includes(nb) && nb.length >= 6 ||
+                              nb.includes(na) && na.length >= 6
+                            );
+                          };
                           
                           const regNoMatch = registryData.registration_number && u.registration_number &&
                             normalize(registryData.registration_number) === normalize(u.registration_number);
@@ -312,8 +360,8 @@ export default function AdminDashboard() {
                                   <p className="text-gray-600">IMR: {registryData.name || "N/A"}</p>
                                   <p className="text-gray-600">User: {u.name || "N/A"}</p>
                                 </div>
-                                <span className={`text-2xl ${nameMatch ? "text-green-600" : "text-red-600"}`}>
-                                  {nameMatch ? "✓" : "✗"}
+                                <span className={`text-2xl ${safeNameMatch(registryData.name, u.name) ? "text-green-600" : "text-red-600"}`}>
+                                  {safeNameMatch(registryData.name, u.name) ? "✓" : "✗"}
                                 </span>
                               </div>
 
@@ -336,8 +384,8 @@ export default function AdminDashboard() {
                                   <p className="text-gray-600">IMR: {registryData.council || "N/A"}</p>
                                   <p className="text-gray-600">User: {u.registration_council || "N/A"}</p>
                                 </div>
-                                <span className={`text-2xl ${councilMatch ? "text-green-600" : "text-red-600"}`}>
-                                  {councilMatch ? "✓" : "✗"}
+                                <span className={`text-2xl ${safeCouncilMatch(registryData.council, u.registration_council) ? "text-green-600" : "text-red-600"}`}>
+                                  {safeCouncilMatch(registryData.council, u.registration_council) ? "✓" : "✗"}
                                 </span>
                               </div>
 
