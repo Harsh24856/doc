@@ -77,6 +77,7 @@ DOCUMENT TYPE CONSISTENCY CHECK (CRITICAL):
 - This is NOT a rejection, only a classification concern for admin review.
 
 GENERAL COMPARISON RULES:
+- If the extracted text and the hospital profile dont match reduce confidence.
 - Minor spelling variations are acceptable.
 - Major mismatches in hospital name or context reduce confidence.
 - Missing expected fields reduce confidence.

@@ -253,32 +253,6 @@ export default function ViewResume() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              {isHospital && (
-                <>
-                  {data.verification_status !== "approved" && (
-                    <button
-                      onClick={() => setShowDateModal(true)}
-                      disabled={processing}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-green-600 text-white rounded-lg sm:rounded-xl hover:bg-green-700 transition font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
-                    >
-                      <span className="material-symbols-outlined text-sm">check_circle</span>
-                      <span className="hidden sm:inline">Approve Resume</span>
-                      <span className="sm:hidden">Approve</span>
-                    </button>
-                  )}
-                  {data.verification_status !== "rejected" && (
-                    <button
-                      onClick={handleReject}
-                      disabled={processing || data.verification_status === "approved"}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
-                    >
-                      <span className="material-symbols-outlined text-sm">cancel</span>
-                      <span className="hidden sm:inline">Reject Resume</span>
-                      <span className="sm:hidden">Reject</span>
-                    </button>
-                  )}
-                </>
-              )}
               <button
                 onClick={() => navigate(-1)}
                 className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg sm:rounded-xl hover:bg-gray-300 transition flex items-center justify-center gap-2 text-sm sm:text-base"

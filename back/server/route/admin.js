@@ -106,63 +106,49 @@ router.post(
   adminOnly,
   async (req, res) => {
     const { userId, action } = req.params;
-    const { rejection_reason } = req.body;
+    const { rejection_reason } = req.body || {};
 
-    console.log(
-      `[Admin] ${action === "approve" ? "✅" : "❌"} ${action.toUpperCase()} request for user: ${userId}`
-    );
-
-    //  Validate action
     if (!["approve", "reject"].includes(action)) {
-      console.error(`[Admin] ❌ Invalid action: ${action}`);
       return res.status(400).json({ error: "Invalid action" });
     }
 
-    //  If rejecting, rejection reason is REQUIRED
-    if (action === "reject" && (!rejection_reason || rejection_reason.trim() === "")) {
-      return res.status(400).json({
-        error: "Rejection reason is required when rejecting a user",
-      });
-    }
-
-    //  Prepare update payload
     const updates =
       action === "approve"
         ? {
             verified: true,
             verification_status: "approved",
-            rejection_reason: null, // clear old reason if any
+            rejection_reason: null,
             updated_at: new Date().toISOString(),
           }
         : {
             verified: false,
             verification_status: "rejected",
-            rejection_reason: rejection_reason.trim(),
+            rejection_reason: rejection_reason?.trim() || null,
             updated_at: new Date().toISOString(),
           };
 
-    //  Update DB
     const { error } = await supabase
       .from("users")
       .update(updates)
       .eq("id", userId);
 
     if (error) {
-      console.error(`[Admin] ❌ Error ${action}ing user:`, error.message);
       return res.status(500).json({ error: error.message });
     }
 
-    console.log(`[Admin] ✅ User ${action}d successfully`);
     res.json({
       message: `User ${action}d successfully`,
-      ...(action === "reject" && { rejection_reason }),
+      ...(rejection_reason && { rejection_reason }),
     });
-    if (io) {
-     io.to(String(userId)).emit("notifications_updated");
-   }
 
+    if (io) {
+      io.to(String(userId)).emit("notifications_updated");
+    }
   }
 );
+
+
+
 
 
 export default router;

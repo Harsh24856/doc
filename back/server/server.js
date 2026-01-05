@@ -12,7 +12,7 @@ import hospitalProfile from "./route/hospitalProfile.js"
 import hospitalFetch from "./route/hospitalFetch.js"
 import adminHospital from "./route/adminHospital.js"
 import job from "./route/job.js"
-
+import getStatus from "./route/getStatus.js"
 import profileRoutes from "./route/profile.js";
 import auth from "./middleware/auth.js";
 import verificationRoutes from "./route/verification.js";
@@ -86,13 +86,14 @@ app.use("/jobs", appliedRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/resume", resumeApprovalRoutes);
 app.use("/applications", resumeApprovalRoutes);
+app.use("/get-status", getStatus);
 
-/* 🔥 CHAT ROUTES */
+/*  CHAT ROUTES */
 app.use("/users", usersRoutes);
 app.use("/messages", messagesRoutes);
 app.use("/chat", uploadRoutes);
 
-/* 🔥 NEWS ROUTES */
+/*  NEWS ROUTES */
 app.use("/news", newsRoutes);
 app.use("/who", whoRoutes);
 app.use("/search", searchRoutes);

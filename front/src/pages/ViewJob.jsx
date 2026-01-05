@@ -11,8 +11,9 @@ export default function ViewJob() {
   const [applying, setApplying] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Check if user profile is completed
+  // Check if user is verified
   useEffect(() => {
     const checkProfile = async () => {
       const token = localStorage.getItem("token");
@@ -22,13 +23,13 @@ export default function ViewJob() {
       }
 
       try {
-        const res = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
+        const res = await fetch(`${API_BASE_URL}/get-status/doctor`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
-          setProfileCompleted(data.profile_completed || false);
+          setIsVerified(data.status === "approved" || false);
         }
       } catch (err) {
         console.error("Error checking profile:", err);
@@ -73,8 +74,8 @@ export default function ViewJob() {
     }
 
     // Check if profile is completed
-    if (!profileCompleted) {
-      alert("⚠️ Please complete your profile before applying for jobs. Go to Resume page to complete your profile.");
+    if (!isVerified) {
+      alert("⚠️ You need to be verified before applying for a job");
       return;
     }
 
@@ -220,20 +221,20 @@ export default function ViewJob() {
 
         {/* APPLY SECTION */}
         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 md:p-10">
-          {!checkingProfile && !profileCompleted && (
+          {!checkingProfile && !isVerified && (
             <div className="mb-4 sm:mb-6 md:mb-8 bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400 rounded-xl sm:rounded-2xl p-4 sm:p-6">
               <div className="flex items-start gap-3 sm:gap-4">
                 <span className="text-2xl sm:text-3xl flex-shrink-0">⚠️</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-yellow-900 mb-2 text-base sm:text-lg">Profile Incomplete</p>
+                  <p className="font-bold text-yellow-900 mb-2 text-base sm:text-lg">Not Verified</p>
                   <p className="text-xs sm:text-sm text-yellow-800 mb-3 sm:mb-4">
-                    Please complete your profile before applying for jobs.
+                    You need to be verified before applying for a job
                   </p>
                   <a 
-                    href="/resume" 
+                    href="/get-verified" 
                     className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] transition duration-300"
                   >
-                    Complete Profile →
+                    Get Verified →
                   </a>
                 </div>
               </div>
@@ -249,9 +250,9 @@ export default function ViewJob() {
             </button>
             <button
               onClick={handleApply}
-              disabled={applying || !profileCompleted || checkingProfile}
+              disabled={applying || !isVerified || checkingProfile}
               className={`w-full sm:w-auto px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 md:py-3.5 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base transition-all duration-300 text-white flex items-center justify-center gap-2
-                ${applying || !profileCompleted || checkingProfile
+                ${applying || !isVerified || checkingProfile
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] hover:shadow-2xl hover:scale-105"}
               `}
@@ -266,8 +267,8 @@ export default function ViewJob() {
                   <span className="animate-spin">⏳</span>
                   Applying…
                 </>
-              ) : !profileCompleted ? (
-                "Complete Profile to Apply"
+              ) : !isVerified ? (
+                "Get Verified to Apply"
               ) : (
                 <>
                   <span>✨</span>

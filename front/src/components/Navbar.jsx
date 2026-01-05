@@ -152,7 +152,7 @@ useEffect(() => {
             {/* ADMIN NAV */}
             {signedIn && role === "admin" && (
               <>
-                <NavItem to="/admin" icon="dashboard" label="Dashboard" />
+                <NavItem to="/admin" icon="dashboard" label="Doctors" />
                 <NavItem to="/admin-hospital" icon="local_hospital" label="Hospitals" />
               </>
             )}
@@ -178,7 +178,7 @@ useEffect(() => {
                   to="/dashboard"
                   className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
                 >
-                  {role === "admin" ? "A" : role === "hospital" ? "H" : "U"}
+                  {role === "admin" ? "A" : role === "hospital" ? "H" : "D"}
                 </Link>
 
                 {/* <button
@@ -224,7 +224,7 @@ useEffect(() => {
          to="/dashboard"
          className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
          >
-          {role === "admin" ? "A" : role === "hospital" ? "H" : "U"}
+          {role === "admin" ? "A" : role === "hospital" ? "H" : "D"}
          </Link>
         )}
           </div>
@@ -255,6 +255,12 @@ useEffect(() => {
                  <MobileNavItem to="/get-verified" label="Get Verified" />
               )}
             </>
+            )}
+
+            {signedIn && role === "admin" && ( <>
+              <MobileNavItem to="/admin" label="Doctors" />
+              <MobileNavItem to="/admin-hospital" label="Hospitals" />
+              </>
             )}
 
             {signedIn && (
