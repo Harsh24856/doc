@@ -29,6 +29,7 @@ async function extractTextFromPdf(buffer) {
 
 /* Scanned PDF OCR: PDF → Image → Vision */
 async function extractTextFromPdfViaImage(buffer) {
+
   // Create temp directory
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "pdf-ocr-"));
 

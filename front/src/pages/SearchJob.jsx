@@ -16,6 +16,7 @@ export default function AllJobs() {
     experience: "",
     min_salary: "",
     max_salary: "",
+    city: "",
   });
 
   /* AUTO SEARCH EFFECT */
@@ -64,71 +65,99 @@ export default function AllJobs() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-10">
-
-        {/* HEADER */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* HEADER SECTION */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] mb-6 shadow-2xl">
+            <span className="material-symbols-outlined text-5xl text-white">local_hospital</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Job Openings
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Explore available opportunities
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover your next career opportunity in healthcare
           </p>
         </div>
 
-        {/* FILTERS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* FILTERS CARD */}
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="material-symbols-outlined text-2xl text-gray-700">search</span>
+            <h2 className="text-xl font-bold text-gray-800">Search & Filter</h2>
+          </div>
 
-          <Input
-            label="Department"
-            value={filters.department}
-            onChange={(v) =>
-              setFilters({ ...filters, department: v })
-            }
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Input
+              label="Department"
+              value={filters.department}
+              onChange={(v) =>
+                setFilters({ ...filters, department: v })
+              }
+              icon={<span className="material-symbols-outlined text-lg">local_hospital</span>}
+            />
 
-          <Input
-            label="Experience (years)"
-            value={filters.experience}
-            onChange={(v) =>
-              setFilters({ ...filters, experience: v })
-            }
-          />
+            <Input
+              label="City"
+              value={filters.city}
+              onChange={(v) =>
+                setFilters({ ...filters, city: v })
+              }
+              placeholder="e.g. Mumbai, Delhi, Bangalore"
+              icon={<span className="material-symbols-outlined text-lg">location_on</span>}
+            />
 
-          <Select
-            label="Job Type"
-            value={filters.job_type}
-            onChange={(v) =>
-              setFilters({ ...filters, job_type: v })
-            }
-            options={[
-              { label: "Any", value: "" },
-              { label: "Full Time", value: "full-time" },
-              { label: "Part Time", value: "part-time" },
-              { label: "Contract", value: "contract" },
-            ]}
-          />
+            <Input
+              label="Experience"
+              value={filters.experience}
+              onChange={(v) =>
+                setFilters({ ...filters, experience: v })
+              }
+              placeholder="Years of experience"
+              icon={<span className="material-symbols-outlined text-lg">star</span>}
+            />
 
-          <div className="grid grid-cols-2 gap-4">
+            <Select
+              label="Job Type"
+              value={filters.job_type}
+              onChange={(v) =>
+                setFilters({ ...filters, job_type: v })
+              }
+              options={[
+                { label: "Any Type", value: "" },
+                { label: "Full Time", value: "full-time" },
+                { label: "Part Time", value: "part-time" },
+                { label: "Contract", value: "contract" },
+              ]}
+              icon={<span className="material-symbols-outlined text-lg">medical_services</span>}
+            />
+
             <Input
               label="Min Salary"
+              type="number"
               value={filters.min_salary}
               onChange={(v) =>
                 setFilters({ ...filters, min_salary: v })
               }
+              placeholder="₹"
+              icon={<span className="material-symbols-outlined text-lg">payments</span>}
             />
+
             <Input
               label="Max Salary"
+              type="number"
               value={filters.max_salary}
               onChange={(v) =>
                 setFilters({ ...filters, max_salary: v })
               }
+              placeholder="₹"
+              icon={<span className="material-symbols-outlined text-lg">payments</span>}
             />
           </div>
 
-          {/* RESET */}
-          <div className="md:col-span-2 flex justify-end">
+          {/* RESET BUTTON */}
+          <div className="flex justify-end mt-8 pt-8 border-t border-gray-200">
             <button
               onClick={() =>
                 setFilters({
@@ -137,48 +166,104 @@ export default function AllJobs() {
                   experience: "",
                   min_salary: "",
                   max_salary: "",
+                  city: "",
                 })
               }
-              className="px-6 py-2 border rounded-lg text-gray-600"
+              className="px-8 py-3 rounded-2xl font-medium text-gray-700 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-300 hover:scale-105 flex items-center gap-2"
             >
+              <span className="material-symbols-outlined text-lg">refresh</span>
               Reset Filters
             </button>
           </div>
         </div>
 
-        {/* ERROR */}
-        {error && (
-          <p className="text-sm text-red-600 mb-4">{error}</p>
-        )}
-
-        {/* RESULTS */}
-        {loading ? (
-          <div className="text-center text-gray-500">
-            Loading jobs…
+        {/* RESULTS SECTION */}
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-10">
+          {/* RESULTS HEADER */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {loading ? "Searching..." : `${jobs.length} Job${jobs.length !== 1 ? 's' : ''} Found`}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {loading ? "Please wait..." : "Click on any job to view details"}
+              </p>
+            </div>
           </div>
-        ) : jobs.length === 0 ? (
-          <p className="text-gray-500">
-            No jobs match your filters.
-          </p>
-        ) : (
-          <ul className="space-y-4">
-            {jobs.map((job) => (
-              <li
-                key={job.id}
-                className="flex items-center justify-between border rounded-lg px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
-                onClick={() => navigate(`/jobs/view/${job.id}`)}
-              >
-                <span className="text-gray-800 font-medium">
-                  {job.title}
-                </span>
 
-                <span className="text-sm text-blue-600">
-                  View →
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+          {/* ERROR */}
+          {error && (
+            <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-2xl p-5">
+              <p className="text-sm font-medium text-red-800">{error}</p>
+            </div>
+          )}
+
+          {/* RESULTS */}
+          {loading ? (
+            <div className="text-center py-16">
+              <span className="material-symbols-outlined text-5xl text-gray-400 mb-4 block animate-spin">hourglass_empty</span>
+              <p className="text-gray-500">Loading jobs…</p>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-16">
+              <span className="material-symbols-outlined text-6xl text-gray-400 mb-4 block">search_off</span>
+              <p className="text-xl font-semibold text-gray-800 mb-2">
+                No jobs found
+              </p>
+              <p className="text-gray-500">
+                Try adjusting your filters to see more results
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5">
+              {jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="group relative bg-gradient-to-r from-white to-gray-50 border-2 border-gray-200 rounded-3xl p-8 cursor-pointer 
+                           hover:border-[var(--color-primary)] hover:shadow-2xl transition-all duration-300 ease-in-out
+                           hover:scale-[1.01]"
+                  onClick={() => navigate(`/jobs/view/${job.id}`)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] 
+                                     flex items-center justify-center text-white shadow-lg">
+                          <span className="material-symbols-outlined text-3xl">local_hospital</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition duration-300">
+                            {job.title}
+                          </h3>
+                          {job.hospital && (
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-sm font-medium text-gray-700">
+                                {job.hospital.name}
+                              </span>
+                              {job.hospital.city && (
+                                <span className="text-sm text-gray-500 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-sm">location_on</span>
+                                  {job.hospital.city}
+                                  {job.hospital.state && `, ${job.hospital.state}`}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-5 py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-2xl font-semibold text-sm shadow-md">
+                        View Details
+                      </span>
+                      <span className="text-2xl group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </div>
@@ -186,34 +271,40 @@ export default function AllJobs() {
 }
 
 /* INPUT COMPONENT */
-function Input({ label, value, onChange }) {
+function Input({ label, value, onChange, placeholder, type = "text", icon }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+        {icon && (typeof icon === 'string' ? <span>{icon}</span> : icon)}
         {label}
       </label>
       <input
+        type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg transition
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={placeholder}
+        className="w-full px-5 py-3.5 border-2 border-gray-200 rounded-2xl transition-all duration-300
+                   focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20
+                   bg-gray-50 focus:bg-white hover:border-gray-300"
       />
     </div>
   );
 }
 
 /* SELECT COMPONENT */
-function Select({ label, value, onChange, options }) {
+function Select({ label, value, onChange, options, icon }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+        {icon && (typeof icon === 'string' ? <span>{icon}</span> : icon)}
         {label}
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg transition
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-5 py-3.5 border-2 border-gray-200 rounded-2xl transition-all duration-300
+                   focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20
+                   bg-gray-50 focus:bg-white hover:border-gray-300 cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

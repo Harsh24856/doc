@@ -97,7 +97,7 @@ export default function News() {
         />
         <button
           onClick={resetAndFetch}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[var(--color-primary-dark)] transition"
         >
           Search
         </button>
@@ -140,7 +140,7 @@ export default function News() {
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 text-sm font-medium hover:underline"
+                className="text-[var(--color-primary)] text-sm font-medium hover:underline"
               >
                 Read more →
               </a>
