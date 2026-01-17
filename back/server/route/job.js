@@ -1,6 +1,8 @@
 import express from "express";
 import auth from "../middleware/auth.js";
 import supabase from "../db.js";
+import latency from "../middleware/latency.js";
+import redis from "../redis.js";
 
 const router = express.Router();
 
@@ -307,6 +309,17 @@ router.get(
 
 router.get("/search", async (req, res) => {
   try {
+    const orderedQuery = Object.keys(req.query)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = req.query[key];
+      return acc;
+    },{});
+    const cacheKey = `jobs:search:${JSON.stringify(orderedQuery)}`
+    const cached = await redis.get(cacheKey);
+    if(cached){
+      return res.json(cached);
+    }
     const {
       department,
       job_type,
@@ -466,7 +479,7 @@ jobs.sort((a, b) => {
   /* FINAL FALLBACK → newest jobs first */
   return new Date(b.created_at) - new Date(a.created_at);
 });
-
+    await redis.set(cacheKey, {jobs}, {ex : 60});
     return res.json({ jobs });
   } catch (err) {
     console.error("JOB SEARCH ERROR:", err);

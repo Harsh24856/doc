@@ -1,18 +1,22 @@
 import express from "express";
 import supabase from "../db.js";
+import latency from "../middleware/latency.js";
+import redis from "../redis.js";
 
 const router = express.Router();
 
-/* =========================
-   🔍 SEARCH USERS AND HOSPITALS (AUTOCOMPLETE)
-   ========================= */
+/* SEARCH USERS AND HOSPITALS (AUTOCOMPLETE) */
 router.get("/users", async (req, res) => {
   const q = req.query.q;
 
   if (!q || q.length < 2) {
     return res.json([]);
   }
-
+  const cacheKey = `users:search:${JSON.stringify(req.query)}`
+  const cached = await redis.get(cacheKey);
+  if(cached){
+    return res.json(cached);
+  }
   const search = `%${q}%`;
 
   try {
@@ -70,7 +74,7 @@ router.get("/users", async (req, res) => {
       location: `${hospital.hospital_city || ""}${hospital.hospital_city && hospital.hospital_state ? ", " : ""}${hospital.hospital_state || ""}`.trim(),
       hospital_type: hospital.hospital_type
     }));
-
+    await redis.set(cacheKey, [...userResults, ...hospitalResults], {ex : 60});
     res.json([...userResults, ...hospitalResults]);
 
   } catch (err) {
@@ -84,7 +88,17 @@ router.get("/users", async (req, res) => {
    ========================= */
 router.get("/doctors", async (req, res) => {
   const { name, department, council, registration_number } = req.query;
-
+  const orderedQuery = Object.keys(req.query)
+  .sort()
+  .reduce((acc, key) => {
+    acc[key] = req.query[key];
+    return acc;
+  }, {});
+  const cacheKey = `doctors:search:${JSON.stringify(orderedQuery)}`;
+  const cached = await redis.get(cacheKey);
+  if(cached){
+    return res.json(cached);
+  }
   try {
     let query = supabase
       .from("users")
@@ -126,7 +140,7 @@ router.get("/doctors", async (req, res) => {
       console.error("[Search Doctors Error]:", error.message);
       return res.status(500).json({ error: "Failed to search doctors" });
     }
-
+    await redis.set(cacheKey, { doctors: doctors || [] }, {ex : 60});
     res.json({ doctors: doctors || [] });
   } catch (err) {
     console.error("[Search Doctors Error]:", err.message);
@@ -139,7 +153,11 @@ router.get("/doctors", async (req, res) => {
    ========================= */
 router.get("/profile/:id", async (req, res) => {
   const { id } = req.params;
-
+  const cacheKey = `profile:${JSON.stringify(id)}`;
+  const cached = await redis.get(cacheKey);
+  if(cached){
+    return res.json(cached);
+  }
   const { data, error } = await supabase
     .from("users")
     .select(`
@@ -160,7 +178,7 @@ router.get("/profile/:id", async (req, res) => {
   if (error || !data) {
     return res.status(404).json({ error: "Profile not found" });
   }
-
+  await redis.set(cacheKey, data, {ex : 120});
   res.json(data);
 });
 

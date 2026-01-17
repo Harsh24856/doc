@@ -31,6 +31,7 @@ import dashboardRoutes from "./route/dashboard.js";
 import appliedRoutes from "./route/applied.js";
 import notificationsRoutes from "./route/notifications.js";
 import resumeApprovalRoutes from "./route/resumeApproval.js";
+import "./redis.js";
 
 import supabase from "./db.js";
 

@@ -2,6 +2,8 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import supabase from "../db.js";
 import supabaseAdmin from "../Admin.js";
+import latency from "../middleware/latency.js";
+import redis from "../redis.js";
 
 const router = express.Router();
 
@@ -241,11 +243,15 @@ router.get("/resume/:userId", auth, async (req, res) => {
 /* =========================
    PUBLIC PROFILE (No auth required)
    ========================= */
-router.get("/public/:userId", async (req, res) => {
+router.get("/public/:userId", latency, async (req, res) => {
   try {
     const { userId } = req.params;
     console.log("[Profile] Fetching public profile for user:", userId);
-    
+    const cacheKey = `public:profile:${JSON.stringify(userId)}`;
+    const cache = await redis.get(cacheKey);
+    if(cache){
+      return res.json(cache);
+    }
     // First, get the user to check their role
     const { data: user, error: userError } = await supabase
       .from("users")
@@ -271,7 +277,6 @@ router.get("/public/:userId", async (req, res) => {
       console.error("[Profile] User not found for ID:", userId);
       return res.status(404).json({ error: "User not found" });
     }
-
     console.log("[Profile] User found:", { id: user.id, name: user.name, role: user.role, profile_completed: user.profile_completed });
 
     // If user is a hospital, fetch from hospitals table
@@ -369,6 +374,7 @@ router.get("/public/:userId", async (req, res) => {
     }
 
     console.log("[Profile] Returning public profile for user:", userId);
+    await redis.set(cacheKey, fullUser, {ex :300});
     res.json(fullUser);
   } catch (err) {
     console.error("[Profile] Error in GET /public/:userId:", err.message);
