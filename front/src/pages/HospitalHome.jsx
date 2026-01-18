@@ -78,272 +78,149 @@ export default function HospitalHome() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--color-accent)] via-white to-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-6 pt-12 sm:pt-16 md:pt-20 pb-16 flex flex-col md:flex-row items-center gap-12">
-        {/* Left Text */}
-        <div className="md:w-1/2 text-center md:text-left">
-          <div className="mb-8 sm:mb-10">
-            <span className="inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white text-lg sm:text-xl md:text-2xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-              <span className="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl">local_hospital</span>
-              <span>Hospital Portal</span>
-            </span>
-          </div>
-          
-          {hospitalData && hospitalData.hospital_name && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                Welcome, {hospitalData.hospital_name}
-              </h2>
-              {hospitalData.hospital_city && hospitalData.hospital_state && (
-                <p className="text-gray-600">
-                  {hospitalData.hospital_city}, {hospitalData.hospital_state}
-                </p>
+      <div className="relative overflow-hidden bg-gray-900 text-white">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-800 opacity-90"></div>
+        <div className="max-w-7xl mx-auto px-6 py-24 sm:py-32 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="md:w-1/2">
+               {hospitalData && hospitalData.hospital_name && (
+                <div className="mb-6 inline-block">
+                   <div className="px-4 py-2 bg-gray-800 rounded-lg border border-gray-700">
+                    <p className="text-gray-300 font-medium text-sm">
+                      Welcome back, {hospitalData.hospital_name}
+                    </p>
+                   </div>
+                </div>
               )}
-              {hospitalData.hospital_type && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {hospitalData.hospital_type}
-                </p>
-              )}
+
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                <span className="text-[var(--color-primary)]">Hire Trusted</span> <br />
+                Medical Professionals
+              </h1>
+
+              <p className="text-lg text-gray-400 mb-8 max-w-lg leading-relaxed">
+                Connect with thousands of verified doctors and streamline your recruitment process with AI-powered verification.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  to="/post-job"
+                  className="btn-primary px-8 py-3.5 text-lg shadow-lg shadow-red-900/20"
+                >
+                  Post a Job
+                </Link>
+                <Link
+                  to="/hospital-profile"
+                  className="px-8 py-3.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition border border-gray-700 text-lg"
+                >
+                  Manage Profile
+                </Link>
+              </div>
             </div>
-          )}
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Manage Your Hospital, <br/>
-            <span className="text-[var(--color-primary)]">Find Top Talent.</span>
-          </h1>
-  
-          <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            DocSpace Hospital Portal helps you recruit verified doctors, manage your team, 
-            and streamline your hiring process. Connect with qualified healthcare professionals 
-            and grow your institution.
-          </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <Link 
-              to="/post-job" 
-              className="px-8 py-3.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold shadow-lg hover:bg-[var(--color-primary-dark)] hover:shadow-xl transition transform hover:-translate-y-0.5"
-            >
-              Post a Job
-            </Link>
-            <Link 
-              to="/hospital-profile" 
-              className="px-8 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-lg font-semibold shadow-sm hover:bg-gray-50 transition"
-            >
-              Manage Profile
-            </Link>
-          </div>
-        </div>
-
-        {/* Right Image */}
-        <div className="md:w-1/2 flex justify-center">
-          <div className="relative w-full max-w-lg aspect-square bg-white rounded-3xl shadow-2xl p-8 flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-red-50 to-transparent opacity-50"></div>
-            <img
-              src={hospitalImage}
-              alt="Hospital Management"
-              className="object-cover w-full h-full rounded-2xl opacity-90 border-0"
-            />
+            <div className="md:w-1/2 flex justify-center">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
+                <img
+                  src={hospitalImage}
+                  alt="Hospital Management"
+                  className="object-cover w-full h-full max-h-[500px]"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-20 bg-white rounded-t-[3rem] shadow-sm">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Hospital Management Tools</h2>
-          <p className="text-gray-500">Everything you need to run your hospital efficiently</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={<span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">verified_user</span>}
-            title="Hospital Profile"
-            desc="Set up your hospital profile to get verified and connect with qualified healthcare professionals."
-            link="/hospital-profile"
-            linkText="Manage Doctors"
-          />
-          <FeatureCard
-            icon={<span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">work</span>}
-            title="Job Posting"
-            desc="Post job openings and reach thousands of qualified healthcare professionals. Find the perfect candidates."
+      {/* Quick Actions Grid */}
+      <div className="max-w-7xl mx-auto px-6 -mt-16 relative z-20 mb-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <ActionCard
+            icon="add_business"
+            title="Post New Job"
+            desc="Create a new job posting"
             link="/post-job"
-            linkText="Post Jobs"
           />
-          <FeatureCard
-            icon={<span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">bar_chart</span>}
-            title="Analytics & Reports"
-            desc="View detailed analytics, application statistics, and compliance reports for your hospital."
+          <ActionCard
+            icon="work"
+            title="Manage Jobs"
+            desc="View active listings"
             link="/posted-jobs"
-            linkText="View Reports"
+          />
+          <ActionCard
+            icon="local_hospital"
+            title="Hospital Profile"
+            desc="Update your details"
+            link="/hospital-profile"
+          />
+          <ActionCard
+            icon="person_search"
+            title="Search Doctors"
+            desc="Find candidates"
+            link="/find-doctor"
           />
         </div>
       </div>
 
       {/* Stats Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white">
-        <div className="grid md:grid-cols-4 gap-8 text-center mb-8">
-          <div>
-            <div className="text-4xl font-bold mb-2">0</div>
-            <div className="text-red-100">Hospitals Registered</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">0</div>
-            <div className="text-red-100">Verified Doctors</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">0</div>
-            <div className="text-red-100">Active Job Postings</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">99%</div>
-            <div className="text-red-100">AI Verification Accuracy</div>
-          </div>
-        </div>
-        <div className="text-center mt-8 pt-8 border-t border-red-300">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-3xl">psychology</span>
-            <h3 className="text-2xl font-bold">AI-Driven Verification System</h3>
-          </div>
-          <p className="text-red-100 text-lg">Advanced AI technology with 99% accuracy for doctor credential verification</p>
+      <div className="bg-gray-50 py-20 border-y border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Hospitals Choose DocSpace</h2>
+             <p className="text-gray-600 max-w-2xl mx-auto">
+               Our platform offers the most advanced verification system to ensure you hire only qualified professionals.
+             </p>
+           </div>
+
+           <div className="grid md:grid-cols-3 gap-8 text-center">
+             <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100">
+               <div className="w-16 h-16 bg-red-50 text-[var(--color-primary)] rounded-full flex items-center justify-center mx-auto mb-6">
+                 <span className="material-symbols-outlined text-4xl">verified_user</span>
+               </div>
+               <h3 className="text-xl font-bold text-gray-900 mb-2">99% Verification Accuracy</h3>
+               <p className="text-gray-500">AI-driven document analysis and registry checks.</p>
+             </div>
+             <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100">
+               <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                 <span className="material-symbols-outlined text-4xl">speed</span>
+               </div>
+               <h3 className="text-xl font-bold text-gray-900 mb-2">Fast Hiring</h3>
+               <p className="text-gray-500">Reduce time-to-hire with instant candidate matching.</p>
+             </div>
+             <div className="p-8 bg-white rounded-xl shadow-sm border border-gray-100">
+               <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                 <span className="material-symbols-outlined text-4xl">group</span>
+               </div>
+               <h3 className="text-xl font-bold text-gray-900 mb-2">Large Talent Pool</h3>
+               <p className="text-gray-500">Access thousands of active healthcare professionals.</p>
+             </div>
+           </div>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <div className="max-w-7xl mx-auto px-6 py-20 bg-white">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <p className="text-gray-500">Get started with these essential tasks</p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ActionCard
-            icon={<span className="material-symbols-outlined text-2xl text-white">add</span>}
-            title="Post New Job"
-            desc="Create a new job posting"
-            link="/post-job"
-            color="bg-[var(--color-primary)]"
-          />
-          <ActionCard
-            icon={<span className="material-symbols-outlined text-2xl text-white">visibility</span>}
-            title="View Posted Jobs"
-            desc="Manage your job listings"
-            link="/posted-jobs"
-            color="bg-[var(--color-primary-dark)]"
-          />
-          <ActionCard
-            icon={<span className="material-symbols-outlined text-2xl text-white">local_hospital</span>}
-            title="Hospital Profile"
-            desc="Update your hospital info"
-            link="/hospital-profile"
-            color="bg-[var(--color-primary)]"
-          />
-          <ActionCard
-            icon={<span className="material-symbols-outlined text-2xl text-white">search</span>}
-            title="Search Doctors"
-            desc="Find qualified candidates"
-            link="/find-doctor"
-            color="bg-[var(--color-primary-dark)]"
-          />
-        </div>
-      </div>
-
-      {/* How It Works Section */}
-      <div className="max-w-7xl mx-auto px-6 py-20 bg-gray-50">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-          <p className="text-gray-500">Recruit top talent in three simple steps</p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          <StepCard
-            number="1"
-            title="Complete Your Profile"
-            desc="Set up your hospital profile with all necessary details and verification documents."
-          />
-          <StepCard
-            number="2"
-            title="Post Job Openings"
-            desc="Create detailed job postings with requirements, benefits, and application process."
-          />
-          <StepCard
-            number="3"
-            title="Review & Hire"
-            desc="Review applications from verified doctors and connect with the best candidates."
-          />
-        </div>
-            </div>
-  
-      {/* Benefits Section */}
-      <div className="max-w-7xl mx-auto px-6 py-20 bg-white">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose DocSpace?</h2>
-          <p className="text-gray-500">Benefits of using our platform</p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <BenefitCard
-            icon="✅"
-            title="Verified Professionals"
-            desc="All doctors are verified with authentic credentials and licenses."
-          />
-          <BenefitCard
-            icon="⚡"
-            title="Fast Hiring Process"
-            desc="Streamlined application process helps you hire faster."
-          />
-          <BenefitCard
-            icon="🔒"
-            title="Secure Platform"
-            desc="Your data and communications are protected with enterprise-grade security."
-          />
-          <BenefitCard
-            icon="📈"
-            title="Analytics Dashboard"
-            desc="Track applications, views, and hiring metrics in real-time."
-          />
-          <BenefitCard
-            icon="💬"
-            title="Direct Communication"
-            desc="Chat directly with candidates and manage conversations easily."
-          />
-          <BenefitCard
-            icon="🌐"
-            title="Wide Reach"
-            desc="Access to thousands of qualified healthcare professionals nationwide."
-          />
-        </div>
-            </div>
   
       {/* News & Updates Section */}
-      <div className="max-w-7xl mx-auto px-6 py-20 bg-gray-50">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-            <span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">newspaper</span>
-            Stay Informed
-          </h2>
-          <p className="text-gray-500">Latest medical news and WHO updates</p>
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="flex items-center justify-between mb-12">
+           <div>
+             <h2 className="text-3xl font-bold text-gray-900 mb-2">Latest Updates</h2>
+             <p className="text-gray-600">Stay informed with medical news and WHO alerts.</p>
+           </div>
+           <Link to="/news" className="text-[var(--color-primary)] font-semibold hover:underline hidden sm:block">View All News</Link>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="grid md:grid-cols-2 gap-8">
           {/* Medical News */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">article</span>
-                Medical News
-              </h3>
-              <Link 
-                to="/news" 
-                className="text-[var(--color-primary)] text-sm font-semibold hover:underline flex items-center gap-1"
-              >
-                View All
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </Link>
-            </div>
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2 pb-4 border-b">
+              <span className="material-symbols-outlined text-[var(--color-primary)]">newspaper</span>
+              Medical News
+            </h3>
             
             {newsLoading ? (
-              <div className="text-center py-8">
-                <span className="material-symbols-outlined text-4xl text-gray-400 mb-2 block animate-spin">hourglass_empty</span>
-                <p className="text-gray-500">Loading news...</p>
-              </div>
+               <div className="space-y-4 animate-pulse">
+                 {[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-lg"></div>)}
+               </div>
             ) : newsArticles.length > 0 ? (
               <div className="space-y-4">
                 {newsArticles.map((article, index) => (
@@ -351,72 +228,30 @@ export default function HospitalHome() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <span className="material-symbols-outlined text-4xl text-gray-400 mb-2 block">newspaper</span>
-                <p className="text-gray-500">No news available</p>
-              </div>
+              <p className="text-gray-500">No news available.</p>
             )}
           </div>
 
           {/* WHO Updates */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">local_hospital</span>
-                WHO Updates
-              </h3>
-              <Link 
-                to="/who" 
-                className="text-[var(--color-primary)] text-sm font-semibold hover:underline flex items-center gap-1"
-              >
-                View All
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </Link>
-            </div>
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2 pb-4 border-b">
+              <span className="material-symbols-outlined text-blue-600">health_and_safety</span>
+              WHO Updates
+            </h3>
             
             {whoLoading ? (
-              <div className="text-center py-8">
-                <span className="material-symbols-outlined text-4xl text-gray-400 mb-2 block animate-spin">hourglass_empty</span>
-                <p className="text-gray-500">Loading updates...</p>
-              </div>
+               <div className="space-y-4 animate-pulse">
+                 {[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-lg"></div>)}
+               </div>
             ) : whoUpdates.length > 0 ? (
               <div className="space-y-4">
                 {whoUpdates.map((article, index) => (
-                  <WHOUpdateCard key={index} article={article} />
+                  <NewsCard key={index} article={article} isWho />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <span className="material-symbols-outlined text-4xl text-gray-400 mb-2 block">local_hospital</span>
-                <p className="text-gray-500">No updates available</p>
-              </div>
+              <p className="text-gray-500">No updates available.</p>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-6 py-16 bg-gradient-to-br from-[var(--color-accent)] to-white rounded-3xl mx-6 mb-20">
-        <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Ready to Find Your Next Hire?
-              </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Join hundreds of hospitals already using DocSpace to recruit top medical talent.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              to="/post-job" 
-              className="px-8 py-3.5 bg-[var(--color-primary)] text-white rounded-lg font-semibold shadow-lg hover:bg-[var(--color-primary-dark)] hover:shadow-xl transition transform hover:-translate-y-0.5"
-            >
-              Post Your First Job
-            </Link>
-            <Link 
-              to="/hospital-profile" 
-              className="px-8 py-3.5 bg-white text-gray-700 border-2 border-gray-200 rounded-lg font-semibold shadow-sm hover:bg-gray-50 transition"
-            >
-              Complete Profile
-            </Link>
           </div>
         </div>
       </div>
@@ -426,146 +261,50 @@ export default function HospitalHome() {
   );
 }
 
-function FeatureCard({ icon, title, desc, link, linkText }) {
-  return (
-    <div className="p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition duration-300 border border-transparent hover:border-gray-100 group">
-      <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center shadow-sm mb-6 group-hover:scale-110 transition">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
-      <p className="text-gray-500 leading-relaxed mb-4">{desc}</p>
-      {link && (
-        <Link 
-          to={link}
-          className="text-[var(--color-primary)] font-semibold hover:underline inline-flex items-center gap-2"
-        >
-          {linkText}
-          <span className="material-symbols-outlined text-sm">arrow_forward</span>
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function ActionCard({ icon, title, desc, link, color }) {
+function ActionCard({ icon, title, desc, link }) {
   return (
     <Link 
       to={link}
-      className="p-6 rounded-xl bg-white border border-gray-200 hover:shadow-lg transition duration-300 group"
+      className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col items-center text-center group"
     >
-      <div className={`w-12 h-12 ${color} text-white rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
-        {icon}
+      <div className="w-14 h-14 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
+        <span className="material-symbols-outlined text-3xl">{icon}</span>
       </div>
-      <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
+      <h3 className="font-bold text-gray-900 mb-1">{title}</h3>
       <p className="text-sm text-gray-500">{desc}</p>
     </Link>
   );
 }
 
-function StepCard({ number, title, desc }) {
-  return (
-    <div className="text-center p-8 rounded-2xl bg-white hover:shadow-xl transition duration-300 border border-gray-100">
-      <div className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-white text-2xl font-bold flex items-center justify-center mx-auto mb-6">
-        {number}
-      </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
-      <p className="text-gray-500 leading-relaxed">{desc}</p>
-    </div>
-  );
-}
-
-function BenefitCard({ icon, title, desc }) {
-  return (
-    <div className="p-6 rounded-xl bg-gray-50 hover:bg-white hover:shadow-lg transition duration-300 border border-transparent hover:border-gray-100">
-      <div className="text-3xl mb-4">{icon}</div>
-      <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-      </div>
-    );
-  }
-
-function NewsCard({ article }) {
+function NewsCard({ article, isWho }) {
   return (
     <a
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block p-4 rounded-xl border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-md transition-all duration-200 group"
+      className="flex gap-4 p-4 rounded-xl bg-white border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group"
     >
       {article.image && (
-        <img
-          src={article.image}
-          alt={article.title}
-          className="w-full h-40 object-cover rounded-lg mb-3"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
+        <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
+          <img
+            src={article.image}
+            alt={article.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
       )}
-      <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-[var(--color-primary)] transition">
-        {article.title}
-      </h4>
-      {article.description && (
-        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-          {decodeHTML(article.description).replace(/<[^>]*>/g, "").substring(0, 120)}...
-        </p>
-      )}
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">schedule</span>
-          {article.publishedAt
-            ? new Date(article.publishedAt).toLocaleDateString()
-            : "Recent"}
-        </span>
-        <span className="text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-          Read more
-          <span className="material-symbols-outlined text-sm">arrow_forward</span>
-        </span>
-      </div>
-    </a>
-  );
-}
-
-function WHOUpdateCard({ article }) {
-  return (
-    <a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block p-4 rounded-xl border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-md transition-all duration-200 group"
-    >
-      {article.image && (
-        <img
-          src={article.image}
-          alt={article.title}
-          className="w-full h-40 object-cover rounded-lg mb-3"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
-      )}
-      <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-[var(--color-primary)] transition">
-        {article.title}
-      </h4>
-      {article.description && (
-        <div
-          className="text-sm text-gray-600 line-clamp-3 mb-3"
-          dangerouslySetInnerHTML={{
-            __html: decodeHTML(article.description).substring(0, 150) + "...",
-          }}
-        />
-      )}
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">schedule</span>
-          {article.publishedAt
-            ? new Date(article.publishedAt).toLocaleDateString()
-            : "Recent"}
-        </span>
-        <span className="text-[var(--color-primary)] font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-          Read on WHO
-          <span className="material-symbols-outlined text-sm">arrow_forward</span>
-        </span>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-[var(--color-primary)] transition-colors">
+          {article.title}
+        </h4>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+           <span>{isWho ? 'WHO' : 'Medical News'}</span>
+           <span>•</span>
+           <span>{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : "Recent"}</span>
+        </div>
       </div>
     </a>
   );

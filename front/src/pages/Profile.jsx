@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api";
+import StatusBadge from "../components/StatusBadge";
+import Footer from "../components/Footer";
 
 export default function Profile() {
   const { id } = useParams();
@@ -32,7 +34,10 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading profile...</p>
+        <div className="flex flex-col items-center gap-4">
+           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+           <p className="text-gray-500 font-medium">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -40,122 +45,160 @@ export default function Profile() {
   if (error || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-red-500">{error}</p>
+         <div className="text-center p-8">
+            <span className="material-symbols-outlined text-4xl text-gray-400 mb-2">person_off</span>
+            <p className="text-red-500 font-medium">{error}</p>
+            <button
+               onClick={() => navigate(-1)}
+               className="mt-4 btn-secondary"
+            >
+               Go Back
+            </button>
+         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 sm:py-8 md:py-10 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-grow py-8 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+           {/* BACK BUTTON */}
+           <button
+             onClick={() => navigate(-1)}
+             className="mb-6 flex items-center gap-2 text-gray-600 hover:text-[var(--color-primary)] transition-colors text-sm font-medium"
+           >
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              Back to Search
+           </button>
 
-        {/* HEADER */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-2xl sm:text-3xl font-bold flex-shrink-0">
-            {data.name?.charAt(0).toUpperCase()}
-          </div>
+           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* HEADER BANNER (Optional: could be a solid color or gradient) */}
+              <div className="h-32 bg-gradient-to-r from-gray-100 to-gray-200"></div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 break-words">
-                {data.name}
-              </h1>
-              {/* Verification Status Badge */}
-              {data.verification_status === "approved" || data.verification_status === "verified" ? (
-                <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-800 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1 w-fit">
-                  <span>✓</span> Verified
-                </span>
-              ) : (
-                <span className="px-2 sm:px-3 py-1 bg-yellow-100 text-yellow-800 text-xs sm:text-sm font-semibold rounded-full w-fit">
-                  Pending Verification
-                </span>
-              )}
-            </div>
-            <p className="text-sm sm:text-base text-gray-600">
-              {data.designation || "Doctor"} • {data.specialization || "Medical"}
-            </p>
-            {data.hospital_affiliation && (
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                🏥 {data.hospital_affiliation}
-              </p>
-            )}
-          </div>
+              <div className="px-6 sm:px-10 pb-10">
+                 {/* PROFILE HEADER INFO */}
+                 <div className="relative flex flex-col sm:flex-row items-end -mt-12 mb-8 gap-6">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] flex items-center justify-center text-white text-4xl font-bold shadow-lg shrink-0">
+                       {data.name?.charAt(0).toUpperCase()}
+                    </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => navigate(`/resume/${id}`)}
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg transition-all text-xs sm:text-sm font-medium"
-              title="View Full Resume"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 sm:h-5 sm:w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <span className="hidden sm:inline">View Resume</span>
-              <span className="sm:hidden">Resume</span>
-            </button>
-            <button
-              onClick={() => navigate(`/chat/${id}`)}
-              className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-full shadow-lg transition-all hover:scale-110 flex-shrink-0"
-              title="Send Message"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-            </button>
-          </div>
+                    <div className="flex-1 pb-2">
+                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+                          <h1 className="text-3xl font-bold text-gray-900">{data.name}</h1>
+                          <StatusBadge status={data.verification_status} />
+                       </div>
+                       <p className="text-lg text-gray-600 font-medium">
+                          {data.specialization || "Medical Professional"}
+                          {data.designation && <span className="text-gray-400 mx-2">|</span>}
+                          {data.designation}
+                       </p>
+                       {data.hospital_affiliation && (
+                          <div className="flex items-center gap-2 text-gray-500 mt-2 text-sm">
+                             <span className="material-symbols-outlined text-[18px]">local_hospital</span>
+                             <span>{data.hospital_affiliation}</span>
+                          </div>
+                       )}
+                    </div>
+
+                    <div className="flex gap-3 w-full sm:w-auto mt-4 sm:mt-0">
+                       <button
+                         onClick={() => navigate(`/resume/${id}`)}
+                         className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2"
+                       >
+                          <span className="material-symbols-outlined text-[20px]">description</span>
+                          Resume
+                       </button>
+                       <button
+                         onClick={() => navigate(`/messages`)} // Assuming chat navigates to generic messages, or specific if implemented
+                         className="flex-1 sm:flex-none btn-primary flex items-center justify-center gap-2"
+                       >
+                          <span className="material-symbols-outlined text-[20px]">chat</span>
+                          Message
+                       </button>
+                    </div>
+                 </div>
+
+                 {/* CONTENT GRID */}
+                 <div className="grid md:grid-cols-3 gap-8">
+                    {/* LEFT COLUMN (Details) */}
+                    <div className="md:col-span-2 space-y-8">
+                       <Section title="About">
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                             {data.bio || "No biography provided."}
+                          </p>
+                       </Section>
+
+                       <Section title="Experience & Qualifications">
+                          <div className="space-y-4">
+                             <DetailRow
+                                icon="school"
+                                label="Qualifications"
+                                value={Array.isArray(data.qualifications) ? data.qualifications.join(", ") : data.qualifications}
+                             />
+                             <DetailRow
+                                icon="history"
+                                label="Experience"
+                                value={data.years_of_experience ? `${data.years_of_experience} Years` : null}
+                             />
+                             <DetailRow
+                                icon="workspace_premium"
+                                label="Skills"
+                                value={
+                                   Array.isArray(data.skills) && data.skills.length > 0 ? (
+                                      <div className="flex flex-wrap gap-2 mt-1">
+                                         {data.skills.map((skill, i) => (
+                                            <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                               {skill}
+                                            </span>
+                                         ))}
+                                      </div>
+                                   ) : null
+                                }
+                             />
+                          </div>
+                       </Section>
+                    </div>
+
+                    {/* RIGHT COLUMN (Meta) */}
+                    <div className="space-y-6">
+                       <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                          <h3 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wide">Professional Details</h3>
+                          <div className="space-y-4">
+                             <div className="flex items-start gap-3">
+                                <span className="material-symbols-outlined text-gray-400 mt-0.5">badge</span>
+                                <div>
+                                   <p className="text-xs text-gray-500 font-medium uppercase">Role</p>
+                                   <p className="text-gray-900 capitalize">{data.role}</p>
+                                </div>
+                             </div>
+                             {data.registration_number && (
+                                <div className="flex items-start gap-3">
+                                   <span className="material-symbols-outlined text-gray-400 mt-0.5">pin</span>
+                                   <div>
+                                      <p className="text-xs text-gray-500 font-medium uppercase">Reg. Number</p>
+                                      <p className="text-gray-900">{data.registration_number}</p>
+                                   </div>
+                                </div>
+                             )}
+                             {data.registration_council && (
+                                <div className="flex items-start gap-3">
+                                   <span className="material-symbols-outlined text-gray-400 mt-0.5">account_balance</span>
+                                   <div>
+                                      <p className="text-xs text-gray-500 font-medium uppercase">Council</p>
+                                      <p className="text-gray-900">{data.registration_council}</p>
+                                   </div>
+                                </div>
+                             )}
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
         </div>
-
-        {/* BIO */}
-        <Section title="About">
-          <p className="text-gray-700 leading-relaxed">
-            {data.bio || "No bio provided."}
-          </p>
-        </Section>
-
-        {/* DETAILS */}
-        <Section title="Professional Details">
-          <Detail label="Specialization" value={data.specialization} />
-          <Detail
-            label="Qualifications"
-            value={
-              Array.isArray(data.qualifications)
-                ? data.qualifications.join(", ")
-                : "-"
-            }
-          />
-          <Detail
-            label="Skills"
-            value={
-              Array.isArray(data.skills)
-                ? data.skills.join(", ")
-                : "-"
-            }
-          />
-        </Section>
       </div>
+      <Footer />
     </div>
   );
 }
@@ -164,24 +207,24 @@ export default function Profile() {
 
 function Section({ title, children }) {
   return (
-    <div className="mb-6 sm:mb-8">
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">
-        {title}
-      </h2>
-      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-        {children}
-      </div>
+    <div>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
+      {children}
     </div>
   );
 }
 
-function Detail({ label, value }) {
+function DetailRow({ icon, label, value }) {
+  if (!value) return null;
   return (
-    <div className="mb-2 sm:mb-3">
-      <p className="text-xs sm:text-sm text-gray-500">{label}</p>
-      <p className="text-sm sm:text-base text-gray-800 font-medium">
-        {value || "-"}
-      </p>
+    <div className="flex items-start gap-4">
+       <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 text-gray-500">
+          <span className="material-symbols-outlined">{icon}</span>
+       </div>
+       <div className="flex-1 pt-1">
+          <p className="text-sm font-semibold text-gray-900 mb-1">{label}</p>
+          <div className="text-gray-600">{value}</div>
+       </div>
     </div>
   );
 }

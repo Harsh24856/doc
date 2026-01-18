@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
 import logo2 from "../assets/2.png";
+import StatusBadge from "../components/StatusBadge";
+import Footer from "../components/Footer";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -12,22 +14,15 @@ export default function AdminDashboard() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectUserId, setRejectUserId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
-  const normalize = (str) =>
-  str
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, " ") // remove dots, commas, numbers
-    .replace(/\s+/g, " ")
-    .trim();
-  
-  const getTokens = (str) =>
-  str
-    .split(" ")
-    .filter(
-      (w) =>
-        w.length >= 3 &&                 // avoid "dr", "mr", "r"
-        !["dr", "mr", "ms", "mrs"].includes(w)
-    );
 
+  const getTokens = (str) =>
+    str
+      .split(" ")
+      .filter(
+        (w) =>
+          w.length >= 3 &&                 // avoid "dr", "mr", "r"
+          !["dr", "mr", "ms", "mrs"].includes(w)
+      );
 
   const fetchPending = async () => {
     try {
@@ -102,463 +97,349 @@ export default function AdminDashboard() {
   };
 
   const reject = (id) => {
-  setRejectUserId(id);
-  setRejectionReason("");
-  setShowRejectModal(true);
-};
+    setRejectUserId(id);
+    setRejectionReason("");
+    setShowRejectModal(true);
+  };
 
   const confirmReject = async () => {
-  await fetch(
-    `${API_BASE_URL}/admin/verifications/${rejectUserId}/reject`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        rejection_reason: rejectionReason || null,
-      }),
-    }
-  );
+    await fetch(
+      `${API_BASE_URL}/admin/verifications/${rejectUserId}/reject`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rejection_reason: rejectionReason || null,
+        }),
+      }
+    );
 
-  setShowRejectModal(false);
-  setRejectUserId(null);
-  setRejectionReason("");
-  fetchPending();
-};
+    setShowRejectModal(false);
+    setRejectUserId(null);
+    setRejectionReason("");
+    fetchPending();
+  };
 
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading admin dashboard…</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="text-gray-500 font-medium">Loading admin dashboard…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-6 sm:mb-8 text-center">
-          <img 
-            src={logo2} 
-            alt="DocSpace Logo" 
-            className="h-16 sm:h-24 md:h-32 w-auto mx-auto mb-4 sm:mb-6 object-contain"
-          />
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Manage pending verifications
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 lg:p-8">
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <span className="material-symbols-outlined text-2xl sm:text-3xl text-[var(--color-primary)]">pending_actions</span>
-              Pending Verifications
-            </h2>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-grow py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Section */}
+          <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <span className="material-symbols-outlined text-4xl text-[var(--color-primary)]">admin_panel_settings</span>
+                Admin Dashboard
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage doctor verifications and platform settings
+              </p>
+            </div>
             {pending.length > 0 && (
-              <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[var(--color-primary)] text-white rounded-full text-xs sm:text-sm font-semibold">
-                {pending.length} Pending
+              <span className="px-4 py-2 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-full font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px]">pending</span>
+                {pending.length} Pending Actions
               </span>
             )}
           </div>
 
-          <div>
+          <div className="space-y-6">
+             <h2 className="text-xl font-bold text-gray-800 border-b pb-4">
+               Pending Verifications
+             </h2>
+
             {pending.length === 0 && (
-              <div className="text-center py-12 sm:py-16">
-                <span className="material-symbols-outlined text-6xl sm:text-7xl text-gray-300 mb-4">check_circle</span>
-                <p className="text-lg sm:text-xl text-gray-500 font-medium">No pending verifications</p>
-                <p className="text-sm sm:text-base text-gray-400 mt-2">All verifications have been processed</p>
+              <div className="bg-white rounded-xl border border-gray-200 p-16 text-center shadow-sm">
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <span className="material-symbols-outlined text-4xl text-green-500">check_circle</span>
+                </div>
+                <p className="text-xl text-gray-800 font-bold mb-2">All Caught Up!</p>
+                <p className="text-gray-500">No pending verifications at the moment.</p>
               </div>
             )}
 
             {pending.map((u) => {
-            const result = results[u.id];
+              const result = results[u.id];
+              return (
+                <div key={u.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                   {/* Card Header */}
+                   <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                            {u.name.charAt(0)}
+                         </div>
+                         <div>
+                            <h3 className="text-lg font-bold text-gray-900">{u.name}</h3>
+                            <p className="text-sm text-gray-500">{u.email}</p>
+                         </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                         <button
+                           onClick={() => navigate(`/resume/${u.id}`)}
+                           className="btn-secondary text-xs sm:text-sm flex items-center gap-1"
+                         >
+                           <span className="material-symbols-outlined text-[16px]">description</span>
+                           Resume
+                         </button>
+                         <button
+                           onClick={() => openDocument(u.id, "license")}
+                           className="btn-secondary text-xs sm:text-sm flex items-center gap-1"
+                         >
+                           <span className="material-symbols-outlined text-[16px]">id_card</span>
+                           License
+                         </button>
+                         <button
+                           onClick={() => openDocument(u.id, "id")}
+                           className="btn-secondary text-xs sm:text-sm flex items-center gap-1"
+                         >
+                           <span className="material-symbols-outlined text-[16px]">badge</span>
+                           ID Proof
+                         </button>
+                      </div>
+                   </div>
 
-            return (
-              <div key={u.id} className="border-2 border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 bg-gradient-to-br from-white to-gray-50 hover:shadow-lg transition-all duration-300">
-                {/* USER INFO */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-gray-400">person</span>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Name</p>
-                      <p className="text-sm sm:text-base font-semibold text-gray-900">{u.name}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-gray-400">email</span>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Email</p>
-                      <p className="text-sm sm:text-base font-semibold text-gray-900 break-all">{u.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-gray-400">badge</span>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Role</p>
-                      <p className="text-sm sm:text-base font-semibold text-gray-900 capitalize">{u.role}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-gray-400">description</span>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Registration No</p>
-                      <p className="text-sm sm:text-base font-semibold text-gray-900">{u.registration_number || "N/A"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* DOCUMENTS */}
-                <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <button
-                    onClick={() => navigate(`/resume/${u.id}`)}
-                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-all duration-300 shadow-md hover:shadow-lg"
-                  >
-                    <span className="material-symbols-outlined text-lg">description</span>
-                    View Resume
-                  </button>
-                  <button
-                    onClick={() => openDocument(u.id, "license")}
-                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-lg font-semibold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300"
-                  >
-                    <span className="material-symbols-outlined text-lg">description</span>
-                    View License
-                  </button>
-                  <button
-                    onClick={() => openDocument(u.id, "id")}
-                    className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-[var(--color-accent)] text-[var(--color-primary-dark)] rounded-lg font-semibold text-sm hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300"
-                  >
-                    <span className="material-symbols-outlined text-lg">badge</span>
-                    View ID
-                  </button>
-                </div>
-
-                {/* AI RESULT */}
-                {result && (
-                  <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
-                    <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border-2 border-gray-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3">
-                        <p className="font-bold text-base sm:text-lg">
-                          Verification Status:{" "}
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm sm:text-base ${
-                              result.verification_status === "VERIFIED"
-                                ? "bg-green-100 text-green-700"
-                                : result.verification_status === "PARTIALLY_VERIFIED"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            {result.verification_status}
-                          </span>
-                        </p>
-                        <p className="text-lg sm:text-xl font-bold text-[var(--color-primary)]">
-                          Score: {result.verification_score}%
-                        </p>
+                   <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                         <DetailItem label="Role" value={u.role} capitalize />
+                         <DetailItem label="Registration Number" value={u.registration_number} />
+                         <DetailItem label="Council" value={u.registration_council} />
+                         <DetailItem label="Graduation Year" value={u.year_of_graduation} />
                       </div>
 
-                      <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">database</span>
-                          Registry: {result.breakdown?.registry_score ?? 0}%
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">description</span>
-                          License OCR: {result.breakdown?.license_ocr_score ?? 0}%
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">badge</span>
-                          ID OCR: {result.breakdown?.id_ocr_score ?? 0}%
-                        </span>
-                      </div>
-                    </div>
+                      {/* AI RESULT SECTION */}
+                      {result && (
+                        <div className="mt-6 mb-6 bg-gray-50 rounded-xl border border-gray-200 p-4 sm:p-6">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                             <div className="flex items-center gap-3">
+                                <span className="font-semibold text-gray-700">AI Analysis:</span>
+                                <StatusBadge status={result.verification_status} />
+                             </div>
+                             <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-500">Confidence Score:</span>
+                                <span className="text-lg font-bold text-gray-900">{result.verification_score}%</span>
+                             </div>
+                          </div>
 
-                  {/* REGISTRY RESULT */}
-                  {result.registry_result && (result.registry_result.status === "SUCCESS" || result.registry_result.status === "FOUND") && (
-                    <div className="p-4 rounded-lg border border-purple-200 bg-purple-50">
-                      <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                        🏥 Registry Check Results (IMR)
-                      </h3>
-                      <div className="space-y-3 text-sm">
-                        <p className="font-medium text-green-600">Status: {result.registry_result.status}</p>
-                        {(() => {
-                          const registryData = result.registry_result.record || result.registry_result.result;
-                          if (!registryData) return null;
+                          <div className="grid md:grid-cols-2 gap-6">
+                             {/* Registry Match */}
+                             {result.registry_result && (
+                                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                   <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                      <span className="material-symbols-outlined text-purple-600">database</span>
+                                      Registry Match (IMR)
+                                   </h4>
+                                   <div className="space-y-2 text-sm">
+                                      <ValidationRow
+                                         label="Name Match"
+                                         status={safeNameMatch(result.registry_result.record?.name || result.registry_result.result?.name, u.name)}
+                                         details={result.registry_result.record?.name || result.registry_result.result?.name}
+                                      />
+                                      <ValidationRow
+                                         label="Reg. No. Match"
+                                         status={String(result.registry_result.record?.registration_number || result.registry_result.result?.registration_number) === String(u.registration_number)}
+                                         details={result.registry_result.record?.registration_number || result.registry_result.result?.registration_number}
+                                      />
+                                      <ValidationRow
+                                         label="Year Match"
+                                         status={checkYearMatch(result.registry_result.record?.year || result.registry_result.result?.year, u.year_of_graduation)}
+                                         details={result.registry_result.record?.year || result.registry_result.result?.year}
+                                      />
+                                   </div>
+                                </div>
+                             )}
 
-                          // Helper function to normalize strings for comparison
-                          const normalize = (str) => String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-                          
-                          // Helper function to check if year matches graduation
-                          const checkYearMatch = (registryYear, userGraduationYear) => {
-                            if (!registryYear || !userGraduationYear) return false;
-                            const registry = parseInt(registryYear, 10);
-                            const graduation = parseInt(userGraduationYear, 10);
-                            return registry === graduation || Math.abs(registry - graduation) <= 1;
-                          };
-                           const safeNameMatch = (a, b) => {
-                              if (!a || !b) return false;
-
-                              const na = normalize(a);
-                              const nb = normalize(b);
-
-                              // Rule 1: Minimum length safeguard
-                              if (na.length < 6 || nb.length < 6) return false;
-
-                              const ta = getTokens(na);
-                              const tb = getTokens(nb);
-
-                              if (ta.length === 0 || tb.length === 0) return false;
-
-                              const matches = ta.filter(t => tb.includes(t));
-
-                              // Rule 2: Require strong overlap
-                              return (
-                                matches.length >= 2 ||                       // at least 2 words match
-                                matches.length / Math.min(ta.length, tb.length) >= 0.6
-                             );
-                          };
-
-                          const safeCouncilMatch = (a, b) => {
-                             if (!a || !b) return false;
-
-                             const na = normalize(a);
-                             const nb = normalize(b);
-
-                             if (na.length < 6 || nb.length < 6) return false;
-
-                             return (
-                              na === nb ||
-                              na.includes(nb) && nb.length >= 6 ||
-                              nb.includes(na) && na.length >= 6
-                            );
-                          };
-                          
-                          const regNoMatch = registryData.registration_number && u.registration_number &&
-                            normalize(registryData.registration_number) === normalize(u.registration_number);
-                          
-                          const councilMatch = registryData.council && u.registration_council &&
-                            (normalize(registryData.council).includes(normalize(u.registration_council)) ||
-                             normalize(u.registration_council).includes(normalize(registryData.council)));
-                          
-                          const yearMatch = checkYearMatch(registryData.year, u.year_of_graduation);
-
-                          return (
-                            <div className="space-y-2">
-                              {/* Name Comparison */}
-                              <div className="flex items-center justify-between p-2 bg-white rounded">
+                             {/* OCR Results */}
+                             <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-4">
                                 <div>
-                                  <p className="font-medium">Name</p>
-                                  <p className="text-gray-600">IMR: {registryData.name || "N/A"}</p>
-                                  <p className="text-gray-600">User: {u.name || "N/A"}</p>
+                                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                      <span className="material-symbols-outlined text-blue-600">document_scanner</span>
+                                      License OCR
+                                   </h4>
+                                   <p className="text-sm text-gray-600">
+                                      {result.extracted_license?.name ? `Detected: ${result.extracted_license.name}` : "No name detected"}
+                                   </p>
                                 </div>
-                                <span className={`text-2xl ${safeNameMatch(registryData.name, u.name) ? "text-green-600" : "text-red-600"}`}>
-                                  {safeNameMatch(registryData.name, u.name) ? "✓" : "✗"}
-                                </span>
-                              </div>
-
-                              {/* Registration Number Comparison */}
-                              <div className="flex items-center justify-between p-2 bg-white rounded">
                                 <div>
-                                  <p className="font-medium">Registration Number</p>
-                                  <p className="text-gray-600">IMR: {registryData.registration_number || "N/A"}</p>
-                                  <p className="text-gray-600">User: {u.registration_number || "N/A"}</p>
+                                   <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                      <span className="material-symbols-outlined text-green-600">badge</span>
+                                      ID OCR
+                                   </h4>
+                                   <p className="text-sm text-gray-600">
+                                      {result.extracted_id?.name ? `Detected: ${result.extracted_id.name}` : "No name detected"}
+                                   </p>
                                 </div>
-                                <span className={`text-2xl ${regNoMatch ? "text-green-600" : "text-red-600"}`}>
-                                  {regNoMatch ? "✓" : "✗"}
-                                </span>
-                              </div>
-
-                              {/* Council Comparison */}
-                              <div className="flex items-center justify-between p-2 bg-white rounded">
-                                <div>
-                                  <p className="font-medium">Council</p>
-                                  <p className="text-gray-600">IMR: {registryData.council || "N/A"}</p>
-                                  <p className="text-gray-600">User: {u.registration_council || "N/A"}</p>
-                                </div>
-                                <span className={`text-2xl ${safeCouncilMatch(registryData.council, u.registration_council) ? "text-green-600" : "text-red-600"}`}>
-                                  {safeCouncilMatch(registryData.council, u.registration_council) ? "✓" : "✗"}
-                                </span>
-                              </div>
-
-                              {/* Year/Graduation Comparison */}
-                              <div className="flex items-center justify-between p-2 bg-white rounded">
-                                <div>
-                                  <p className="font-medium">Year / Graduation</p>
-                                  <p className="text-gray-600">IMR Year: {registryData.year || "N/A"}</p>
-                                  <p className="text-gray-600">User Graduation: {u.year_of_graduation || "N/A"}</p>
-                                </div>
-                                <span className={`text-2xl ${yearMatch ? "text-green-600" : "text-red-600"}`}>
-                                  {yearMatch ? "✓" : "✗"}
-                                </span>
-                              </div>
-
-                              {/* Additional Info */}
-                              {registryData.father_name && (
-                                <div className="p-2 bg-white rounded">
-                                  <p className="font-medium">Father's Name</p>
-                                  <p className="text-gray-600">{registryData.father_name}</p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* OCR RESULTS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* License OCR Results */}
-                    {result.extracted_license && (
-                      <div className="p-4 rounded-lg border border-red-200 bg-[var(--color-accent)]">
-                        <h3 className="font-semibold text-[var(--color-primary-dark)] mb-3 flex items-center gap-2">
-                          📜 License OCR Results
-                        </h3>
-                        <div className="space-y-2 text-sm">
-                          {result.extracted_license.name && (
-                            <p><b>Name:</b> {result.extracted_license.name}</p>
-                          )}
-                          {result.extracted_license.registration_number && (
-                            <p><b>Registration Number:</b> {result.extracted_license.registration_number}</p>
-                          )}
-                          {result.extracted_license.registration_council && (
-                            <p><b>Council:</b> {result.extracted_license.registration_council}</p>
-                          )}
-                          {result.extracted_license.primary_qualification && (
-                            <p><b>Primary Qualification:</b> {result.extracted_license.primary_qualification}</p>
-                          )}
-                          {result.extracted_license.additional_qualification && (
-                            <p><b>Additional Qualification:</b> {result.extracted_license.additional_qualification}</p>
-                          )}
-                          {!result.extracted_license.name && 
-                           !result.extracted_license.registration_number && 
-                           !result.extracted_license.registration_council && (
-                            <p className="text-gray-500 italic">No data extracted from license</p>
-                          )}
+                             </div>
+                          </div>
                         </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-4 justify-end pt-4 border-t border-gray-100">
+                         <button
+                           onClick={() => runAICheck(u.id)}
+                           disabled={verifyingId === u.id}
+                           className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                         >
+                           {verifyingId === u.id ? (
+                             <>
+                               <span className="animate-spin material-symbols-outlined text-[18px]">progress_activity</span>
+                               Analyzing...
+                             </>
+                           ) : (
+                             <>
+                               <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                               Run AI Analysis
+                             </>
+                           )}
+                         </button>
+                         <button
+                           onClick={() => reject(u.id)}
+                           className="px-6 py-2.5 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition font-medium flex items-center justify-center gap-2"
+                         >
+                           <span className="material-symbols-outlined text-[18px]">block</span>
+                           Reject
+                         </button>
+                         <button
+                           onClick={() => approve(u.id)}
+                           className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow"
+                         >
+                           <span className="material-symbols-outlined text-[18px]">check</span>
+                           Approve
+                         </button>
                       </div>
-                    )}
-
-                    {/* ID OCR Results */}
-                    {result.extracted_id && (
-                      <div className="p-4 rounded-lg border border-green-200 bg-green-50">
-                        <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-                          🆔 ID OCR Results
-                        </h3>
-                        <div className="space-y-2 text-sm">
-                          {result.extracted_id.name && (
-                            <p><b>Name:</b> {result.extracted_id.name}</p>
-                          )}
-                          {result.extracted_id.dob && (
-                            <p><b>Date of Birth:</b> {result.extracted_id.dob}</p>
-                          )}
-                          {result.extracted_id.gender && (
-                            <p><b>Gender:</b> {result.extracted_id.gender}</p>
-                          )}
-                          {result.extracted_id.id_number && (
-                            <p><b>ID Number:</b> {result.extracted_id.id_number}</p>
-                          )}
-                          {result.extracted_id.id_type && (
-                            <p><b>ID Type:</b> {result.extracted_id.id_type}</p>
-                          )}
-                          {!result.extracted_id.name && 
-                           !result.extracted_id.dob && 
-                           !result.extracted_id.id_number && (
-                            <p className="text-gray-500 italic">No data extracted from ID</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                   </div>
                 </div>
-              )}
-
-                {/* ACTIONS */}
-                <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6 border-t-2 border-gray-200">
-                  <button
-                    onClick={() => runAICheck(u.id)}
-                    disabled={verifyingId === u.id}
-                    className={`flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-white transition-all duration-300 ${
-                      verifyingId === u.id
-                        ? "bg-[var(--color-primary-dark)] opacity-60 cursor-not-allowed"
-                        : "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] hover:shadow-lg transform hover:scale-105"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      {verifyingId === u.id ? "hourglass_empty" : "auto_awesome"}
-                    </span>
-                    {verifyingId === u.id ? "Verifying…" : "Run AI Check"}
-                  </button>
-
-                  <button
-                    onClick={() => approve(u.id)}
-                    className="flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-lg transform hover:scale-105"
-                  >
-                    <span className="material-symbols-outlined text-lg">check_circle</span>
-                    Approve
-                  </button>
-
-                  <button
-                    onClick={() => reject(u.id)}
-                    className="flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-lg transform hover:scale-105"
-                  >
-                    <span className="material-symbols-outlined text-lg">cancel</span>
-                    Reject
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
         </div>
       </div>
+      <Footer />
+
+      {/* Reject Modal */}
       {showRejectModal && (
-  <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-      <h2 className="text-xl font-bold text-red-600 mb-3">
-        Reject Verification
-      </h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-modalFadeIn">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+               <span className="material-symbols-outlined text-3xl">gpp_bad</span>
+               <h2 className="text-xl font-bold">Reject Verification</h2>
+            </div>
 
-      <p className="text-sm text-gray-600 mb-3">
-        You may optionally provide a rejection reason.
-      </p>
+            <p className="text-gray-600 mb-4">
+              Please provide a reason for rejecting this verification request. This will be visible to the user.
+            </p>
 
-      <textarea
-        value={rejectionReason}
-        onChange={(e) => setRejectionReason(e.target.value)}
-        placeholder="Optional rejection reason…"
-        rows={4}
-        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
-      />
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="e.g. Documents are blurry, Name mismatch..."
+              rows={4}
+              className="input-field mb-6 resize-none"
+            />
 
-      <div className="flex justify-end gap-3 mt-5">
-        <button
-          onClick={() => setShowRejectModal(false)}
-          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={confirmReject}
-          className="px-4 py-2 rounded-lg bg-red-600 text-white"
-        >
-          Reject
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowRejectModal(false)}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReject}
+                className="btn-danger bg-red-600 text-white hover:bg-red-700 border-red-600"
+              >
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+/* =========================
+   HELPERS & COMPONENTS
+   ========================= */
+
+function DetailItem({ label, value, capitalize }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+      <p className={`font-medium text-gray-900 ${capitalize ? 'capitalize' : ''} break-words`}>
+        {value || "—"}
+      </p>
+    </div>
+  );
+}
+
+function ValidationRow({ label, status, details }) {
+   return (
+      <div className="flex items-center justify-between p-2 rounded bg-gray-50 border border-gray-100">
+         <div>
+            <p className="font-medium text-gray-700">{label}</p>
+            <p className="text-xs text-gray-500">{details || "N/A"}</p>
+         </div>
+         {status ? (
+            <span className="text-green-600 material-symbols-outlined">check_circle</span>
+         ) : (
+            <span className="text-red-500 material-symbols-outlined">cancel</span>
+         )}
+      </div>
+   )
+}
+
+
+/* Helper logic for AI matching (Copied from original file to maintain logic) */
+const normalize = (str) =>
+  String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const getTokens = (str) =>
+  str
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(
+      (w) =>
+        w.length >= 3 &&
+        !["dr", "mr", "ms", "mrs"].includes(w)
+    );
+
+const safeNameMatch = (a, b) => {
+  if (!a || !b) return false;
+  const na = normalize(a);
+  const nb = normalize(b);
+  if (na.length < 6 || nb.length < 6) return false;
+  const ta = getTokens(a);
+  const tb = getTokens(b);
+  if (ta.length === 0 || tb.length === 0) return false;
+  const matches = ta.filter(t => tb.includes(t));
+  return (
+    matches.length >= 2 ||
+    matches.length / Math.min(ta.length, tb.length) >= 0.6
+  );
+};
+
+const checkYearMatch = (registryYear, userGraduationYear) => {
+  if (!registryYear || !userGraduationYear) return false;
+  const registry = parseInt(registryYear, 10);
+  const graduation = parseInt(userGraduationYear, 10);
+  return registry === graduation || Math.abs(registry - graduation) <= 1;
+};
