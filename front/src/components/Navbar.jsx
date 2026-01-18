@@ -11,15 +11,12 @@ export default function Navbar({ signedIn, role }) {
   const location = useLocation();
   const [hasUpdates, setHasUpdates] = useState(false);
 
-
   const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("authFormMode");
-  socket.disconnect();
-  navigate("/");
-};
-
-
+    localStorage.removeItem("token");
+    localStorage.removeItem("authFormMode");
+    socket.disconnect();
+    navigate("/");
+  };
 
   const isAuthPage =
     location.pathname === "/auth" ||
@@ -46,7 +43,7 @@ export default function Navbar({ signedIn, role }) {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [location.pathname]);
 
-  /* PROFILE COMPLETED*/
+  /* PROFILE COMPLETED */
   useEffect(() => {
     if (!signedIn || role === "hospital" || role === "admin") return;
 
@@ -61,10 +58,10 @@ export default function Navbar({ signedIn, role }) {
       .catch(() => {});
   }, [signedIn, role]);
 
-     const checkNotifications = async () => {
-      try {
-        const token = localStorage.getItem("token"); 
-        if (!token) return;
+  const checkNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
       const res = await fetch(`${API_BASE_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -74,49 +71,45 @@ export default function Navbar({ signedIn, role }) {
 
       const data = await res.json();
       setHasUpdates((data.unread_count || 0) > 0);
-      } catch {
-       setHasUpdates(false);
-     }
-   };
-
+    } catch {
+      setHasUpdates(false);
+    }
+  };
 
   useEffect(() => {
-  if (!signedIn) return;
+    if (!signedIn) return;
 
-  const handleNotificationsUpdate = () => {
+    const handleNotificationsUpdate = () => {
+      checkNotifications();
+    };
+
+    socket.on("notifications_updated", handleNotificationsUpdate);
+
+    return () => {
+      socket.off("notifications_updated", handleNotificationsUpdate);
+    };
+  }, [signedIn]);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
     checkNotifications();
-  };
-
-  socket.on("notifications_updated", handleNotificationsUpdate);
-
-  return () => {
-    socket.off("notifications_updated", handleNotificationsUpdate);
-  };
-}, [signedIn]);
-
-
-useEffect(() => {
-  if (!signedIn) return;
-  const token = localStorage.getItem("token");
-     if (!token) return;
-  checkNotifications();
-}, [signedIn]);
-
-
+  }, [signedIn]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="h-16 flex items-center justify-between gap-3">
-
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-16 flex items-center justify-between gap-4">
           {/* LOGO */}
-          <Link to="/" className="shrink-0 flex items-center">
-            <img src={logo1} alt="DocSpace Logo" className="h-8 sm:h-10" />
+          <Link to="/" className="shrink-0 flex items-center gap-2 group">
+            <img src={logo1} alt="DocSpace Logo" className="h-8 sm:h-9 group-hover:scale-105 transition-transform duration-200" />
+            <span className="text-xl font-bold text-gray-800 tracking-tight hidden md:block">DocSpace</span>
           </Link>
 
           {/* SEARCH */}
           {signedIn && (
-            <div className="flex-1 max-w-full sm:max-w-2xl mx-1 sm:mx-2 md:mx-4 min-w-0">
+            <div className="flex-1 max-w-lg mx-auto">
               <div className="relative">
                 <PeopleSearch />
               </div>
@@ -124,12 +117,12 @@ useEffect(() => {
           )}
 
           {/* DESKTOP NAV */}
-          <div className="hidden lg:flex items-center gap-2">
-                        {/* USER NAV */}
+          <div className="hidden lg:flex items-center gap-1">
+            {/* USER NAV */}
             {signedIn && role !== "hospital" && role !== "admin" && (
               <>
-                <NavItem to="/find-doctor" icon="person_search" label="Find Doctor" />
-                <NavItem to="/search/jobs" icon="work" label="Find Jobs" />
+                <NavItem to="/find-doctor" icon="person_search" label="Doctors" />
+                <NavItem to="/search/jobs" icon="work" label="Jobs" />
                 <NavItem to="/resume" icon="description" label="Resume" />
                 <NavItem to="/messages" icon="chat" label="Chat" />
                 {profileCompleted && (
@@ -141,10 +134,10 @@ useEffect(() => {
             {/* HOSPITAL NAV */}
             {signedIn && role === "hospital" && (
               <>
-                <NavItem to="/find-doctor" icon="person_search" label="Find Doctor" />
-                <NavItem to="/hospital-profile" icon="person" label="Profile" />
+                <NavItem to="/find-doctor" icon="person_search" label="Doctors" />
+                <NavItem to="/hospital-profile" icon="local_hospital" label="Profile" />
                 <NavItem to="/post-job" icon="add_business" label="Post Job" />
-                <NavItem to="/posted-jobs" icon="work" label="Jobs" />
+                <NavItem to="/posted-jobs" icon="work" label="My Jobs" />
                 <NavItem to="/messages" icon="chat" label="Chat" />
               </>
             )}
@@ -160,116 +153,123 @@ useEffect(() => {
             {/* NOTIFICATIONS */}
             {signedIn && (
               <button
-               onClick={() => setShowNotifications(true)}
-               className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                onClick={() => setShowNotifications(true)}
+                className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-[var(--color-primary)] transition-colors ml-2"
               >
                 <span className="material-symbols-outlined">notifications</span>
-
                 {hasUpdates && (
-                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
                 )}
               </button>
             )}
 
             {/* PROFILE + LOGOUT */}
             {signedIn ? (
-              <>
+              <div className="pl-2 ml-2 border-l border-gray-200">
                 <Link
                   to="/dashboard"
-                  className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white flex items-center justify-center font-bold shadow-sm hover:shadow-md transition-all hover:scale-105"
                 >
                   {role === "admin" ? "A" : role === "hospital" ? "H" : "D"}
                 </Link>
-
-                {/* <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                >
-                  <span className="material-symbols-outlined">logout</span>
-                  Logout
-                </button> */}
-              </>
+              </div>
             ) : !isAuthPage && (
               <button
                 onClick={() => navigate("/auth")}
-                className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                className="ml-4 px-5 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-full font-medium shadow-sm hover:shadow transition-all transform hover:-translate-y-0.5"
               >
-                Login
+                Sign In
               </button>
             )}
           </div>
 
           {/* MOBILE BUTTONS */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-3">
             {signedIn && (
               <button
                 onClick={() => setShowNotifications(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 <span className="material-symbols-outlined">notifications</span>
+                {hasUpdates && (
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                )}
               </button>
             )}
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100"
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
             >
-              <span className="material-symbols-outlined">
+              <span className="material-symbols-outlined text-2xl">
                 {mobileMenuOpen ? "close" : "menu"}
               </span>
             </button>
+
             {/* PROFILE ICON (ALL ROLES) */}
-          {signedIn && (
-         <Link
-         to="/dashboard"
-         className="w-10 h-10 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold"
-         >
-          {role === "admin" ? "A" : role === "hospital" ? "H" : "D"}
-         </Link>
-        )}
+            {signedIn && (
+              <Link
+                to="/dashboard"
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white flex items-center justify-center font-bold shadow-sm"
+              >
+                {role === "admin" ? "A" : role === "hospital" ? "H" : "D"}
+              </Link>
+            )}
           </div>
         </div>
 
         {/* MOBILE MENU */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t py-4 space-y-2">
-            
+          <div className="lg:hidden border-t border-gray-100 py-4 space-y-1 animate-fadeIn">
             {signedIn && role === "hospital" && (
-            <>
-             <MobileNavItem to="/find-doctor" label="Find Doctor" />
-              <MobileNavItem to="/hospital-profile" label="Profile" />
-              <MobileNavItem to="/post-job" label="Post Job" />
-              <MobileNavItem to="/posted-jobs" label="Posted Jobs" />
-               <MobileNavItem to="/messages" label="Chat" />
-            </>
-            )}
-
-
-            {signedIn && role !== "hospital" && role !== "admin" && (
-               <>
-              <MobileNavItem to="/find-doctor" label="Find Doctor" />
-              <MobileNavItem to="/search/jobs" label="Find Jobs" />
-              <MobileNavItem to="/resume" label="Resume" />
-              <MobileNavItem to="/messages" label="Chat" />
-              {profileCompleted && (
-                 <MobileNavItem to="/get-verified" label="Get Verified" />
-              )}
-            </>
-            )}
-
-            {signedIn && role === "admin" && ( <>
-              <MobileNavItem to="/admin" label="Doctors" />
-              <MobileNavItem to="/admin-hospital" label="Hospitals" />
+              <>
+                <MobileNavItem to="/find-doctor" icon="person_search" label="Find Doctor" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/hospital-profile" icon="local_hospital" label="Profile" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/post-job" icon="add_business" label="Post Job" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/posted-jobs" icon="work" label="Posted Jobs" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/messages" icon="chat" label="Chat" onClick={() => setMobileMenuOpen(false)} />
               </>
             )}
 
-            {signedIn && (
+            {signedIn && role !== "hospital" && role !== "admin" && (
+              <>
+                <MobileNavItem to="/find-doctor" icon="person_search" label="Find Doctor" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/search/jobs" icon="work" label="Find Jobs" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/resume" icon="description" label="Resume" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/messages" icon="chat" label="Chat" onClick={() => setMobileMenuOpen(false)} />
+                {profileCompleted && (
+                  <MobileNavItem to="/get-verified" icon="verified" label="Get Verified" onClick={() => setMobileMenuOpen(false)} />
+                )}
+              </>
+            )}
+
+            {signedIn && role === "admin" && (
+              <>
+                <MobileNavItem to="/admin" icon="dashboard" label="Doctors" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem to="/admin-hospital" icon="local_hospital" label="Hospitals" onClick={() => setMobileMenuOpen(false)} />
+              </>
+            )}
+
+            {signedIn ? (
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-red-600"
+                className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
               >
+                <span className="material-symbols-outlined">logout</span>
                 Logout
               </button>
+            ) : (
+               !isAuthPage && (
+                 <button
+                   onClick={() => {
+                     navigate("/auth");
+                     setMobileMenuOpen(false);
+                   }}
+                   className="w-full text-center px-4 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-lg mx-auto block mt-4 hover:bg-[var(--color-primary-dark)] transition-colors"
+                 >
+                   Sign In
+                 </button>
+               )
             )}
           </div>
         )}
@@ -290,18 +290,25 @@ useEffect(() => {
 /* HELPERS */
 function NavItem({ to, icon, label }) {
   return (
-    <Link to={to} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg">
-      <span className="material-symbols-outlined">{icon}</span>
+    <Link
+      to={to}
+      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-[var(--color-primary)] hover:bg-[var(--color-secondary)] rounded-lg transition-all duration-200 font-medium text-sm"
+    >
+      <span className="material-symbols-outlined text-[20px]">{icon}</span>
       {label}
     </Link>
   );
 }
 
-function MobileNavItem({ to, label }) {
+function MobileNavItem({ to, icon, label, onClick }) {
   return (
-    <Link to={to} className="block px-4 py-2 hover:bg-gray-100">
-      {label}
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-[var(--color-primary)] transition-colors"
+    >
+      <span className="material-symbols-outlined text-gray-500">{icon}</span>
+      <span className="font-medium">{label}</span>
     </Link>
   );
 }
-

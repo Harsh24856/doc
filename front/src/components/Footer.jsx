@@ -1,131 +1,78 @@
 import { Link } from "react-router-dom";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          {/* About Us Section */}
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">About Us</h3>
-            <p className="text-sm leading-relaxed mb-4">
-              DocSpace is the premier professional network for verified healthcare professionals. 
-              We connect doctors, hospitals, and medical institutions to foster collaboration, 
-              career growth, and better patient care.
+    <footer className="bg-gray-900 text-gray-400 mt-auto border-t border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+
+          {/* Brand Column */}
+          <div className="space-y-4">
+            <Link to="/" className="flex items-center gap-2 group w-fit">
+              <span className="text-2xl font-bold text-white tracking-tight group-hover:text-[var(--color-primary)] transition-colors">DocSpace</span>
+              <span className="text-2xl">🩺</span>
+            </Link>
+            <p className="text-sm leading-relaxed max-w-xs">
+              The premier professional network for verified healthcare professionals. Connect, collaborate, and grow your medical career.
             </p>
-            <p className="text-sm leading-relaxed">
-              Our mission is to create a secure, trusted platform where medical professionals 
-              can network, find opportunities, and advance their careers.
-            </p>
+            <div className="flex gap-4 pt-2">
+              <SocialLink icon="📘" href="#" />
+              <SocialLink icon="🐦" href="#" />
+              <SocialLink icon="💼" href="#" />
+            </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/search/jobs" className="hover:text-[var(--color-primary)] transition">
-                  Find Jobs
-                </Link>
-              </li>
-              <li>
-                <Link to="/get-verified" className="hover:text-[var(--color-primary)] transition">
-                  Get Verified
-                </Link>
-              </li>
-              <li>
-                <Link to="/news" className="hover:text-[var(--color-primary)] transition">
-                  News & Updates
-                </Link>
-              </li>
-              <li>
-                <Link to="/who" className="hover:text-[var(--color-primary)] transition">
-                  Who Updates
-                </Link>
-              </li>
+            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Platform</h3>
+            <ul className="space-y-3 text-sm">
+              <FooterLink to="/search/jobs">Find Jobs</FooterLink>
+              <FooterLink to="/find-doctor">Find Doctors</FooterLink>
+              <FooterLink to="/get-verified">Get Verified</FooterLink>
+              <FooterLink to="/news">Medical News</FooterLink>
             </ul>
           </div>
 
           {/* For Hospitals */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">For Hospitals</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/post-job" className="hover:text-[var(--color-primary)] transition">
-                  Post a Job
-                </Link>
-              </li>
-              <li>
-                <Link to="/hospital-profile" className="hover:text-[var(--color-primary)] transition">
-                  Hospital Profile
-                </Link>
-              </li>
-              <li>
-                <span className="hover:text-[var(--color-primary)] transition cursor-pointer">
-                  Find Doctors
-                </span>
-              </li>
-              <li>
-                <span className="hover:text-[var(--color-primary)] transition cursor-pointer">
-                  Verification Services
-                </span>
-              </li>
+            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Hospitals</h3>
+            <ul className="space-y-3 text-sm">
+              <FooterLink to="/post-job">Post a Job</FooterLink>
+              <FooterLink to="/hospital-profile">Hospital Profile</FooterLink>
+              <FooterLink to="/who">WHO Updates</FooterLink>
+              <li className="text-gray-500 cursor-not-allowed">Talent Solutions</li>
             </ul>
           </div>
 
-          {/* Contact & Support */}
+          {/* Contact */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Contact</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <span className="flex items-center gap-2">
-                  <span>📧</span>
-                  <span>Docspace2430@gmail.com</span>
-                </span>
+            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">Contact</h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[18px]">mail</span>
+                <span>contact@docspace.com</span>
               </li>
-              <li>
-                <span className="flex items-center gap-2">
-                  <span>📞</span>
-                  <span>+1 (555) 123-4567</span>
-                </span>
+              <li className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[18px]">call</span>
+                <span>+1 (555) 123-4567</span>
               </li>
-              <li>
-                <span className="flex items-center gap-2">
-                  <span>📍</span>
-                  <span>PEC, Chandigarh</span>
-                </span>
+              <li className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-[18px] mt-0.5">location_on</span>
+                <span>PEC, Chandigarh</span>
               </li>
             </ul>
-            <div className="mt-4 flex gap-4">
-              <a href="#" className="text-gray-400 hover:text-[var(--color-primary)] transition">
-                <span className="text-xl">📘</span>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[var(--color-primary)] transition">
-                <span className="text-xl">🐦</span>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[var(--color-primary)] transition">
-                <span className="text-xl">💼</span>
-              </a>
-            </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm">
-            <span className="text-2xl font-bold text-[var(--color-primary)]">DocSpace</span>
-            <span className="ml-2">🩺</span>
-          </div>
-          <div className="text-sm text-gray-400">
-            © {new Date().getFullYear()} DocSpace. All rights reserved.
-          </div>
-          <div className="flex gap-6 text-sm">
-            <Link to="#" className="hover:text-[var(--color-primary)] transition">
-              Privacy Policy
-            </Link>
-            <Link to="#" className="hover:text-[var(--color-primary)] transition">
-              Terms of Service
-            </Link>
+        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+          <p>© {year} DocSpace. All rights reserved.</p>
+          <div className="flex gap-6">
+            <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="#" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="#" className="hover:text-white transition-colors">Cookie Policy</Link>
           </div>
         </div>
       </div>
@@ -133,3 +80,23 @@ export default function Footer() {
   );
 }
 
+function FooterLink({ to, children }) {
+  return (
+    <li>
+      <Link to={to} className="hover:text-[var(--color-primary)] transition-colors duration-200 block w-fit">
+        {children}
+      </Link>
+    </li>
+  );
+}
+
+function SocialLink({ icon, href }) {
+  return (
+    <a
+      href={href}
+      className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200"
+    >
+      <span className="text-sm">{icon}</span>
+    </a>
+  );
+}
