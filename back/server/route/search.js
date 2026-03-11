@@ -7,20 +7,35 @@ const router = express.Router();
 
 /* SEARCH USERS AND HOSPITALS (AUTOCOMPLETE) */
 router.get("/users", async (req, res) => {
+  const start = Date.now();
+
   const q = req.query.q;
 
   if (!q || q.length < 2) {
     return res.json([]);
   }
-  const cacheKey = `users:search:${JSON.stringify(req.query)}`
-  const cached = await redis.get(cacheKey);
-  if(cached){
-    return res.json(cached);
-  }
-  const search = `%${q}%`;
+
+  const cacheKey = `users:search:${JSON.stringify(req.query)}`;
 
   try {
-    // Search users
+    // CHECK CACHE
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      const end = Date.now();
+      console.log("Cache HIT response time:", end - start, "ms");
+
+      try {
+        return res.json(JSON.parse(cached));
+      } catch (parseErr) {
+        console.log("Cache parse error, deleting key");
+        await redis.del(cacheKey);
+      }
+    }
+
+    const search = `%${q}%`;
+
+    // USERS QUERY
     const { data: users, error: usersError } = await supabase
       .from("users")
       .select(`
@@ -38,10 +53,10 @@ router.get("/users", async (req, res) => {
       .limit(10);
 
     if (usersError) {
-      console.error("[Search Error] Users:", usersError.message);
+      console.error("Users search error:", usersError.message);
     }
 
-    // Search hospitals (by name, city, or state)
+    // HOSPITAL QUERY
     const { data: hospitals, error: hospitalsError } = await supabase
       .from("hospitals")
       .select(`
@@ -58,31 +73,37 @@ router.get("/users", async (req, res) => {
       .limit(10);
 
     if (hospitalsError) {
-      console.error("[Search Error] Hospitals:", hospitalsError.message);
+      console.error("Hospitals search error:", hospitalsError.message);
     }
 
-    // Combine results with type indicators
     const userResults = (users || []).map(user => ({
       ...user,
       type: "user"
     }));
 
     const hospitalResults = (hospitals || []).map(hospital => ({
-      id: hospital.user_id || hospital.id, // Use user_id for navigation
+      id: hospital.user_id || hospital.id,
       name: hospital.hospital_name,
       type: "hospital",
       location: `${hospital.hospital_city || ""}${hospital.hospital_city && hospital.hospital_state ? ", " : ""}${hospital.hospital_state || ""}`.trim(),
       hospital_type: hospital.hospital_type
     }));
-    await redis.set(cacheKey, [...userResults, ...hospitalResults], {ex : 60});
-    res.json([...userResults, ...hospitalResults]);
+
+    const results = [...userResults, ...hospitalResults];
+
+    // STORE CACHE
+    await redis.set(cacheKey, JSON.stringify(results), { ex: 60 });
+
+    const end = Date.now();
+    console.log("Cache MISS response time:", end - start, "ms");
+
+    return res.json(results);
 
   } catch (err) {
     console.error("[Search Error]", err.message);
     return res.status(500).json({ error: "Search failed" });
   }
 });
-
 /* =========================
    🔍 SEARCH DOCTORS WITH FILTERS
    ========================= */
