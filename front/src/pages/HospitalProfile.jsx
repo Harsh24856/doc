@@ -33,7 +33,12 @@ export default function HospitalProfile() {
             Authorization: `Bearer ${token}`,
           },
         });
-
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
         const data = await res.json();
 
         if (res.ok && data) {
@@ -58,6 +63,12 @@ export default function HospitalProfile() {
         Authorization: `Bearer ${token}`,
       },
     });
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
     const data = await res.json();
 
@@ -112,6 +123,12 @@ useEffect(()=>{
       },
       body: JSON.stringify(form),
     });
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
     const data = await res.json();
 

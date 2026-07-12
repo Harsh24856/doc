@@ -32,6 +32,12 @@ export default function Dashboard() {
       },
     })
       .then(async (res) => {
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+        }
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || "Failed to load dashboard");
         return json;

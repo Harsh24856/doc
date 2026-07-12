@@ -23,6 +23,12 @@ export default function JobsPosted() {
             },
           }
         );
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         const data = await res.json();
 
@@ -54,6 +60,12 @@ export default function JobsPosted() {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
 

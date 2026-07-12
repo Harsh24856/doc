@@ -44,6 +44,12 @@ export default function AdminHospitalData() {
        }),
       }
     );
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to reject hospital");
@@ -73,8 +79,15 @@ export default function AdminHospitalData() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        if (profileRes.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+       }  
 
         const profileData = await profileRes.json();
+        
         if (!profileRes.ok) {
           throw new Error(profileData.message || "Failed to fetch hospital profile");
         }
@@ -87,6 +100,12 @@ export default function AdminHospitalData() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        if (docsRes.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         const docsData = await docsRes.json();
         if (!docsRes.ok) {
@@ -116,6 +135,12 @@ export default function AdminHospitalData() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
       if (!res.ok) {
@@ -148,7 +173,14 @@ export default function AdminHospitalData() {
         },
         body: JSON.stringify({ status: "verified" }),
       }
+      
     );
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to verify hospital");

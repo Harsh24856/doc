@@ -51,6 +51,12 @@ export default function Notifications() {
         const res = await fetch(`${API_BASE_URL}/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+       }
 
         if (!res.ok) {
           throw new Error("Failed to fetch notifications");

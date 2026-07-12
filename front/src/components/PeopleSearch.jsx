@@ -20,9 +20,20 @@ export default function PeopleSearch() {
     const delay = setTimeout(async () => {
       setLoading(true);
       try {
+        const token = await localStorage.getItem("token");
         const res = await fetch(
-          `${API_BASE_URL}/search/users?q=${encodeURIComponent(query)}`
+          `${API_BASE_URL}/search/users?q=${encodeURIComponent(query)}`,{
+            headers : {
+              Authorization: `Bearer ${token}`,
+            }
+          }
         );
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
         const data = await res.json();
         setResults(data);
         setShowResults(data.length > 0);

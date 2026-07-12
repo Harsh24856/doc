@@ -62,6 +62,12 @@ export default function AdminDashboard() {
         },
       }
     );
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
     const data = await res.json();
     if (data.url) window.open(data.url, "_blank");
   };
@@ -78,6 +84,12 @@ export default function AdminDashboard() {
           },
         }
       );
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setResults((prev) => ({ ...prev, [id]: data }));

@@ -27,6 +27,12 @@ export default function GetVerified() {
         const res = await fetch(`${API_BASE_URL}/profile/medical-resume`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         if (!res.ok) {
           throw new Error("Failed to fetch profile");
@@ -73,6 +79,12 @@ export default function GetVerified() {
       },
       body: formData,
     });
+    if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
     const data = await res.json();
 
@@ -104,6 +116,12 @@ export default function GetVerified() {
           registration_council: registrationCouncil,
         }),
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
 

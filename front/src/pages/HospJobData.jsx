@@ -34,6 +34,12 @@ export default function HospJobData() {
         const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to fetch job");
@@ -79,6 +85,12 @@ export default function HospJobData() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         const data = await res.json();
         if (!res.ok) {
@@ -161,6 +173,12 @@ export default function HospJobData() {
         },
         body: JSON.stringify({ interview_date: interviewDate }),
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
       if (!res.ok) {
@@ -201,6 +219,12 @@ export default function HospJobData() {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
       if (!res.ok) {

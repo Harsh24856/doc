@@ -19,6 +19,12 @@ export default function WhoUpdates() {
   const fetchWHOUpdates = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/who/updates`);
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       if (!res.ok) {
         throw new Error("Failed to fetch WHO updates");

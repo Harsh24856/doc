@@ -41,6 +41,12 @@ export default function FindDoctor() {
         const url = `${API_BASE_URL}/search/doctors?${params.toString()}`;
 
         const res = await fetch(url, { signal: controller.signal });
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
         const data = await res.json();
 
         if (!res.ok) {

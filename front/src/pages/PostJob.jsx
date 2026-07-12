@@ -36,6 +36,12 @@ export default function PostJob() {
         const hospitalRes = await fetch(`${API_BASE_URL}/hospital/fetch`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (hospitalRes.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
         if (hospitalRes.ok) {
           const hospitalInfo = await hospitalRes.json();
@@ -87,6 +93,12 @@ export default function PostJob() {
           max_salary: Number(form.max_salary),
         }),
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       const data = await res.json();
 

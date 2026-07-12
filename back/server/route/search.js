@@ -2,11 +2,12 @@ import express from "express";
 import supabase from "../db.js";
 import latency from "../middleware/latency.js";
 import redis from "../redis.js";
+import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
 /* SEARCH USERS AND HOSPITALS (AUTOCOMPLETE) */
-router.get("/users", async (req, res) => {
+router.get("/users", auth, async (req, res) => {
   const start = Date.now();
 
   const q = req.query.q;

@@ -51,7 +51,10 @@ export default function Navbar({ signedIn, role }) {
     if (!signedIn || role === "hospital" || role === "admin") return;
 
     const token = localStorage.getItem("token");
-    if (!token) return;
+    // if (!token){
+    //   navigate("/auth");
+    //   return;
+    // }
 
     fetch(`${API_BASE_URL}/profile/medical-resume`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -64,11 +67,20 @@ export default function Navbar({ signedIn, role }) {
      const checkNotifications = async () => {
       try {
         const token = localStorage.getItem("token"); 
-        if (!token) return;
+        // if (!token){
+        //   navigate("/auth");
+        //   return;
+        // }
 
       const res = await fetch(`${API_BASE_URL}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
 
       if (!res.ok) return;
 

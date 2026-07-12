@@ -12,6 +12,12 @@ export default function Profile() {
   useEffect(() => {
     fetch(`${API_BASE_URL}/profile/public/${id}`)
       .then(async (res) => {
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.error || "Profile not found");

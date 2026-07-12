@@ -30,7 +30,12 @@ export default function HospitalHome() {
         const res = await fetch(`${API_BASE_URL}/hospital/fetch`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
+        if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
         if (res.ok) {
           const data = await res.json();
           setHospitalData(data);
@@ -52,6 +57,12 @@ export default function HospitalHome() {
       const res = await fetch(
         `${API_BASE_URL}/news/medical?q=medical&limit=3`
       );
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
       if (res.ok) {
         const data = await res.json();
         setNewsArticles(data.articles || []);
@@ -66,6 +77,12 @@ export default function HospitalHome() {
   const fetchWHOUpdates = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/who/updates`);
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+    }
       if (res.ok) {
         const data = await res.json();
         setWhoUpdates((data.articles || []).slice(0, 3));
