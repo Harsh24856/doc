@@ -15,6 +15,8 @@ const emptyForm = {
   hospital_website: "",
 };
 
+const [saving, setSaving] = useState(false);
+
 const [form, setForm] = useState(emptyForm);
 const [originalForm, setOriginalForm] = useState(emptyForm);
 
@@ -118,7 +120,7 @@ useEffect(()=>{
   /* SUBMIT PROFILE (UNCHANGED) */
 const handleSubmit = async (e) => {
   e.preventDefault();
-
+  setSaving(true);
   const res = await fetch(`${API_BASE_URL}/hospital/profile`, {
     method: "POST",
     headers: {
@@ -145,6 +147,7 @@ const handleSubmit = async (e) => {
 
   setOriginalForm(form);
   setEditing(false);
+  setSaving(false);
 };
 const handleCancel = () => {
   setForm(originalForm);
@@ -234,21 +237,21 @@ const handleCancel = () => {
           <Input
             label="Hospital Name"
             value={form.hospital_name}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) => setForm({ ...form, hospital_name: v })}
           />
 
           <Input
             label="Hospital Type"
             value={form.hospital_type}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) => setForm({ ...form, hospital_type: v })}
           />
 
           <Input
             label="Registration Number"
             value={form.registration_number_hospital}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) =>
               setForm({ ...form, registration_number_hospital: v })
             }
@@ -257,21 +260,21 @@ const handleCancel = () => {
           <Input
             label="City"
             value={form.hospital_city}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) => setForm({ ...form, hospital_city: v })}
           />
 
           <Input
             label="State"
             value={form.hospital_state}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) => setForm({ ...form, hospital_state: v })}
           />
 
           <Input
             label="Contact Person Name"
             value={form.hospital_person_name}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) =>
               setForm({ ...form, hospital_person_name: v })
             }
@@ -280,7 +283,7 @@ const handleCancel = () => {
           <Input
             label="Contact Person Email"
             value={form.hospital_person_email}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) =>
               setForm({ ...form, hospital_person_email: v })
             }
@@ -289,7 +292,7 @@ const handleCancel = () => {
           <Input
             label="Website"
             value={form.hospital_website}
-            disabled={!editing}
+            disabled={!editing || saving}
             onChange={(v) =>
               setForm({ ...form, hospital_website: v })
             }
