@@ -4,16 +4,19 @@ import HospitalDocUpload from "../components/HospitalDocUpload.jsx";
 import logo1 from "../assets/1.png";
 
 export default function HospitalProfile() {
-  const [form, setForm] = useState({
-    hospital_name: "",
-    hospital_type: "",
-    registration_number_hospital: "",
-    hospital_city: "",
-    hospital_state: "",
-    hospital_person_name: "",
-    hospital_person_email: "",
-    hospital_website: "",
-  });
+const emptyForm = {
+  hospital_name: "",
+  hospital_type: "",
+  registration_number_hospital: "",
+  hospital_city: "",
+  hospital_state: "",
+  hospital_person_name: "",
+  hospital_person_email: "",
+  hospital_website: "",
+};
+
+const [form, setForm] = useState(emptyForm);
+const [originalForm, setOriginalForm] = useState(emptyForm);
 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -42,8 +45,9 @@ export default function HospitalProfile() {
         const data = await res.json();
 
         if (res.ok && data) {
-          setForm(data);
-        }
+  setForm(data);
+  setOriginalForm(data);
+}
       } catch (err) {
         console.error(err);
       } finally {
@@ -112,34 +116,40 @@ useEffect(()=>{
     verificationStatus === null;
 
   /* SUBMIT PROFILE (UNCHANGED) */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const res = await fetch(`${API_BASE_URL}/hospital/profile`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(form),
-    });
-    if (res.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/auth");
-        throw new Error("Unauthorized");
-    }
+  const res = await fetch(`${API_BASE_URL}/hospital/profile`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(form),
+  });
 
-    const data = await res.json();
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/auth");
+    throw new Error("Unauthorized");
+  }
 
-    if (!res.ok) {
-      alert(data.error || "Update failed");
-      return;
-    }
+  const data = await res.json();
 
-    setEditing(false);
-  };
+  if (!res.ok) {
+    alert(data.error || "Update failed");
+    return;
+  }
 
+
+  setOriginalForm(form);
+  setEditing(false);
+};
+const handleCancel = () => {
+  setForm(originalForm);
+  setEditing(false);
+};
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
@@ -285,16 +295,24 @@ useEffect(()=>{
             }
           />
 
-          {editing && !isLocked && (
-            <div className="md:col-span-2 flex justify-end">
-              <button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-              >
-                Save Changes
-              </button>
-            </div>
-          )}
+         {editing && !isLocked && (
+  <div className="md:col-span-2 flex justify-end gap-3">
+    <button
+      type="button"
+      onClick={handleCancel}
+      className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+    >
+      Cancel Changes
+    </button>
+
+    <button
+      type="submit"
+      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+    >
+      Save Changes
+    </button>
+  </div>
+)}
         </form>
 
         {/* VERIFICATION SECTION */}
