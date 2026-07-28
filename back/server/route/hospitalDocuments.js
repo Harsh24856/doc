@@ -2,6 +2,7 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import uploadHospital from "../middleware/uploadHospital.js";
 import supabaseAdmin from "../Admin.js";
+import hospital from "../middleware/hospital.js";
 
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const router = express.Router();
 /* UPLOAD HOSPITAL DOCUMENT */
 router.post(
   "/documents/upload",
-  auth,
+  auth, hospital,
   uploadHospital.single("document"),
   async (req, res) => {
     try {
@@ -129,7 +130,7 @@ router.post(
   }
 );
 
-router.post("/documents/send", auth, async (req, res) => {
+router.post("/documents/send", auth, hospital, async (req, res) => {
   try {
     const userId = req.user.id;
     const { submitted_documents = [] } = req.body;
@@ -217,7 +218,7 @@ router.post("/documents/send", auth, async (req, res) => {
 });
 
 
-router.get("/status", auth, async (req, res) => {
+router.get("/status", auth, hospital, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -256,7 +257,7 @@ router.get("/status", auth, async (req, res) => {
   }
 });
 
-router.get("/message", auth, async (req, res) => {
+router.get("/message", auth, hospital, async (req, res) => {
   try {
     const userId = req.user.id;
 

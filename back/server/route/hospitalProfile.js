@@ -1,10 +1,11 @@
 import express from "express";
 import supabase from "../db.js";
 import auth from "../middleware/auth.js";
+import hospital from "../middleware/hospital.js";
 
 const router = express.Router();
 
-router.post("/profile", auth, async (req, res) => {
+router.post("/profile", auth, hospital, async (req, res) => {
   const userId = req.user.id;
   const body = req.body;
 

@@ -95,7 +95,7 @@ router.get(
 
       // Only hospital users
       if (user.role !== "hospital") {
-        return res.status(403).json({
+        return res.status(401).json({
           message: "Only hospitals can view their job titles",
         });
       }
@@ -137,61 +137,95 @@ router.get(
   }
 );
 
-router.get(
-  "/jobs/:jobId",
-  async (req, res) => {
-    try {
-      const { jobId } = req.params;
+router.get("/jobs/:jobId", auth, async (req, res) => {
+  try {
+    const { jobId } = req.params;
 
-      const { data: job, error: jobError } = await supabase
-        .from("jobs")
-        .select(`
-          id,
-          title,
-          department,
-          job_type,
-          experience_required,
-          min_salary,
-          max_salary,
-          description,
-          hospital_id,
-          created_at
-        `)
-        .eq("id", jobId)
+    // Fetch the user's role
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", req.user.id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    // Fetch the job
+    const { data: job, error: jobError } = await supabase
+      .from("jobs")
+      .select(`
+        id,
+        title,
+        department,
+        job_type,
+        experience_required,
+        min_salary,
+        max_salary,
+        description,
+        hospital_id,
+        created_at
+      `)
+      .eq("id", jobId)
+      .single();
+
+    if (jobError || !job) {
+      return res.status(404).json({
+        message: "Job not found",
+      });
+    }
+
+    // Only hospitals need ownership verification
+    if (user.role === "hospital") {
+      const { data: hospital, error: hospitalError } = await supabase
+        .from("hospitals")
+        .select("user_id, hospital_name, hospital_city, hospital_state")
+        .eq("id", job.hospital_id)
         .single();
 
-      if (jobError || !job) {
+      if (hospitalError) {
+        throw hospitalError;
+      }
+
+      if (hospital.user_id !== req.user.id) {
         return res.status(404).json({
           message: "Job not found",
         });
       }
 
-      // Fetch hospital information including city
-      if (job.hospital_id) {
-        const { data: hospital, error: hospitalError } = await supabase
-          .from("hospitals")
-          .select("hospital_name, hospital_city, hospital_state")
-          .eq("id", job.hospital_id)
-          .single();
+      job.hospital = {
+        name: hospital.hospital_name,
+        city: hospital.hospital_city,
+        state: hospital.hospital_state,
+      };
+    } else {
+      // Doctors can still receive hospital details
+      const { data: hospital } = await supabase
+        .from("hospitals")
+        .select("hospital_name, hospital_city, hospital_state")
+        .eq("id", job.hospital_id)
+        .single();
 
-        if (!hospitalError && hospital) {
-          job.hospital = {
-            name: hospital.hospital_name,
-            city: hospital.hospital_city,
-            state: hospital.hospital_state,
-          };
-        }
+      if (hospital) {
+        job.hospital = {
+          name: hospital.hospital_name,
+          city: hospital.hospital_city,
+          state: hospital.hospital_state,
+        };
       }
-
-      res.json({ job });
-    } catch (err) {
-      console.error("FETCH JOB DETAIL ERROR:", err.message);
-      res.status(500).json({
-        message: "Failed to fetch job details",
-      });
     }
+
+    res.json({ job });
+  } catch (err) {
+    console.error("FETCH JOB DETAIL ERROR:", err.message);
+    res.status(500).json({
+      message: "Failed to fetch job details",
+    });
   }
-);
+});
 
 router.patch(
   "/jobs/:jobId",
@@ -203,7 +237,7 @@ router.patch(
 
       /*  Only hospitals can update jobs */
       if (user.role !== "hospital") {
-        return res.status(403).json({
+        return res.status(401).json({
           message: "Only hospitals can update jobs",
         });
       }
@@ -501,7 +535,7 @@ router.delete(
 
       /*  Only hospitals can delete jobs */
       if (user.role !== "hospital") {
-        return res.status(403).json({
+        return res.status(401).json({
           message: "Only hospitals can delete jobs",
         });
       }

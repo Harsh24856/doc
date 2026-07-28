@@ -2,6 +2,7 @@ import express from "express";
 import supabase from "../db.js";
 import auth from "../middleware/auth.js";
 import admin from "../middleware/admin.js";
+import hospital from "../middleware/hospital.js";
 
 const router = express.Router();
 

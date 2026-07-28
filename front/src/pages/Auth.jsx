@@ -17,7 +17,7 @@ export default function Auth({ setSignedIn, setRole }) {
 
   // Listen for toggle event from Navbar
   useEffect(() => {
-    const handleToggleAuth = (event) => {
+    const handleToggleAuth = (event) => {a
       if (event.detail?.showSignup) {
         toggleForm(false);
       } else if (event.detail?.showLogin) {

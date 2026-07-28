@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config/api.js";
 
 export default function ViewJob() {
+  const navigate = useNavigate();
   const { jobId } = useParams();
 
   const [job, setJob] = useState(null);
@@ -48,9 +49,18 @@ export default function ViewJob() {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchJob = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`);
+        const res = await fetch(`${API_BASE_URL}/jobs/${jobId}`,{
+          headers: {Authorization : `Bearer ${token}`},
+        });
+          if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/auth");
+        throw new Error("Unauthorized");
+        }
         const data = await res.json();
 
         if (!res.ok) {

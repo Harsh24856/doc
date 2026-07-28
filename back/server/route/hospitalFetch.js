@@ -1,6 +1,7 @@
 import express from "express";
 import supabase from "../db.js";
 import auth from "../middleware/auth.js";
+import hospital from "../middleware/hospital.js";
 
 const router = express.Router();
 

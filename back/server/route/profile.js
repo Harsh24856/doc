@@ -4,6 +4,7 @@ import supabase from "../db.js";
 import supabaseAdmin from "../Admin.js";
 import latency from "../middleware/latency.js";
 import redis from "../redis.js";
+import doctor from "../middleware/doctor.js";
 
 const router = express.Router();
 
@@ -66,7 +67,7 @@ router.get("/medical-resume", auth, async (req, res) => {
   }
 });
 
-router.put("/medical-resume", auth, async (req, res) => {
+router.put("/medical-resume", auth, doctor, async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };

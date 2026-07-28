@@ -1,10 +1,11 @@
 import express from "express"
 import auth from "../middleware/auth.js"
 import supabaseAdmin from "../Admin.js"
+import doctor from "../middleware/doctor.js";
 
 const router = express.Router();
 
-router.get("/doctor", auth, async(req, res)=> {
+router.get("/doctor", auth,  async(req, res)=> {
     try{
       const userId = req.user.id;
       const{data, error} = await supabaseAdmin

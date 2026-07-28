@@ -2,13 +2,14 @@ import express from "express";
 import supabase from "../db.js";
 import auth from "../middleware/auth.js";
 import { io } from "../server.js";
+import doctor from "../middleware/doctor.js";
 
 const router = express.Router();
 
 /* =========================
    APPLY FOR A JOB
    ========================= */
-router.post("/apply/:jobId", auth, async (req, res) => {
+router.post("/apply/:jobId", auth, doctor, async (req, res) => {
   try {
     const { jobId } = req.params;
     const userId = req.user.id;

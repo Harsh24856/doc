@@ -53,10 +53,8 @@ export default function HospJobData() {
           setCanEdit(true);
           setCanViewApplicants(true);
         } else if (userRole === "hospital") {
-          // For hospitals, backend will verify ownership
-          // We'll set these based on successful API calls
-          setCanViewApplicants(true); // Will be verified by backend
-          setCanEdit(true); // Will be verified by backend
+          setCanViewApplicants(true); 
+          setCanEdit(true);
         }
       } catch (err) {
         setError(err.message);
