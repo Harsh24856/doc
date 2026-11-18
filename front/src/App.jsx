@@ -81,9 +81,12 @@ export default function App() {
     };
   }, [location.pathname]); // Re-check when route changes
 
+  const isAuthRoute = ["/auth", "/login", "/signup", "/signUp"].includes(location.pathname);
+
   return (
     <>
-      <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role} />
+      {/* Navbar only exists for signed-in users; it disappears the moment they sign out. */}
+      {signedIn && !isAuthRoute && <Navbar signedIn={signedIn} setSignedIn={setSignedIn} role={role} />}
 
       <PageTransition>
         <Routes>

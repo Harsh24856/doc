@@ -1,115 +1,349 @@
 @import "tailwindcss";
 
+/* =====================================================================
+   DocSpace Design System — tokens
+   Brand palette is unchanged: coral #FF6B6B / #E05252 / #FFE3E3 / #F8F9FA.
+   Everything else is derived from it so every page reads as one system.
+   ===================================================================== */
+
 @theme {
+  /* ---- Brand (original values, kept) ---- */
   --color-primary: #FF6B6B;
   --color-primary-dark: #E05252;
   --color-secondary: #F8F9FA;
   --color-accent: #FFE3E3;
-  
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ---- Brand scale derived from the coral ---- */
+  --color-coral-50: #FFF5F5;
+  --color-coral-100: #FFE3E3;
+  --color-coral-200: #FFC9C9;
+  --color-coral-300: #FFA8A8;
+  --color-coral-400: #FF8787;
+  --color-coral-500: #FF6B6B;
+  --color-coral-600: #E05252;
+  --color-coral-700: #C43D3D;
+  --color-coral-800: #9E2F2F;
+  --color-coral-900: #7A2424;
+
+  /* Re-map Tailwind's red to the coral scale so legacy `red-*` usage
+     (badges, errors, logout) stays on-brand. */
+  --color-red-50: #FFF5F5;
+  --color-red-100: #FFE3E3;
+  --color-red-200: #FFC9C9;
+  --color-red-300: #FFA8A8;
+  --color-red-400: #FF8787;
+  --color-red-500: #FF6B6B;
+  --color-red-600: #E05252;
+  --color-red-700: #C43D3D;
+  --color-red-800: #9E2F2F;
+  --color-red-900: #7A2424;
+
+  /* ---- Neutral "ink" scale (gray re-mapped, a hair warm to sit with coral) ---- */
+  --color-gray-50: #F8F9FA;
+  --color-gray-100: #F1F2F4;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA0A8;
+  --color-gray-500: #6B7079;
+  --color-gray-600: #4F545C;
+  --color-gray-700: #393D44;
+  --color-gray-800: #24272C;
+  --color-gray-900: #16181C;
+
+  /* ---- Semantic ---- */
+  --color-success: #12B886;
+  --color-warning: #F59F00;
+  --color-danger: #E05252;
+  --color-info: #4C6EF5;
+
+  /* ---- Type ---- */
+  /* Editorial / technical type system (after Aero-Sim):
+     display = Space Grotesk, body = Inter, labels & data = JetBrains Mono. */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* ---- Radius: sharp, engineered corners ---- */
+  --radius-card: 10px;
+  --radius-control: 6px;
+
+  /* ---- Elevation ---- */
+  --shadow-soft: 0 1px 2px rgb(22 24 28 / 0.04), 0 4px 16px -4px rgb(22 24 28 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(22 24 28 / 0.04), 0 18px 40px -12px rgb(22 24 28 / 0.18);
+  --shadow-brand: 0 1px 2px rgb(224 82 82 / 0.25), 0 4px 12px -4px rgb(224 82 82 / 0.35);
+  /* Hard offset shadow used by primary CTAs. */
+  --shadow-hard: 2px 2px 0 var(--color-gray-900);
+  --shadow-hard-lg: 4px 4px 0 var(--color-gray-900);
+
+  /* ---- Lines (hairline grids) ---- */
+  --color-line: rgb(22 24 28 / 0.12);
+  --color-line-soft: rgb(22 24 28 / 0.07);
+
+  /* ---- Motion (token durations only: 100 / 150 / 200 / 300ms) ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+
+  /* Functional loops only (loading / skeleton). */
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-fade-up: fade-up 300ms var(--ease-out) both;
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
-/* =========================
-   PAGE TRANSITIONS
-   ========================= */
-.page-transition {
-  width: 100%;
-  min-height: 100vh;
-  animation: fadeIn 0.3s ease-in-out;
+/* =====================================================================
+   Base
+   ===================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-gray-50 text-gray-800 antialiased;
+    font-family: var(--font-sans);
+    overscroll-behavior-y: contain;
+  }
+  ::selection {
+    background: var(--color-coral-200);
+    color: var(--color-gray-900);
+  }
+  h1, h2, h3, h4 {
+    @apply text-gray-900;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Consistent focus ring everywhere (keyboard only). */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Legacy form controls on not-yet-migrated markup get the system look. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  select,
+  textarea {
+    transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
+  }
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgb(255 107 107 / 0.15);
+  }
+  input[type="checkbox"], input[type="radio"] {
+    accent-color: var(--color-primary);
+  }
+
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled) { cursor: pointer; }
+
+  /* Prevent iOS zoom on focus */
+  @media (max-width: 640px) {
+    input, textarea, select { font-size: 16px !important; }
+  }
+
+  .material-symbols-outlined, .material-symbols-rounded {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .icon-fill {
+    font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+  }
 }
 
-@keyframes fadeIn {
-  from {
+/* =====================================================================
+   Component layer (used by src/ui and by legacy markup)
+   ===================================================================== */
+@layer components {
+  .ds-container { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+
+  .ds-card {
+    @apply bg-white border border-gray-200/70;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+  }
+
+  /* Mono caps label: section keys, field labels, metadata. */
+  .ds-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    @apply text-gray-500;
+  }
+  .ds-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    @apply inline-flex items-center gap-2.5 text-gray-600;
+  }
+  .ds-eyebrow::before {
+    content: "";
+    @apply h-1.5 w-1.5 rounded-full bg-primary;
+  }
+
+  /* Display headline: Space Grotesk, uppercase, tight. */
+  .ds-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    @apply text-gray-900;
+  }
+
+  /* Numbered section head:  01 — TITLE ───────── META */
+  .ds-sec-head { @apply mb-8 flex items-baseline gap-4; }
+  .ds-sec-head .ds-rule { @apply h-px flex-1; background: var(--color-line-soft); }
+  .ds-sec-head b { @apply font-medium text-coral-600; }
+
+  /* Hairline grid: children separated by 1px lines. */
+  .ds-hairline {
+    display: grid;
+    gap: 1px;
+    background: var(--color-line-soft);
+    border: 1px solid var(--color-line-soft);
+  }
+  .ds-hairline > * { @apply bg-white; }
+
+  /* Plate: hover reveals an accent wash, shifts content 8px, draws a bottom bar. */
+  .ds-plate { @apply relative overflow-hidden bg-white; }
+  .ds-plate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     opacity: 0;
-    transform: translateY(8px);
+    background: linear-gradient(145deg, rgb(255 107 107 / 0.09), transparent 60%);
+    transition: opacity 300ms var(--ease-out);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .ds-plate > .ds-plate-body { position: relative; transition: transform 300ms var(--ease-out); }
+  .ds-plate::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--color-primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 300ms var(--ease-out);
   }
-}
+  .ds-plate:hover::before { opacity: 1; }
+  .ds-plate:hover > .ds-plate-body { transform: translateX(8px); }
+  .ds-plate:hover::after { transform: scaleX(1); }
+  @media (hover: none) { .ds-plate:hover > .ds-plate-body { transform: none; } }
 
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-10px);
+  .ds-input {
+    @apply w-full bg-white border border-gray-300 px-3.5 py-2.5 text-gray-900 placeholder:text-gray-400;
+    border-radius: var(--radius-control);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-200) 37%, var(--color-gray-100) 63%);
+    background-size: 400% 100%;
+    animation: var(--animate-shimmer);
+    border-radius: 0.5rem;
   }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+
+  .touch-manipulation { touch-action: manipulation; }
+  .safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Smooth transitions for all interactive elements */
-a, button, input, select, textarea {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Smooth transitions for navigation links */
-a {
-  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
-
-a:hover {
-  transform: translateY(-1px);
-}
-
-/* Smooth transitions for buttons */
-button {
-  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* =========================
-   MOBILE OPTIMIZATIONS
-   ========================= */
-
-/* Prevent text size adjustment on iOS */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* Better touch targets for mobile */
-.touch-manipulation {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Safe area insets for notched devices */
-.safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* Better scrolling on mobile */
-* {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent pull-to-refresh on chat page */
-body {
-  overscroll-behavior-y: contain;
-}
-
-/* Better input handling on mobile */
-input, textarea {
-  font-size: 16px; /* Prevents zoom on iOS */
-}
-
-@media (max-width: 640px) {
-  input, textarea {
-    font-size: 16px !important; /* Prevent iOS zoom */
+/* =====================================================================
+   Reduced motion — honour the OS setting everywhere.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
+
+/* =====================================================================
+   Auth (after the Aero-Sim login): grid backdrop, octagonal card,
+   switch mark between modes, staggered field rise, CTA shine.
+   ===================================================================== */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(22 24 28 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(22 24 28 / 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.auth-glow {
+  background: radial-gradient(ellipse 50% 60% at 50% 0%, rgb(255 107 107 / 0.18), transparent 70%);
+}
+.auth-edge {
+  --cut: 26px;
+  padding: 1px;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  background: linear-gradient(160deg, rgb(255 107 107 / 0.75), rgb(22 24 28 / 0.12) 35%, rgb(22 24 28 / 0.1) 65%, rgb(224 82 82 / 0.6));
+  animation: auth-card-in 300ms var(--ease-out) both;
+}
+.auth-card {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  background: #fff;
+}
+.auth-corner { position: absolute; width: 18px; height: 18px; z-index: 1; background: linear-gradient(135deg, var(--color-coral-400), var(--color-coral-200)); }
+.auth-corner-tl { left: 4px; top: 4px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.auth-corner-br { right: 4px; bottom: 4px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+@keyframes auth-card-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* Fields rise in one after another (delay set inline, 40ms apart). */
+.auth-in { opacity: 0; animation: auth-rise 300ms var(--ease-out) forwards; }
+@keyframes auth-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.auth-out { animation: auth-fade-out 150ms var(--ease-in) forwards; }
+@keyframes auth-fade-out { to { opacity: 0; transform: translateY(-6px); } }
+
+/* Switch mark: the brand moment between modes (documented optical exception, 600ms total). */
+.auth-half-a { animation: auth-half-a 600ms var(--ease-out) both; }
+.auth-half-b { animation: auth-half-b 600ms var(--ease-out) both; }
+@keyframes auth-half-a { 0% { opacity: 0; transform: translate(-40px, -40px) rotate(-25deg); } 45%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(1.12); } }
+@keyframes auth-half-b { 0% { opacity: 0; transform: translate(40px, 40px) rotate(-25deg); } 45%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(1.12); } }
+.auth-flare {
+  background: radial-gradient(circle, rgb(255 201 201 / 0.95) 0%, rgb(255 107 107 / 0.45) 30%, transparent 65%);
+  animation: auth-flare 600ms ease-out both;
+}
+@keyframes auth-flare { 0%, 45% { opacity: 0; transform: scale(0.2); } 65% { opacity: 1; transform: scale(0.9); } 100% { opacity: 0; transform: scale(1.5); } }
+
+.auth-shine { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.45) 50%, transparent 70%); transform: translateX(-120%); }
+.group\/btn:hover .auth-shine { transition: transform 300ms var(--ease-out); transform: translateX(120%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-in, .auth-out, .auth-edge { animation: none; opacity: 1; }
+}
+
+/* Cursor follower (fine pointers only; disabled under reduced motion in JS). */
+.ds-cursor {
+  position: fixed; z-index: 80; top: 0; left: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  border: 1px solid rgb(22 24 28 / 0.35); border-radius: 50%; pointer-events: none; opacity: 0; will-change: transform;
+  transition: width 300ms var(--ease-out), height 300ms var(--ease-out), margin 300ms var(--ease-out), background-color 300ms, border-color 300ms, opacity 300ms;
+}
+.ds-cursor.act { width: 52px; height: 52px; margin: -26px 0 0 -26px; background: rgb(255 107 107 / 0.08); border-color: rgb(255 107 107 / 0.6); }

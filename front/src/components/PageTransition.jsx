@@ -1,27 +1,20 @@
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
 
+/**
+ * Route change: new page fades in with an 8px rise (300ms ease-out).
+ * Keyed on pathname so each route mounts fresh; scrolls to top on navigation.
+ */
 export default function PageTransition({ children }) {
-  const location = useLocation();
-  const [displayChildren, setDisplayChildren] = useState(children);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    setIsTransitioning(true);
-    const timer = setTimeout(() => {
-      setDisplayChildren(children);
-      setIsTransitioning(false);
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [location.pathname, children]);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
 
   return (
-    <div
-      className={`page-transition ${isTransitioning ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 ease-in-out`}
-      key={location.pathname}
-    >
-      {displayChildren}
-    </div>
+    <main key={pathname} className="min-h-screen w-full animate-fade-up">
+      {children}
+    </main>
   );
 }
-

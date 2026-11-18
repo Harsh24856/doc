@@ -1,197 +1,120 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 import API_BASE_URL from "../config/api.js";
+import { Modal, Icon, SkeletonCard, EmptyState, Button, dur, easeOut } from "../ui";
+
+const typeIcon = { verification: "verified", job: "work", application: "assignment", message: "chat" };
+
+function timeAgo(date) {
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (isNaN(s)) return "";
+  if (s < 60) return "Just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  if (s < 604800) return `${Math.floor(s / 86400)}d ago`;
+  return new Date(date).toLocaleDateString();
+}
 
 export default function NotificationsModal({ isOpen, onClose, onMarkedRead }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* FETCH NOTIFICATIONS */
   useEffect(() => {
     if (!isOpen || !token) return;
-
     const fetchNotifications = async () => {
-  try {
-    setLoading(true);
-
-    const res = await fetch(`${API_BASE_URL}/notifications`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!res.ok) throw new Error("Failed to fetch notifications");
-
-    const data = await res.json();
-    const notifications = data.notifications || [];
-
-    setNotifications(notifications);
-
-    // we mark-read only if there were unread notifications
-    if ((data.unread_count || 0) > 0) {
-      fetch(`${API_BASE_URL}/notifications/mark-read`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).then(()=> {onMarkedRead?.()}).catch(() => {});
-    }
-  } catch (err) {
-    console.error("Error fetching notifications:", err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-  fetchNotifications();
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/notifications`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error("Failed to fetch notifications");
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+        if ((data.unread_count || 0) > 0) {
+          fetch(`${API_BASE_URL}/notifications/mark-read`, { method: "POST", headers: { Authorization: `Bearer ${token}` } })
+            .then(() => onMarkedRead?.())
+            .catch(() => {});
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, token]);
 
-  /* =========================
-     CLOSE ON ESC
-     ========================= */
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  /* =========================
-     ICONS
-     ========================= */
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case "verification":
-        return (
-          <span className="material-symbols-outlined text-3xl text-green-600">
-            verified
-          </span>
-        );
-      case "job":
-        return (
-          <span className="material-symbols-outlined text-3xl text-purple-600">
-            work
-          </span>
-        );
-      default:
-        return (
-          <span className="material-symbols-outlined text-3xl text-gray-600">
-            notifications
-          </span>
-        );
-    }
-  };
-
-  /* =========================
-     UI
-     ========================= */
   return (
-    <>
-      {/* BACKDROP */}
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-        onClick={onClose}
-      />
-
-      {/* MODAL */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-100"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* HEADER */}
-          <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] px-8 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl text-white">
-                  updates
-                </span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">
-                  System Updates
-                </h1>
-                <p className="text-white/80 text-sm">
-                  Important updates regarding your account
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-2xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          {/* CONTENT */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block animate-spin text-4xl mb-4">⏳</div>
-                <p className="text-gray-500">Loading updates…</p>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="text-center py-16">
-                <span className="material-symbols-outlined text-6xl text-gray-400 mb-4 block">
-                  updates_off
-                </span>
-                <p className="text-xl font-semibold text-gray-800 mb-2">
-                  No updates
-                </p>
-                <p className="text-gray-500">
-                  You’re all caught up.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => {
-                      if (n.link) {
-                        onClose();
-                        navigate(n.link);
-                      }
-                    }}
-                    className="p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 cursor-pointer hover:shadow-lg transition"
-                  >
-                    <div className="flex gap-4">
-                      {/* <div className="flex-shrink-0">
-                        {getNotificationIcon(n.type)}
-                      </div> */}
-
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          {n.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {n.message}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(n.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title="Updates"
+      subtitle="Activity on your account"
+      icon="notifications"
+      size="md"
+      footer={
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconRight="arrow_forward"
+            onClick={() => {
+              onClose();
+              navigate("/notifications");
+            }}
+          >
+            View all
+          </Button>
         </div>
+      }
+    >
+      <div className="p-4 sm:p-5">
+        {loading ? (
+          <div className="space-y-3">
+            <SkeletonCard lines={1} />
+            <SkeletonCard lines={1} />
+          </div>
+        ) : notifications.length === 0 ? (
+          <EmptyState icon="notifications_off" title="You're all caught up" description="New verification results, applications and messages will appear here." />
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {notifications.map((n, i) => (
+              <motion.li
+                key={n.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i, 8) * 0.04, duration: dur.slow, ease: easeOut }}
+              >
+                <button
+                  type="button"
+                  disabled={!n.link}
+                  onClick={() => {
+                    if (n.link) {
+                      onClose();
+                      navigate(n.link);
+                    }
+                  }}
+                  className="group flex w-full items-start gap-3 rounded-xl px-2 py-3.5 text-left transition-colors duration-150 enabled:hover:bg-gray-50 disabled:cursor-default"
+                >
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-600">
+                    <Icon name={typeIcon[n.type] || "notifications"} className="text-[20px]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className="font-semibold text-gray-900">{n.title}</span>
+                      <span className="shrink-0 text-xs text-gray-500">{timeAgo(n.created_at)}</span>
+                    </span>
+                    <span className="mt-0.5 block text-sm text-gray-600">{n.message}</span>
+                  </span>
+                  {n.link && <Icon name="chevron_right" className="mt-2 text-gray-300 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-coral-500" />}
+                </button>
+              </motion.li>
+            ))}
+          </ul>
+        )}
       </div>
-    </>
+    </Modal>
   );
 }
